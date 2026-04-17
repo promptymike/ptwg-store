@@ -148,6 +148,9 @@ export type Database = {
           email: string
           id: string
           status: Database["public"]["Enums"]["order_status"]
+          stripe_checkout_session_id: string | null
+          stripe_customer_id: string | null
+          stripe_payment_intent_id: string | null
           subtotal: number
           total: number
           updated_at: string
@@ -159,6 +162,9 @@ export type Database = {
           email: string
           id?: string
           status?: Database["public"]["Enums"]["order_status"]
+          stripe_checkout_session_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
           subtotal?: number
           total?: number
           updated_at?: string
@@ -170,6 +176,9 @@ export type Database = {
           email?: string
           id?: string
           status?: Database["public"]["Enums"]["order_status"]
+          stripe_checkout_session_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
           subtotal?: number
           total?: number
           updated_at?: string
@@ -295,6 +304,27 @@ export type Database = {
           full_name?: string | null
           id?: string
           role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: []
+      }
+      stripe_webhook_events: {
+        Row: {
+          checkout_session_id: string
+          created_at: string
+          event_type: string
+          id: string
+        }
+        Insert: {
+          checkout_session_id: string
+          created_at?: string
+          event_type: string
+          id: string
+        }
+        Update: {
+          checkout_session_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
         }
         Relationships: []
       }

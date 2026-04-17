@@ -7,38 +7,46 @@ import { useCart } from "@/components/cart/cart-provider";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getProductById } from "@/data/mock-store";
+import { getMissingStripeCheckoutEnv } from "@/lib/env";
 import { formatCurrency } from "@/lib/format";
 
 type CheckoutResponse = {
-  orderId: string;
-  status: string;
-  message: string;
+  url?: string;
+  message?: string;
 };
 
-export function CheckoutClient() {
-  const { items, subtotal, clearCart, isReady } = useCart();
-  const [email, setEmail] = useState("klientka@ptwg.pl");
+type CheckoutClientProps = {
+  initialEmail: string;
+};
+
+export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
+  const { items, subtotal, isReady } = useCart();
+  const [email, setEmail] = useState(initialEmail);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [result, setResult] = useState<CheckoutResponse | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const lines = useMemo(
     () =>
       items
-        .map((item) => {
-          const product = getProductById(item.productId);
-          if (!product) {
-            return null;
-          }
-
-          return { ...product, quantity: item.quantity };
-        })
+        .map((item) =>
+          item.product ? { ...item.product, quantity: item.quantity } : null,
+        )
         .filter(Boolean),
     [items],
   );
 
   async function handleCheckout() {
     setIsSubmitting(true);
-    setResult(null);
+    setErrorMessage(null);
+
+    const missingEnv = getMissingStripeCheckoutEnv();
+
+    if (missingEnv.length > 0) {
+      setErrorMessage(
+        `Brakuje konfiguracji Stripe: ${missingEnv.join(", ")}.`,
+      );
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const response = await fetch("/api/checkout", {
@@ -57,22 +65,19 @@ export function CheckoutClient() {
 
       const data = (await response.json()) as CheckoutResponse;
 
-      if (!response.ok) {
-        throw new Error(data.message);
+      if (!response.ok || !data.url) {
+        throw new Error(
+          data.message ?? "Nie udało się utworzyć sesji Stripe Checkout.",
+        );
       }
 
-      setResult(data);
-      clearCart();
+      window.location.assign(data.url);
     } catch (error) {
-      setResult({
-        orderId: "BRAK",
-        status: "Błąd",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Nie udało się uruchomić mock checkoutu.",
-      });
-    } finally {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Nie udało się uruchomić Stripe Checkout.",
+      );
       setIsSubmitting(false);
     }
   }
@@ -81,12 +86,12 @@ export function CheckoutClient() {
     return <div className="surface-panel h-80 animate-pulse bg-primary/5" />;
   }
 
-  if (lines.length === 0 && !result) {
+  if (items.length === 0) {
     return (
       <EmptyState
         badge="Checkout"
         title="Najpierw dodaj coś do koszyka"
-        description="Mock checkout wymaga co najmniej jednego produktu. Po integracji ze Stripe ta sekcja będzie generować prawdziwą sesję płatności."
+        description="Stripe Checkout wymaga co najmniej jednego produktu. Dodaj produkt do koszyka i wróć tutaj, aby przejść do płatności."
         action={{ href: "/produkty", label: "Przejdź do katalogu" }}
       />
     );
@@ -96,14 +101,14 @@ export function CheckoutClient() {
     <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
       <section className="surface-panel gold-frame space-y-6 p-6 sm:p-8">
         <div className="space-y-3">
-          <span className="eyebrow">Mock checkout</span>
+          <span className="eyebrow">Stripe Checkout</span>
           <div>
             <h1 className="text-4xl text-white sm:text-5xl">
               Finalizacja zamówienia
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
-              Strona symuluje checkout i waliduje payload przez Zod w route
-              handlerze. To miejsce jest gotowe do podmiany na Stripe Checkout.
+              Po kliknięciu przycisku utworzymy prawdziwą sesję Stripe Checkout
+              na podstawie produktów z Supabase i przeniesiemy Cię do płatności.
             </p>
           </div>
         </div>
@@ -119,11 +124,11 @@ export function CheckoutClient() {
         </label>
 
         <div className="space-y-3 rounded-[1.5rem] border border-border/70 bg-secondary/45 p-5">
-          <p className="text-sm font-medium text-white">Co wydarzy się po integracji</p>
+          <p className="text-sm font-medium text-white">Co wydarzy się po płatności</p>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>W tym miejscu powstanie sesja Stripe Checkout.</li>
-            <li>Po płatności zamówienie trafi do bazy Supabase.</li>
-            <li>Produkt pojawi się automatycznie w bibliotece użytkownika.</li>
+            <li>Stripe otworzy bezpieczną stronę płatności dla Twojego koszyka.</li>
+            <li>Zamówienie zapisze się w Supabase po webhooku `checkout.session.completed`.</li>
+            <li>Produkty trafią automatycznie do biblioteki Twojego konta.</li>
           </ul>
         </div>
 
@@ -133,19 +138,12 @@ export function CheckoutClient() {
           onClick={handleCheckout}
           disabled={isSubmitting || lines.length === 0}
         >
-          {isSubmitting ? "Uruchamianie mock checkoutu..." : "Potwierdź zamówienie testowe"}
+          {isSubmitting ? "Przekierowanie do Stripe..." : "Przejdź do płatności"}
         </Button>
 
-        {result ? (
-          <div className="rounded-[1.5rem] border border-primary/25 bg-primary/10 p-5">
-            <p className="text-sm uppercase tracking-[0.2em] text-primary/80">
-              {result.status}
-            </p>
-            <p className="mt-2 text-xl text-white">Numer: {result.orderId}</p>
-            <p className="mt-2 text-sm text-muted-foreground">{result.message}</p>
-            <Link href="/biblioteka" className="mt-4 inline-block text-sm text-primary">
-              Zobacz placeholder biblioteki
-            </Link>
+        {errorMessage ? (
+          <div className="rounded-[1.5rem] border border-destructive/30 bg-destructive/10 p-5 text-sm text-white/90">
+            {errorMessage}
           </div>
         ) : null}
       </section>
@@ -174,6 +172,9 @@ export function CheckoutClient() {
           <span>Łącznie</span>
           <span>{formatCurrency(subtotal)}</span>
         </div>
+        <Link href="/koszyk" className="text-sm text-primary transition hover:text-primary/80">
+          Wróć do koszyka
+        </Link>
       </aside>
     </div>
   );

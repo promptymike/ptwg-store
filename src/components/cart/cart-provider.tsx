@@ -8,11 +8,20 @@ import {
   type ReactNode,
 } from "react";
 
-import { getProductById } from "@/data/mock-store";
+export type CartProductSnapshot = {
+  id: string;
+  slug: string;
+  name: string;
+  category: string;
+  shortDescription: string;
+  price: number;
+  coverGradient: string;
+};
 
 type CartLine = {
   productId: string;
   quantity: number;
+  product: CartProductSnapshot | null;
 };
 
 type CartContextValue = {
@@ -20,7 +29,7 @@ type CartContextValue = {
   totalItems: number;
   subtotal: number;
   isReady: boolean;
-  addItem: (productId: string, quantity?: number) => void;
+  addItem: (product: CartProductSnapshot, quantity?: number) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -29,17 +38,77 @@ type CartContextValue = {
 const CART_STORAGE_KEY = "ptwg.cart";
 const CART_EVENT_NAME = "ptwg-cart-updated";
 const CartContext = createContext<CartContextValue | null>(null);
+const EMPTY_CART_SNAPSHOT: CartLine[] = [];
+
+let lastRawSnapshot: string | null = null;
+let lastParsedSnapshot: CartLine[] = EMPTY_CART_SNAPSHOT;
+
+function normalizeCartSnapshot(value: unknown): CartLine[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((entry) => {
+      if (!entry || typeof entry !== "object") {
+        return null;
+      }
+
+      const productId =
+        typeof entry.productId === "string" ? entry.productId : null;
+      const quantity =
+        typeof entry.quantity === "number" && Number.isFinite(entry.quantity)
+          ? entry.quantity
+          : null;
+      const product =
+        entry.product && typeof entry.product === "object"
+          ? (entry.product as CartProductSnapshot)
+          : null;
+
+      if (!productId || !quantity || quantity < 1) {
+        return null;
+      }
+
+      return {
+        productId,
+        quantity,
+        product:
+          product &&
+          typeof product.id === "string" &&
+          typeof product.slug === "string" &&
+          typeof product.name === "string" &&
+          typeof product.category === "string" &&
+          typeof product.shortDescription === "string" &&
+          typeof product.price === "number" &&
+          typeof product.coverGradient === "string"
+            ? product
+            : null,
+      };
+    })
+    .filter((entry): entry is CartLine => Boolean(entry));
+}
 
 function getCartSnapshot(): CartLine[] {
   if (typeof window === "undefined") {
-    return [];
+    return EMPTY_CART_SNAPSHOT;
   }
 
   try {
     const stored = window.localStorage.getItem(CART_STORAGE_KEY);
-    return stored ? (JSON.parse(stored) as CartLine[]) : [];
+
+    if (stored === lastRawSnapshot) {
+      return lastParsedSnapshot;
+    }
+
+    lastRawSnapshot = stored;
+    lastParsedSnapshot = stored
+      ? normalizeCartSnapshot(JSON.parse(stored))
+      : EMPTY_CART_SNAPSHOT;
+
+    return lastParsedSnapshot;
   } catch {
-    return [];
+    lastParsedSnapshot = EMPTY_CART_SNAPSHOT;
+    return lastParsedSnapshot;
   }
 }
 
@@ -60,7 +129,11 @@ function subscribeToCartStore(callback: () => void) {
 }
 
 function writeCartSnapshot(items: CartLine[]) {
-  window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+  const nextRawSnapshot = JSON.stringify(items);
+
+  lastRawSnapshot = nextRawSnapshot;
+  lastParsedSnapshot = items;
+  window.localStorage.setItem(CART_STORAGE_KEY, nextRawSnapshot);
   window.dispatchEvent(new Event(CART_EVENT_NAME));
 }
 
@@ -68,7 +141,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const items = useSyncExternalStore(
     subscribeToCartStore,
     getCartSnapshot,
-    () => [],
+    () => EMPTY_CART_SNAPSHOT,
   );
   const isReady = useSyncExternalStore(
     () => () => undefined,
@@ -78,8 +151,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<CartContextValue>(() => {
     const subtotal = items.reduce((sum, item) => {
-      const product = getProductById(item.productId);
-      return sum + (product?.price ?? 0) * item.quantity;
+      return sum + (item.product?.price ?? 0) * item.quantity;
     }, 0);
 
     const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -89,17 +161,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
       subtotal,
       totalItems,
       isReady,
-      addItem(productId, quantity = 1) {
+      addItem(product, quantity = 1) {
         const current = getCartSnapshot();
-        const existing = current.find((item) => item.productId === productId);
+        const existing = current.find((item) => item.productId === product.id);
 
         const nextItems = existing
           ? current.map((item) =>
-              item.productId === productId
-                ? { ...item, quantity: item.quantity + quantity }
+              item.productId === product.id
+                ? {
+                    ...item,
+                    quantity: item.quantity + quantity,
+                    product,
+                  }
                 : item,
             )
-          : [...current, { productId, quantity }];
+          : [...current, { productId: product.id, quantity, product }];
 
         writeCartSnapshot(nextItems);
       },

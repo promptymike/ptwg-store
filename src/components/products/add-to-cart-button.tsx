@@ -3,17 +3,20 @@
 import { useState } from "react";
 import { Check, ShoppingBag } from "lucide-react";
 
-import { useCart } from "@/components/cart/cart-provider";
+import {
+  type CartProductSnapshot,
+  useCart,
+} from "@/components/cart/cart-provider";
 import { Button } from "@/components/ui/button";
 
 type AddToCartButtonProps = {
-  productId: string;
+  product: CartProductSnapshot;
   quantity?: number;
   fullWidth?: boolean;
 };
 
 export function AddToCartButton({
-  productId,
+  product,
   quantity = 1,
   fullWidth = false,
 }: AddToCartButtonProps) {
@@ -21,7 +24,7 @@ export function AddToCartButton({
   const [added, setAdded] = useState(false);
 
   function handleAdd() {
-    addItem(productId, quantity);
+    addItem(product, quantity);
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1500);
   }

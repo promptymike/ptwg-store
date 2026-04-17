@@ -86,7 +86,15 @@ export function ProductCard({
           </div>
 
           <AddToCartButton
-            productId={product.id}
+            product={{
+              id: product.id,
+              slug: product.slug,
+              name: product.name,
+              category: product.category,
+              shortDescription: product.shortDescription,
+              price: product.price,
+              coverGradient: product.coverGradient,
+            }}
             fullWidth={priority === "featured"}
           />
         </div>

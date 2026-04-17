@@ -13,7 +13,7 @@ export function formatOrderStatus(status: string) {
     case "paid":
       return "Opłacone";
     case "fulfilled":
-      return "W realizacji";
+      return "Zrealizowane";
     case "cancelled":
       return "Anulowane";
     default:

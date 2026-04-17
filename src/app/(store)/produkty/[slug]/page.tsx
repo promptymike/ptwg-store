@@ -122,14 +122,25 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 ) : null}
               </div>
               <p className="max-w-xs text-sm text-muted-foreground">
-                Produkt cyfrowy do pobrania. Po integracji ze Stripe i Supabase
-                zakup trafi automatycznie do biblioteki użytkownika.
+                Produkt cyfrowy do pobrania. Po opłaceniu zamówienia zakup trafi
+                automatycznie do biblioteki użytkownika.
               </p>
             </div>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row">
-            <AddToCartButton productId={product.id} fullWidth />
+            <AddToCartButton
+              product={{
+                id: product.id,
+                slug: product.slug,
+                name: product.name,
+                category: product.category,
+                shortDescription: product.shortDescription,
+                price: product.price,
+                coverGradient: product.coverGradient,
+              }}
+              fullWidth
+            />
             <Button
               variant="outline"
               size="lg"

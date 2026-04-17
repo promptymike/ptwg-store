@@ -6,7 +6,6 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/components/cart/cart-provider";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
-import { getProductById } from "@/data/mock-store";
 import { formatCurrency } from "@/lib/format";
 
 export function CartView() {
@@ -30,7 +29,7 @@ export function CartView() {
       <EmptyState
         badge="Koszyk"
         title="Twój koszyk jest jeszcze pusty"
-        description="Dodaj pierwszy produkt cyfrowy i przejdź do mock checkoutu. Stan koszyka zapisuje się lokalnie w localStorage."
+        description="Dodaj pierwszy produkt cyfrowy i przejdź do prawdziwego Stripe Checkout. Stan koszyka zapisuje się lokalnie w localStorage."
         action={{ href: "/produkty", label: "Przeglądaj produkty" }}
       />
     );
@@ -40,10 +39,36 @@ export function CartView() {
     <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
       <div className="space-y-4">
         {items.map((item) => {
-          const product = getProductById(item.productId);
+          const product = item.product;
 
           if (!product) {
-            return null;
+            return (
+              <article
+                key={item.productId}
+                className="surface-panel gold-frame flex flex-col gap-4 p-6"
+              >
+                <div>
+                  <p className="text-lg text-white">Produkt wymaga ponownego dodania</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Ten wpis pochodzi ze starszej wersji koszyka i nie ma już
+                    pełnych danych podglądu. Usuń go i dodaj produkt ponownie z katalogu.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => removeItem(item.productId)}
+                    aria-label="Usuń produkt"
+                  >
+                    <Trash2 className="size-4 text-destructive" />
+                  </Button>
+                  <Button variant="outline" render={<Link href="/produkty" />}>
+                    Wróć do katalogu
+                  </Button>
+                </div>
+              </article>
+            );
           }
 
           return (
@@ -118,8 +143,8 @@ export function CartView() {
           </p>
           <h2 className="text-3xl text-white">Koszyk premium</h2>
           <p className="text-sm text-muted-foreground">
-            To MVP używa localStorage i mock checkoutu, ale struktura jest gotowa
-            pod Stripe Checkout.
+            Koszyk działa lokalnie, a finalizacja zamówienia uruchamia teraz
+            prawdziwy Stripe Checkout.
           </p>
         </div>
 

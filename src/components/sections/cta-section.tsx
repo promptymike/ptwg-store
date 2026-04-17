@@ -13,9 +13,9 @@ export function CtaSection() {
               MVP jest gotowe, żeby przejść z makiety do prawdziwej sprzedaży.
             </h2>
             <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-              Zostały przygotowane placeholdery auth, checkout, panel admina,
-              mocki produktów i szkielety integracji. Kolejny krok to podpięcie
-              Supabase oraz Stripe.
+              Supabase Auth, admin CRUD, storage, biblioteka i Stripe Checkout
+              są już spięte. Kolejny etap to rozwój automatyzacji, e-maili i bardziej
+              rozbudowanego flow sprzedażowego.
             </p>
           </div>
 

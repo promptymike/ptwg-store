@@ -115,7 +115,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           <EmptyState
             badge="Brak zamówień"
             title="Nie masz jeszcze żadnych zamówień"
-            description="Po integracji Stripe i zapisaniu pierwszego zakupu historia pojawi się tutaj automatycznie."
+            description="Po pierwszym udanym zakupie Stripe historia zamówień pojawi się tutaj automatycznie."
             action={{ href: "/produkty", label: "Przeglądaj katalog" }}
           />
         ) : (

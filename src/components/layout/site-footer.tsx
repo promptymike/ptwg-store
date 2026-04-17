@@ -38,8 +38,8 @@ export function SiteFooter() {
               Cyfrowe produkty w estetyce premium, gotowe pod sprzedaż i rozwój.
             </h2>
             <p className="max-w-md text-sm text-muted-foreground sm:text-base">
-              MVP przygotowane w Next.js, z dark-gold UI, mockami w języku polskim
-              i architekturą gotową pod Supabase, Stripe oraz deployment na Vercel.
+              MVP przygotowane w Next.js, z dark-gold UI, polskim katalogiem,
+              Supabase Auth, Stripe Checkout i architekturą gotową pod deployment na Vercel.
             </p>
           </div>
         </div>
