@@ -1,0 +1,143 @@
+"use client";
+
+import Link from "next/link";
+import { Minus, Plus, Trash2 } from "lucide-react";
+
+import { useCart } from "@/components/cart/cart-provider";
+import { EmptyState } from "@/components/shared/empty-state";
+import { Button } from "@/components/ui/button";
+import { getProductById } from "@/data/mock-store";
+import { formatCurrency } from "@/lib/format";
+
+export function CartView() {
+  const { items, isReady, subtotal, removeItem, updateQuantity } = useCart();
+
+  if (!isReady) {
+    return (
+      <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+        {Array.from({ length: 2 }).map((_, index) => (
+          <div
+            key={index}
+            className="surface-panel h-56 animate-pulse border-border/70 bg-primary/6"
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <EmptyState
+        badge="Koszyk"
+        title="Twój koszyk jest jeszcze pusty"
+        description="Dodaj pierwszy produkt cyfrowy i przejdź do mock checkoutu. Stan koszyka zapisuje się lokalnie w localStorage."
+        action={{ href: "/produkty", label: "Przeglądaj produkty" }}
+      />
+    );
+  }
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+      <div className="space-y-4">
+        {items.map((item) => {
+          const product = getProductById(item.productId);
+
+          if (!product) {
+            return null;
+          }
+
+          return (
+            <article
+              key={item.productId}
+              className="surface-panel gold-frame flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="flex items-start gap-4">
+                <div
+                  className={`h-28 w-24 rounded-[1.4rem] border border-border/70 bg-gradient-to-br ${product.coverGradient}`}
+                />
+                <div className="space-y-2">
+                  <p className="text-xs uppercase tracking-[0.22em] text-primary/75">
+                    {product.category}
+                  </p>
+                  <Link
+                    href={`/produkty/${product.slug}`}
+                    className="text-2xl text-white transition hover:text-primary"
+                  >
+                    {product.name}
+                  </Link>
+                  <p className="max-w-xl text-sm text-muted-foreground">
+                    {product.shortDescription}
+                  </p>
+                  <p className="text-lg font-semibold text-white">
+                    {formatCurrency(product.price)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 rounded-full border border-border/70 bg-secondary/55 px-2 py-1">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                    aria-label="Zmniejsz ilość"
+                  >
+                    <Minus className="size-4" />
+                  </Button>
+                  <span className="min-w-8 text-center text-sm text-white">
+                    {item.quantity}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                    aria-label="Zwiększ ilość"
+                  >
+                    <Plus className="size-4" />
+                  </Button>
+                </div>
+
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => removeItem(item.productId)}
+                  aria-label="Usuń produkt"
+                >
+                  <Trash2 className="size-4 text-destructive" />
+                </Button>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+
+      <aside className="surface-panel gold-frame h-fit space-y-5 p-6">
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-[0.22em] text-primary/75">
+            Podsumowanie
+          </p>
+          <h2 className="text-3xl text-white">Koszyk premium</h2>
+          <p className="text-sm text-muted-foreground">
+            To MVP używa localStorage i mock checkoutu, ale struktura jest gotowa
+            pod Stripe Checkout.
+          </p>
+        </div>
+
+        <div className="rounded-[1.4rem] border border-border/70 bg-secondary/45 p-5">
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>Suma produktów</span>
+            <span>{formatCurrency(subtotal)}</span>
+          </div>
+          <div className="mt-3 flex items-center justify-between text-base font-semibold text-white">
+            <span>Łącznie</span>
+            <span>{formatCurrency(subtotal)}</span>
+          </div>
+        </div>
+
+        <Button className="w-full" size="lg" render={<Link href="/checkout" />}>
+          Przejdź do checkoutu
+        </Button>
+      </aside>
+    </div>
+  );
+}
