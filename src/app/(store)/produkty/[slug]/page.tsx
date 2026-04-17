@@ -7,8 +7,11 @@ import { AddToCartButton } from "@/components/products/add-to-cart-button";
 import { ProductCard } from "@/components/products/product-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getProductBySlug, getRelatedProducts } from "@/data/mock-store";
 import { formatCurrency } from "@/lib/format";
+import {
+  getRelatedStoreProducts,
+  getStoreProductBySlug,
+} from "@/lib/supabase/store";
 
 type ProductPageProps = {
   params: Promise<{
@@ -20,7 +23,7 @@ export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getStoreProductBySlug(slug);
 
   if (!product) {
     return {
@@ -36,13 +39,13 @@ export async function generateMetadata({
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getStoreProductBySlug(slug);
 
   if (!product) {
     notFound();
   }
 
-  const relatedProducts = getRelatedProducts(product);
+  const relatedProducts = await getRelatedStoreProducts(product);
 
   return (
     <div className="shell section-space space-y-10">

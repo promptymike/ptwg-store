@@ -1,27 +1,27 @@
 import Link from "next/link";
 
-import { adminOrders, products } from "@/data/mock-store";
-import { formatCurrency } from "@/lib/format";
+import { getAdminDashboardSnapshot } from "@/lib/supabase/store";
 
-const cards = [
-  {
-    label: "Produkty",
-    value: String(products.length),
-    detail: "mock rekordów gotowych pod DB",
-  },
-  {
-    label: "Zamówienia",
-    value: String(adminOrders.length),
-    detail: "placeholdery do rozwoju panelu",
-  },
-  {
-    label: "Przychód demo",
-    value: formatCurrency(adminOrders.reduce((sum, order) => sum + order.amount, 0)),
-    detail: "na podstawie danych mock",
-  },
-];
+export default async function AdminDashboardPage() {
+  const snapshot = await getAdminDashboardSnapshot();
+  const cards = [
+    {
+      label: "Produkty",
+      value: String(snapshot.productCount),
+      detail: "rekordów pobranych z Supabase",
+    },
+    {
+      label: "Zamówienia",
+      value: String(snapshot.orderCount),
+      detail: "widoczne przez realne zapytania RLS",
+    },
+    {
+      label: "Przychód",
+      value: snapshot.revenue,
+      detail: "suma z tabeli orders",
+    },
+  ];
 
-export default function AdminDashboardPage() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
@@ -58,9 +58,9 @@ export default function AdminDashboardPage() {
         <section className="surface-panel gold-frame space-y-4 p-6">
           <h2 className="text-2xl text-white">Stan integracji</h2>
           <ul className="space-y-3 text-sm text-muted-foreground">
-            <li>Supabase: szkielety klienta browser/server oraz env setup.</li>
-            <li>Stripe: gotowy serwerowy helper i placeholder checkout API.</li>
-            <li>Middleware: ochrona tras oparta o sesję demo w cookie.</li>
+            <li>Supabase Auth: aktywne logowanie, rejestracja i wylogowanie.</li>
+            <li>Middleware: ochrona tras oparta o prawdziwe auth cookies.</li>
+            <li>Admin: dane czytane bezpośrednio z tabel products i orders.</li>
           </ul>
         </section>
       </div>

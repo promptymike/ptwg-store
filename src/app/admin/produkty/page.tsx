@@ -1,15 +1,18 @@
 import { AdminProductForms } from "@/components/admin/admin-product-forms";
-import { products } from "@/data/mock-store";
 import { formatCurrency } from "@/lib/format";
+import { getAdminProductsSnapshot } from "@/lib/supabase/store";
 
-export default function AdminProductsPage() {
+export default async function AdminProductsPage() {
+  const products = await getAdminProductsSnapshot();
+
   return (
     <div className="space-y-6">
       <section className="surface-panel gold-frame space-y-5 p-6">
         <div className="space-y-2">
           <h2 className="text-2xl text-white">Lista produktów</h2>
           <p className="text-sm text-muted-foreground">
-            Dane pochodzą z mock seed i są gotowe do późniejszego przepięcia na bazę.
+            Dane pochodzą już z tabeli `products`, a formularze niżej są przygotowane
+            pod kolejny etap CRUD.
           </p>
         </div>
 

@@ -1,9 +1,18 @@
-import { MockAuthCard } from "@/components/auth/mock-auth-card";
+import { redirect } from "next/navigation";
 
-export default function RegisterPage() {
+import { AuthCard } from "@/components/auth/auth-card";
+import { getCurrentProfile } from "@/lib/session";
+
+export default async function RegisterPage() {
+  const profile = await getCurrentProfile();
+
+  if (profile) {
+    redirect("/konto");
+  }
+
   return (
     <div className="shell section-space">
-      <MockAuthCard mode="register" />
+      <AuthCard mode="register" />
     </div>
   );
 }

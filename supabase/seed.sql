@@ -1,0 +1,3 @@
+-- Seed pozostawiony pusty celowo.
+-- Podstawowy katalog produktów i kategorii jest utrzymywany w migracjach,
+-- aby środowiska były spójne po `supabase db push`.

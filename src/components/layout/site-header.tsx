@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ShoppingBag } from "lucide-react";
 
+import { LogoutButton } from "@/components/auth/logout-button";
 import { useCart } from "@/components/cart/cart-provider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -16,7 +17,11 @@ const primaryLinks = [
   { href: "/konto", label: "Konto" },
 ];
 
-export function SiteHeader() {
+type SiteHeaderProps = {
+  isAuthenticated?: boolean;
+};
+
+export function SiteHeader({ isAuthenticated = false }: SiteHeaderProps) {
   const pathname = usePathname();
   const { totalItems } = useCart();
 
@@ -67,13 +72,17 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <Button
-            variant="outline"
-            className="border-primary/20 bg-secondary/50 text-white hover:bg-secondary"
-            render={<Link href="/logowanie" />}
-          >
-            Logowanie
-          </Button>
+          {isAuthenticated ? (
+            <LogoutButton />
+          ) : (
+            <Button
+              variant="outline"
+              className="border-primary/20 bg-secondary/50 text-white hover:bg-secondary"
+              render={<Link href="/logowanie" />}
+            >
+              Logowanie
+            </Button>
+          )}
           <Button
             className="bg-primary text-primary-foreground hover:bg-primary/90"
             render={<Link href="/koszyk" />}

@@ -1,16 +1,29 @@
 export const env = {
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  supabasePublishableKey:
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  supabaseSecretKey:
+    process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY,
   stripeSecretKey: process.env.STRIPE_SECRET_KEY,
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
 };
 
 export function hasSupabaseEnv() {
-  return Boolean(env.supabaseUrl && env.supabaseAnonKey);
+  return Boolean(env.supabaseUrl && env.supabasePublishableKey);
 }
 
 export function hasStripeEnv() {
   return Boolean(env.stripeSecretKey);
+}
+
+export function getMissingSupabaseEnv() {
+  return [
+    !env.supabaseUrl ? "NEXT_PUBLIC_SUPABASE_URL" : null,
+    !env.supabasePublishableKey
+      ? "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+      : null,
+    !env.supabaseSecretKey ? "SUPABASE_SECRET_KEY" : null,
+  ].filter(Boolean);
 }

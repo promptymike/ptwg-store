@@ -1,36 +1,31 @@
 # PTWG.pl MVP
 
-MVP sklepu z cyfrowymi produktami premium zbudowane w `Next.js 16`, `TypeScript`, `Tailwind CSS v4` i `shadcn/ui`.
+Sklep z cyfrowymi produktami premium zbudowany w `Next.js 16`, `TypeScript`, `Tailwind CSS v4` i `shadcn/ui`, z prawdziwym `Supabase Auth`, bazą danych, RLS i bucketami storage.
 
-## Zakres MVP
+## Wymagane envy
 
-- publiczny storefront z landing page, listingiem produktów, filtrowaniem, kartą produktu, koszykiem i mock checkoutem
-- placeholdery logowania, rejestracji, konta i biblioteki użytkownika
-- placeholderowy panel admina z dashboardem, listą produktów, formularzem produktu i formularzem kategorii
-- mock dane po polsku dla kategorii: planery, przepisy, plany treningowe, finanse, rozwój osobisty
-- struktura gotowa pod integrację `Supabase Auth`, `Supabase DB`, `Supabase Storage` i `Stripe Checkout`
-- middleware skeleton do ochrony tras po roli
-- walidacja `Zod` dla auth, checkoutu i formularzy admina
+```bash
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SECRET_KEY=
+```
 
-## Stack
+Opcjonalnie zostawione pod kolejny etap:
 
-- `Next.js App Router`
-- `TypeScript`
-- `Tailwind CSS v4`
-- `shadcn/ui`
-- `Zod`
-- `@supabase/ssr`
-- `@supabase/supabase-js`
-- `Stripe`
+```bash
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+```
 
-## Uruchomienie lokalne
+## Start lokalny
 
 ```bash
 npm install
 npm run dev
 ```
 
-Opcjonalna weryfikacja:
+Weryfikacja:
 
 ```bash
 npm run lint
@@ -38,108 +33,68 @@ npm run typecheck
 npm run build
 ```
 
-## Główne ścieżki
+## Migracje Supabase
 
-- `/` - landing page
-- `/produkty` - listing produktów z filtrowaniem
-- `/produkty/[slug]` - karta produktu
-- `/koszyk` - koszyk w `localStorage`
-- `/checkout` - mock checkout
-- `/logowanie` - placeholder logowania + demo sesje
-- `/rejestracja` - placeholder rejestracji
-- `/konto` - placeholder konta
-- `/biblioteka` - placeholder biblioteki
-- `/admin` - placeholder dashboardu admina
-- `/admin/produkty` - lista produktów + formularze
-- `/admin/zamowienia` - lista zamówień placeholder
+Repo używa migracji w `supabase/migrations`.
 
-## Struktura
+Uruchomienie:
 
-```text
-src
-├─ app
-│  ├─ (store)
-│  │  ├─ biblioteka
-│  │  ├─ checkout
-│  │  ├─ konto
-│  │  ├─ koszyk
-│  │  ├─ logowanie
-│  │  ├─ produkty
-│  │  ├─ rejestracja
-│  │  ├─ layout.tsx
-│  │  └─ page.tsx
-│  ├─ admin
-│  ├─ api
-│  │  ├─ auth/mock-session
-│  │  └─ checkout
-│  ├─ globals.css
-│  ├─ layout.tsx
-│  ├─ loading.tsx
-│  └─ not-found.tsx
-├─ components
-│  ├─ admin
-│  ├─ auth
-│  ├─ cart
-│  ├─ checkout
-│  ├─ layout
-│  ├─ products
-│  ├─ sections
-│  ├─ shared
-│  └─ ui
-├─ data
-│  ├─ mock-store.ts
-│  └─ seed.ts
-├─ lib
-│  ├─ supabase
-│  ├─ validations
-│  ├─ env.ts
-│  ├─ format.ts
-│  ├─ session.ts
-│  ├─ stripe.ts
-│  └─ utils.ts
-└─ types
-   └─ store.ts
+```bash
+npx supabase db push --include-all
 ```
 
-## Co jest gotowe pod Supabase
+Odświeżenie typów po zmianach w bazie:
 
-- `src/lib/supabase/client.ts` - browser client skeleton
-- `src/lib/supabase/server.ts` - server client skeleton
-- `src/lib/session.ts` - miejsce pod odczyt roli / sesji
-- `middleware.ts` - ochrona tras dla użytkownika i admina
-- `src/data/seed.ts` - seed payload do pierwszego importu danych
+```bash
+npx supabase gen types typescript --linked --schema public | Out-File -FilePath src/types/database.types.ts -Encoding utf8
+```
 
-Docelowy kierunek:
+## Jak działa auth
 
-1. podpiąć prawdziwe sesje z `Supabase Auth`
-2. zastąpić mock cookie `ptwg_role` realną sesją
-3. przenieść produkty, kategorie, zamówienia i bibliotekę do tabel w Supabase
-4. podpiąć `Supabase Storage` pod pliki produktów
+- `/logowanie` używa `supabase.auth.signInWithPassword`
+- `/rejestracja` używa `supabase.auth.signUp`
+- profil użytkownika powstaje automatycznie przez trigger na `auth.users`
+- `/konto`, `/biblioteka` i `/admin` są chronione przez middleware oparte o auth cookies
+- rola użytkownika jest trzymana w `public.profiles.role`
 
-## Co jest gotowe pod Stripe
+## Co kliknąć w Supabase
 
-- `src/lib/stripe.ts` - serwerowy helper Stripe
-- `src/app/api/checkout/route.ts` - placeholder API z walidacją `Zod`
-- `src/components/checkout/checkout-client.tsx` - UI checkoutu do podmiany na prawdziwy flow
+1. Wejdź do `Authentication > Providers > Email` i upewnij się, że Email jest włączony.
+2. Jeśli chcesz logowanie bez potwierdzenia maila, wyłącz `Confirm email`.
+3. W `Storage` sprawdź buckety `product-files` i `product-covers`.
+4. W `Table Editor` zobacz tabele: `profiles`, `categories`, `products`, `orders`, `order_items`, `library_items`.
 
-Docelowy kierunek:
+## Jak ustawić role admin/user
 
-1. utworzyć sesję `Stripe Checkout` w route handlerze
-2. zapisać zamówienie po sukcesie płatności
-3. obsłużyć webhook Stripe
-4. dodać status płatności do panelu admina i biblioteki użytkownika
+Nowi użytkownicy dostają domyślnie rolę `user`.
 
-## Deploy na Vercel
+Aby nadać admina, wykonaj w SQL Editor:
 
-1. wrzuć repo na GitHub
-2. zaimportuj projekt do Vercel
-3. ustaw zmienne z `.env.example`
-4. ustaw domenę `ptwg.pl`
-5. po integracji webhooków dodaj URL webhooka Stripe w dashboardzie Stripe
+```sql
+update public.profiles
+set role = 'admin'
+where email = 'twoj-adres@example.com';
+```
 
-## Notatki implementacyjne
+## Storage
 
-- koszyk działa w `localStorage` i synchronizuje się przez `useSyncExternalStore`
-- wszystkie dane produktowe są obecnie mockowane lokalnie
-- placeholder auth tworzy demo sesję na cookie, żeby można było przetestować middleware i role bez backendu
-- theme oparty jest o stałe dark / gold i elegancką typografię z `Cormorant Garamond` + `Manrope`
+- `product-files` jest bucketem prywatnym pod pliki cyfrowe
+- `product-covers` jest bucketem prywatnym pod okładki
+- helper signed URL dla plików cyfrowych jest gotowy w `src/lib/supabase/storage.ts`
+- endpoint pobierania biblioteki działa pod `/api/library/[productId]/download`
+
+## Obecny zakres integracji
+
+- realny Supabase Auth zamiast demo sesji
+- realne middleware z cookie auth
+- profile i role z tabeli `profiles`
+- listing produktów i karta produktu czytane z Supabase, z bezpiecznym fallbackiem na mocki
+- konto, biblioteka i panel admina czytają prawdziwe dane z Supabase
+- formularze admina nadal są placeholderami UI pod kolejny etap CRUD
+
+## Następne kroki przed Stripe
+
+1. Dodać pełny CRUD produktów i kategorii w panelu admina.
+2. Dodać upload plików i okładek do bucketów storage.
+3. Uzupełnić bibliotekę o liczniki pobrań i zarządzanie signed URL.
+4. Przygotować zapis zamówień po stronie aplikacji przed wpięciem Stripe Checkout.

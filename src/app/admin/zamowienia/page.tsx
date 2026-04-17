@@ -1,14 +1,16 @@
 import { EmptyState } from "@/components/shared/empty-state";
-import { adminOrders } from "@/data/mock-store";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatOrderStatus } from "@/lib/format";
+import { getAdminOrdersSnapshot } from "@/lib/supabase/store";
 
-export default function AdminOrdersPage() {
+export default async function AdminOrdersPage() {
+  const adminOrders = await getAdminOrdersSnapshot();
+
   if (adminOrders.length === 0) {
     return (
       <EmptyState
         badge="Zamówienia"
         title="Brak zamówień do wyświetlenia"
-        description="To miejsce jest przygotowane pod tabelę z Supabase i webhookami Stripe."
+        description="Tabela `orders` jest gotowa. Po zapisaniu pierwszych zamówień pojawią się tutaj realne rekordy."
       />
     );
   }
@@ -18,7 +20,7 @@ export default function AdminOrdersPage() {
       <div className="space-y-2">
         <h2 className="text-2xl text-white">Lista zamówień</h2>
         <p className="text-sm text-muted-foreground">
-          Placeholder danych administracyjnych pod przyszłą synchronizację płatności.
+          Widok pobiera dane z `orders`, `order_items` oraz `profiles`.
         </p>
       </div>
 
@@ -40,8 +42,10 @@ export default function AdminOrdersPage() {
               </div>
               <div className="text-sm">
                 <p className="text-white">{formatCurrency(order.amount)}</p>
-                <p className="text-primary">{order.status}</p>
-                <p className="text-muted-foreground">{order.id}</p>
+                <p className="text-primary">{formatOrderStatus(order.status)}</p>
+                <p className="text-muted-foreground">
+                  {new Date(order.date).toLocaleDateString("pl-PL")} • {order.id}
+                </p>
               </div>
             </div>
           </article>

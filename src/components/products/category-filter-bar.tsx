@@ -1,18 +1,19 @@
 import Link from "next/link";
 
-import { CATEGORY_OPTIONS } from "@/types/store";
 import { cn } from "@/lib/utils";
 
 type CategoryFilterBarProps = {
   activeCategory?: string;
+  categories?: string[];
 };
 
 export function CategoryFilterBar({
   activeCategory,
+  categories = [],
 }: CategoryFilterBarProps) {
   const filters = [
     { label: "Wszystkie", href: "/produkty" },
-    ...CATEGORY_OPTIONS.map((category) => ({
+    ...categories.map((category) => ({
       label: category,
       href: `/produkty?kategoria=${encodeURIComponent(category)}`,
     })),
