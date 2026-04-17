@@ -32,54 +32,43 @@ export function CheckoutSuccessClient({
   }, [clearCart]);
 
   return (
-    <section className="surface-panel gold-frame space-y-6 p-6 sm:p-8">
+    <section className="surface-panel space-y-6 p-6 sm:p-8">
       <div className="space-y-3">
         <span className="eyebrow">Płatność zakończona</span>
         <div>
-          <h1 className="text-4xl text-white sm:text-5xl">Dziękujemy za zakup</h1>
+          <h1 className="text-4xl text-foreground sm:text-5xl">Dziękujemy za zakup</h1>
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
-            Zamówienie zostało zapisane, a produkty trafiły do biblioteki.
-            Jeśli webhook i strona sukcesu pojawiły się jednocześnie, fulfillment
-            pozostał idempotentny i nie utworzył duplikatów.
+            Zamówienie zostało zapisane, a produkty trafiły do biblioteki. Fulfillment pozostaje
+            idempotentny, więc ten sam event Stripe nie utworzy duplikatów.
           </p>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <article className="rounded-[1.4rem] border border-border/70 bg-secondary/45 p-5">
-          <p className="text-xs uppercase tracking-[0.22em] text-primary/75">
-            Numer zamówienia
-          </p>
-          <p className="mt-3 text-lg text-white">{orderId}</p>
+        <article className="rounded-[1.4rem] border border-border/70 bg-background/70 p-5">
+          <p className="text-xs uppercase tracking-[0.22em] text-primary/75">Numer zamówienia</p>
+          <p className="mt-3 text-lg text-foreground">{orderId}</p>
         </article>
-        <article className="rounded-[1.4rem] border border-border/70 bg-secondary/45 p-5">
-          <p className="text-xs uppercase tracking-[0.22em] text-primary/75">
-            Kwota
-          </p>
-          <p className="mt-3 text-lg text-white">{amount}</p>
+        <article className="rounded-[1.4rem] border border-border/70 bg-background/70 p-5">
+          <p className="text-xs uppercase tracking-[0.22em] text-primary/75">Kwota</p>
+          <p className="mt-3 text-lg text-foreground">{amount}</p>
         </article>
-        <article className="rounded-[1.4rem] border border-border/70 bg-secondary/45 p-5">
-          <p className="text-xs uppercase tracking-[0.22em] text-primary/75">
-            Produkty
-          </p>
-          <p className="mt-3 text-lg text-white">{itemCount}</p>
+        <article className="rounded-[1.4rem] border border-border/70 bg-background/70 p-5">
+          <p className="text-xs uppercase tracking-[0.22em] text-primary/75">Produkty</p>
+          <p className="mt-3 text-lg text-foreground">{itemCount}</p>
         </article>
       </div>
 
       <div className="rounded-[1.4rem] border border-primary/20 bg-primary/10 p-5 text-sm text-muted-foreground">
-        Potwierdzenie płatności zostało przypisane do konta z adresem <span className="text-white">{email}</span>.
+        Potwierdzenie płatności zostało przypisane do konta z adresem{" "}
+        <span className="text-foreground">{email}</span>.
       </div>
 
       <div className="flex flex-wrap gap-3">
         <Button size="lg" render={<Link href="/biblioteka" />}>
           Otwórz bibliotekę
         </Button>
-        <Button
-          size="lg"
-          variant="outline"
-          className="border-primary/25 bg-secondary/45 text-white"
-          render={<Link href="/konto" />}
-        >
+        <Button size="lg" variant="outline" render={<Link href="/konto" />}>
           Zobacz konto
         </Button>
       </div>

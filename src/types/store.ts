@@ -1,22 +1,37 @@
 export const CATEGORY_OPTIONS = [
-  "Planery",
-  "Przepisy",
-  "Plany treningowe",
-  "Finanse",
-  "Rozwój osobisty",
+  "Planowanie i Notion",
+  "Content i marketing",
+  "Sprzedaż i oferty",
+  "Finanse i operacje",
+  "Produktywność osobista",
 ] as const;
 
 export const ROLE_OPTIONS = ["admin", "user"] as const;
 export const ORDER_STATUSES = [
   "Nowe",
   "Opłacone",
-  "W realizacji",
+  "Zrealizowane",
   "Anulowane",
 ] as const;
+export const PRODUCT_BADGES = [
+  "bestseller",
+  "new",
+  "featured",
+  "pack",
+] as const;
+export const PRODUCT_STATUSES = ["draft", "published", "archived"] as const;
 
 export type Category = string;
 export type UserRole = (typeof ROLE_OPTIONS)[number];
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
+export type ProductBadge = (typeof PRODUCT_BADGES)[number];
+export type ProductStatus = (typeof PRODUCT_STATUSES)[number];
+
+export type ProductPreview = {
+  id: string;
+  imageUrl: string | null;
+  altText: string;
+};
 
 export type Product = {
   id: string;
@@ -36,8 +51,12 @@ export type Product = {
   coverGradient: string;
   includes: string[];
   heroNote: string;
+  badge?: ProductBadge | null;
+  status?: ProductStatus;
   bestseller?: boolean;
   featured?: boolean;
+  coverImageUrl?: string | null;
+  previews?: ProductPreview[];
 };
 
 export type Bundle = {
@@ -57,6 +76,12 @@ export type Testimonial = {
   role: string;
   quote: string;
   score: string;
+};
+
+export type FaqItem = {
+  id: string;
+  question: string;
+  answer: string;
 };
 
 export type StoreStat = {
@@ -86,4 +111,21 @@ export type AdminOrderPreview = {
 export type CartLine = {
   productId: string;
   quantity: number;
+};
+
+export type SiteSectionContent = {
+  key: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  body: string;
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+};
+
+export type ContentPage = {
+  slug: string;
+  title: string;
+  description: string;
+  body: string;
 };

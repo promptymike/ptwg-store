@@ -31,16 +31,16 @@ export default async function ProductsPage({
   return (
     <div className="shell section-space space-y-8">
       <SectionHeading
-        badge="Listing produktów"
-        title="Katalog cyfrowych produktów premium"
-        description="Listing jest podłączony do prawdziwych rekordów Supabase i zachowuje obecne filtrowanie po kategoriach."
+        badge="Katalog"
+        title="Curated digital products for founders, creators and premium service brands"
+        description="Templify organizes templates by the job they do: planning, content, offers, finance and calmer day-to-day operations."
       />
 
-      <div className="surface-panel gold-frame space-y-6 p-6">
+      <div className="surface-panel space-y-6 p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <CategoryFilterBar activeCategory={category} categories={categories} />
           <p className="text-sm text-muted-foreground">
-            Wyniki: <span className="text-white">{products.length}</span>
+            Wyniki: <span className="text-foreground">{products.length}</span>
           </p>
         </div>
 
@@ -48,7 +48,7 @@ export default async function ProductsPage({
           <EmptyState
             badge="Brak wyników"
             title="Nie znaleziono produktów w tej kategorii"
-            description="Spróbuj wrócić do wszystkich produktów lub wybierz inną kategorię z paska filtrowania."
+            description="Spróbuj wrócić do wszystkich produktów albo wybierz inny use case z paska filtrowania."
             action={{ href: "/produkty", label: "Pokaż wszystkie produkty" }}
           />
         ) : (

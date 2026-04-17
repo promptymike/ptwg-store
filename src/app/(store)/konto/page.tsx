@@ -32,7 +32,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         <EmptyState
           badge="Konto użytkownika"
           title="Nie udało się pobrać profilu"
-          description="Sprawdź migracje Supabase i tabelę profiles. Widok konta wymaga aktywnego profilu powiązanego z auth.users."
+          description="Widok konta wymaga aktywnego profilu w tabeli `profiles` powiązanego z kontem Supabase Auth."
           action={{ href: "/produkty", label: "Wróć do sklepu" }}
         />
       </div>
@@ -41,16 +41,17 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
 
   return (
     <div className="shell section-space space-y-6">
-      <section className="surface-panel gold-frame space-y-6 p-6 sm:p-8">
+      <section className="surface-panel space-y-6 p-6 sm:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-3">
-            <span className="eyebrow">Konto użytkownika</span>
+            <span className="eyebrow">Konto</span>
             <div>
-              <h1 className="text-4xl text-white sm:text-5xl">
+              <h1 className="text-4xl text-foreground sm:text-5xl">
                 {profile.full_name ?? "Twoje konto"}
               </h1>
               <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
-                Profil jest pobierany z tabeli `profiles` i połączony z Supabase Auth.
+                Tutaj widzisz swoje zamówienia, status biblioteki i dostęp do panelu admina, jeśli
+                Twój mail znajduje się na allowliście.
               </p>
             </div>
           </div>
@@ -58,44 +59,38 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <article className="rounded-[1.5rem] border border-border/70 bg-secondary/45 p-5">
-            <p className="text-xs uppercase tracking-[0.22em] text-primary/75">
-              E-mail
-            </p>
-            <p className="mt-3 text-lg text-white">{profile.email}</p>
+          <article className="rounded-[1.5rem] border border-border/70 bg-background/60 p-5">
+            <p className="text-xs uppercase tracking-[0.22em] text-primary/75">E-mail</p>
+            <p className="mt-3 text-lg text-foreground">{profile.email}</p>
           </article>
-          <article className="rounded-[1.5rem] border border-border/70 bg-secondary/45 p-5">
-            <p className="text-xs uppercase tracking-[0.22em] text-primary/75">
-              Rola
-            </p>
-            <p className="mt-3 text-lg text-white">{profile.role}</p>
+          <article className="rounded-[1.5rem] border border-border/70 bg-background/60 p-5">
+            <p className="text-xs uppercase tracking-[0.22em] text-primary/75">Rola</p>
+            <p className="mt-3 text-lg text-foreground">{profile.role}</p>
           </article>
-          <article className="rounded-[1.5rem] border border-border/70 bg-secondary/45 p-5">
-            <p className="text-xs uppercase tracking-[0.22em] text-primary/75">
-              Biblioteka
-            </p>
-            <p className="mt-3 text-lg text-white">{snapshot.libraryCount} pozycji</p>
+          <article className="rounded-[1.5rem] border border-border/70 bg-background/60 p-5">
+            <p className="text-xs uppercase tracking-[0.22em] text-primary/75">Biblioteka</p>
+            <p className="mt-3 text-lg text-foreground">{snapshot.libraryCount} pozycji</p>
           </article>
         </div>
 
         {resolvedSearchParams.denied ? (
           <div className="rounded-[1.4rem] border border-primary/20 bg-primary/10 p-4 text-sm text-muted-foreground">
-            Brak uprawnień do panelu admina dla roli `{profile.role}`. Jeśli chcesz
-            wejść do panelu, ustaw rolę `admin` w tabeli `profiles`.
+            Brak dostępu do panelu admina dla roli `{profile.role}`. Jeśli ten adres ma być
+            administracyjny, dodaj go do tabeli `admin_allowlist` i zaloguj się ponownie.
           </div>
         ) : null}
 
         <div className="flex flex-wrap gap-3">
           <Link
             href="/biblioteka"
-            className="rounded-full border border-primary/30 bg-primary/12 px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary/18"
+            className="rounded-full border border-primary/30 bg-primary/12 px-5 py-3 text-sm font-semibold text-foreground transition hover:bg-primary/18"
           >
             Przejdź do biblioteki
           </Link>
           {profile.role === "admin" ? (
             <Link
               href="/admin"
-              className="rounded-full border border-border/70 bg-secondary/50 px-5 py-3 text-sm font-semibold text-white transition hover:border-primary/30"
+              className="rounded-full border border-border/70 bg-background/60 px-5 py-3 text-sm font-semibold text-foreground transition hover:border-primary/30"
             >
               Otwórz panel admina
             </Link>
@@ -103,11 +98,11 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         </div>
       </section>
 
-      <section className="surface-panel gold-frame space-y-5 p-6">
+      <section className="surface-panel space-y-5 p-6">
         <div className="space-y-2">
-          <h2 className="text-2xl text-white">Ostatnie zamówienia</h2>
+          <h2 className="text-2xl text-foreground">Ostatnie zamówienia</h2>
           <p className="text-sm text-muted-foreground">
-            To pierwsze miejsce, w którym widać już prawdziwe rekordy z tabeli `orders`.
+            Zamówienia zapisane po Stripe Checkout pojawiają się tutaj automatycznie.
           </p>
         </div>
 
@@ -115,7 +110,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           <EmptyState
             badge="Brak zamówień"
             title="Nie masz jeszcze żadnych zamówień"
-            description="Po pierwszym udanym zakupie Stripe historia zamówień pojawi się tutaj automatycznie."
+            description="Po pierwszym udanym checkoutcie historia zakupów pojawi się tutaj wraz z dostępem do biblioteki."
             action={{ href: "/produkty", label: "Przeglądaj katalog" }}
           />
         ) : (
@@ -123,17 +118,17 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             {snapshot.orders.map((order) => (
               <article
                 key={order.id}
-                className="rounded-[1.4rem] border border-border/70 bg-secondary/45 px-4 py-4"
+                className="rounded-[1.4rem] border border-border/70 bg-background/60 px-4 py-4"
               >
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-lg text-white">{order.id}</p>
+                    <p className="text-lg text-foreground">{order.id}</p>
                     <p className="text-sm text-muted-foreground">
                       {new Date(order.created_at).toLocaleDateString("pl-PL")}
                     </p>
                   </div>
                   <div className="text-sm">
-                    <p className="text-white">{formatCurrency(order.total)}</p>
+                    <p className="text-foreground">{formatCurrency(order.total)}</p>
                     <p className="text-primary">{formatOrderStatus(order.status)}</p>
                   </div>
                 </div>

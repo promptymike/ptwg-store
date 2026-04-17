@@ -2,13 +2,17 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { LogoutButton } from "@/components/auth/logout-button";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { getCurrentProfile } from "@/lib/session";
 
 const adminLinks = [
   { href: "/admin", label: "Dashboard" },
-  { href: "/admin/kategorie", label: "Kategorie" },
   { href: "/admin/produkty", label: "Produkty" },
+  { href: "/admin/kategorie", label: "Kategorie" },
   { href: "/admin/zamowienia", label: "Zamówienia" },
+  { href: "/admin/content", label: "Content / Strony" },
+  { href: "/admin/admini", label: "Użytkownicy / Admini" },
+  { href: "/admin/ustawienia", label: "Ustawienia" },
 ];
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
@@ -16,21 +20,23 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   return (
     <div className="shell section-space space-y-8">
-      <div className="surface-panel gold-frame flex flex-col gap-5 p-6 sm:p-8">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-2">
-            <span className="eyebrow">PTWG Admin</span>
+      <div className="surface-panel space-y-6 p-6 sm:p-8">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <div className="space-y-3">
+            <span className="eyebrow">Templify Admin</span>
             <div>
-              <h1 className="text-4xl text-white sm:text-5xl">Panel administracyjny</h1>
+              <h1 className="text-4xl text-foreground sm:text-5xl">CMS-lite dla operacji i treści</h1>
               <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
                 Zalogowany administrator: {profile?.full_name ?? profile?.email ?? "brak profilu"}.
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+
+          <div className="flex flex-wrap items-center gap-3">
+            <ThemeToggle />
             <Link
               href="/"
-              className="text-sm font-medium text-primary transition hover:text-primary/80"
+              className="rounded-full border border-border/70 px-4 py-2 text-sm text-foreground transition hover:border-primary/30"
             >
               Wróć do sklepu
             </Link>
@@ -43,7 +49,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             <Link
               key={link.href}
               href={link.href}
-              className="rounded-full border border-border/80 bg-secondary/60 px-4 py-2 text-sm text-muted-foreground transition hover:border-primary/35 hover:text-white"
+              className="rounded-full border border-border/70 bg-background/60 px-4 py-2 text-sm text-muted-foreground transition hover:border-primary/30 hover:text-foreground"
             >
               {link.label}
             </Link>

@@ -7,7 +7,7 @@ export default function CartPage() {
       <SectionHeading
         badge="Koszyk"
         title="Twój zestaw produktów cyfrowych"
-        description="Koszyk działa lokalnie i zapisuje się w localStorage, a checkout prowadzi już do prawdziwej płatności Stripe przypisanej do zalogowanego konta."
+        description="Koszyk działa lokalnie i zapisuje się w localStorage, a checkout prowadzi do prawdziwej płatności Stripe przypisanej do zalogowanego konta."
       />
       <CartView />
     </div>

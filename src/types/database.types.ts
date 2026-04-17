@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_allowlist: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          note: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean
+          note?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean
+          note?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -41,6 +65,69 @@ export type Database = {
           name?: string
           slug?: string
           sort_order?: number
+        }
+        Relationships: []
+      }
+      content_pages: {
+        Row: {
+          body: string
+          created_at: string
+          description: string
+          id: string
+          is_published: boolean
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_published?: boolean
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_published?: boolean
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      faq_items: {
+        Row: {
+          answer: string
+          created_at: string
+          id: string
+          is_published: boolean
+          question: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          question: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          question?: string
+          sort_order?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -194,9 +281,45 @@ export type Database = {
           },
         ]
       }
+      product_previews: {
+        Row: {
+          alt_text: string
+          created_at: string
+          id: string
+          product_id: string
+          sort_order: number
+          storage_path: string
+        }
+        Insert: {
+          alt_text?: string
+          created_at?: string
+          id?: string
+          product_id: string
+          sort_order?: number
+          storage_path: string
+        }
+        Update: {
+          alt_text?: string
+          created_at?: string
+          id?: string
+          product_id?: string
+          sort_order?: number
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_previews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           accent: string
+          badge: string | null
           bestseller: boolean
           category_id: string
           compare_at_price: number | null
@@ -205,6 +328,7 @@ export type Database = {
           created_at: string
           description: string
           featured: boolean
+          featured_order: number
           file_path: string | null
           format: string
           hero_note: string
@@ -218,11 +342,14 @@ export type Database = {
           sales_label: string
           short_description: string
           slug: string
+          sort_order: number
+          status: Database["public"]["Enums"]["product_status"]
           tags: string[]
           updated_at: string
         }
         Insert: {
           accent?: string
+          badge?: string | null
           bestseller?: boolean
           category_id: string
           compare_at_price?: number | null
@@ -231,6 +358,7 @@ export type Database = {
           created_at?: string
           description: string
           featured?: boolean
+          featured_order?: number
           file_path?: string | null
           format: string
           hero_note?: string
@@ -244,11 +372,14 @@ export type Database = {
           sales_label?: string
           short_description: string
           slug: string
+          sort_order?: number
+          status?: Database["public"]["Enums"]["product_status"]
           tags?: string[]
           updated_at?: string
         }
         Update: {
           accent?: string
+          badge?: string | null
           bestseller?: boolean
           category_id?: string
           compare_at_price?: number | null
@@ -257,6 +388,7 @@ export type Database = {
           created_at?: string
           description?: string
           featured?: boolean
+          featured_order?: number
           file_path?: string | null
           format?: string
           hero_note?: string
@@ -270,6 +402,8 @@ export type Database = {
           sales_label?: string
           short_description?: string
           slug?: string
+          sort_order?: number
+          status?: Database["public"]["Enums"]["product_status"]
           tags?: string[]
           updated_at?: string
         }
@@ -307,6 +441,48 @@ export type Database = {
         }
         Relationships: []
       }
+      site_sections: {
+        Row: {
+          body: string
+          created_at: string
+          cta_href: string | null
+          cta_label: string | null
+          description: string
+          eyebrow: string
+          id: string
+          is_published: boolean
+          section_key: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          cta_href?: string | null
+          cta_label?: string | null
+          description?: string
+          eyebrow?: string
+          id?: string
+          is_published?: boolean
+          section_key: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          cta_href?: string | null
+          cta_label?: string | null
+          description?: string
+          eyebrow?: string
+          id?: string
+          is_published?: boolean
+          section_key?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       stripe_webhook_events: {
         Row: {
           checkout_session_id: string
@@ -328,6 +504,42 @@ export type Database = {
         }
         Relationships: []
       }
+      testimonials: {
+        Row: {
+          author: string
+          created_at: string
+          id: string
+          is_published: boolean
+          quote: string
+          role: string
+          score: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          author: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          quote: string
+          role?: string
+          score?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          author?: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          quote?: string
+          role?: string
+          score?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -337,6 +549,7 @@ export type Database = {
     }
     Enums: {
       order_status: "new" | "paid" | "fulfilled" | "cancelled"
+      product_status: "draft" | "published" | "archived"
       user_role: "admin" | "user"
     }
     CompositeTypes: {
@@ -466,6 +679,7 @@ export const Constants = {
   public: {
     Enums: {
       order_status: ["new", "paid", "fulfilled", "cancelled"],
+      product_status: ["draft", "published", "archived"],
       user_role: ["admin", "user"],
     },
   },

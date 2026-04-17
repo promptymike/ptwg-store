@@ -29,7 +29,7 @@ export default async function AdminCategoriesPage({
         <EmptyState
           badge="Admin kategorie"
           title="Nie udało się pobrać kategorii"
-          description="Strona jest gotowa pod pełny CRUD, ale Supabase nie zwrócił danych. Sprawdź połączenie i role administratora."
+          description="Strona jest gotowa pod pełny CRUD, ale Supabase nie zwrócił danych."
         />
       ) : (
         <AdminCategoryManager categories={categories} />

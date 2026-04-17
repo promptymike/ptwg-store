@@ -2,18 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingBag } from "lucide-react";
+import { Menu, ShoppingBag } from "lucide-react";
 
 import { LogoutButton } from "@/components/auth/logout-button";
 import { useCart } from "@/components/cart/cart-provider";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const primaryLinks = [
   { href: "/", label: "Start" },
-  { href: "/produkty", label: "Katalog" },
-  { href: "/#pakiety", label: "Pakiety" },
-  { href: "/#opinie", label: "Opinie" },
+  { href: "/produkty", label: "Produkty" },
+  { href: "/#use-cases", label: "Use cases" },
+  { href: "/#bundles", label: "Pakiety" },
+  { href: "/#faq", label: "FAQ" },
   { href: "/konto", label: "Konto" },
 ];
 
@@ -26,28 +28,31 @@ export function SiteHeader({ isAuthenticated = false }: SiteHeaderProps) {
   const { totalItems } = useCart();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/78 backdrop-blur-2xl">
-      <div className="shell flex flex-col gap-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/88 backdrop-blur-2xl">
+      <div className="shell flex flex-col gap-4 py-4 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex items-center justify-between gap-4">
-          <Link href="/" className="flex items-baseline gap-2">
-            <span className="font-heading text-3xl leading-none text-white">PTWG</span>
-            <span className="text-xs uppercase tracking-[0.38em] text-primary/80">
-              premium store
+          <Link href="/" className="flex items-baseline gap-3">
+            <span className="font-heading text-3xl leading-none text-foreground">Templify</span>
+            <span className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+              premium templates
             </span>
           </Link>
 
-          <Button
-            variant="outline"
-            size="sm"
-            className="lg:hidden"
-            render={<Link href="/koszyk" />}
-          >
-            <ShoppingBag className="size-4" />
-            Koszyk {totalItems > 0 ? `(${totalItems})` : ""}
-          </Button>
+          <div className="flex items-center gap-2 xl:hidden">
+            <ThemeToggle />
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              render={<Link href="/koszyk" />}
+            >
+              <ShoppingBag className="size-4" />
+              {totalItems > 0 ? totalItems : "Koszyk"}
+            </Button>
+          </div>
         </div>
 
-        <nav className="flex flex-wrap gap-2">
+        <nav className="hidden flex-wrap items-center gap-2 xl:flex">
           {primaryLinks.map((link) => {
             const isActive =
               link.href === "/"
@@ -59,10 +64,10 @@ export function SiteHeader({ isAuthenticated = false }: SiteHeaderProps) {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "rounded-full border px-4 py-2 text-sm transition",
+                  "rounded-full px-4 py-2 text-sm transition",
                   isActive
-                    ? "border-primary/35 bg-primary/12 text-white"
-                    : "border-border/70 bg-secondary/45 text-muted-foreground hover:border-primary/25 hover:text-white",
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                 )}
               >
                 {link.label}
@@ -71,26 +76,36 @@ export function SiteHeader({ isAuthenticated = false }: SiteHeaderProps) {
           })}
         </nav>
 
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className="hidden items-center gap-3 xl:flex">
+          <ThemeToggle />
           {isAuthenticated ? (
             <LogoutButton />
           ) : (
-            <Button
-              variant="outline"
-              className="border-primary/20 bg-secondary/50 text-white hover:bg-secondary"
-              render={<Link href="/logowanie" />}
-            >
+            <Button variant="outline" render={<Link href="/logowanie" />}>
               Logowanie
             </Button>
           )}
-          <Button
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
-            render={<Link href="/koszyk" />}
-          >
+          <Button render={<Link href="/koszyk" />}>
             <ShoppingBag className="size-4" />
             Koszyk {totalItems > 0 ? `(${totalItems})` : ""}
           </Button>
         </div>
+
+        <nav className="flex items-center gap-2 overflow-x-auto xl:hidden">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            <Menu className="size-3.5" />
+            Menu
+          </span>
+          {primaryLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="whitespace-nowrap rounded-full border border-border/70 px-4 py-2 text-sm text-muted-foreground transition hover:text-foreground"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
       </div>
     </header>
   );

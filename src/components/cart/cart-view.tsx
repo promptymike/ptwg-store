@@ -29,7 +29,7 @@ export function CartView() {
       <EmptyState
         badge="Koszyk"
         title="Twój koszyk jest jeszcze pusty"
-        description="Dodaj pierwszy produkt cyfrowy i przejdź do prawdziwego Stripe Checkout. Stan koszyka zapisuje się lokalnie w localStorage."
+        description="Dodaj pierwszy produkt cyfrowy i przejdź do Stripe Checkout. Stan koszyka zapisuje się lokalnie w localStorage."
         action={{ href: "/produkty", label: "Przeglądaj produkty" }}
       />
     );
@@ -45,13 +45,13 @@ export function CartView() {
             return (
               <article
                 key={item.productId}
-                className="surface-panel gold-frame flex flex-col gap-4 p-6"
+                className="surface-panel flex flex-col gap-4 p-6"
               >
                 <div>
-                  <p className="text-lg text-white">Produkt wymaga ponownego dodania</p>
+                  <p className="text-lg text-foreground">Produkt wymaga ponownego dodania</p>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Ten wpis pochodzi ze starszej wersji koszyka i nie ma już
-                    pełnych danych podglądu. Usuń go i dodaj produkt ponownie z katalogu.
+                    Ten wpis pochodzi ze starszej wersji koszyka i nie ma już pełnych danych
+                    podglądu. Usuń go i dodaj produkt ponownie z katalogu.
                   </p>
                 </div>
                 <div className="flex gap-3">
@@ -74,7 +74,7 @@ export function CartView() {
           return (
             <article
               key={item.productId}
-              className="surface-panel gold-frame flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between"
+              className="surface-panel flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="flex items-start gap-4">
                 <div
@@ -86,21 +86,21 @@ export function CartView() {
                   </p>
                   <Link
                     href={`/produkty/${product.slug}`}
-                    className="text-2xl text-white transition hover:text-primary"
+                    className="text-2xl text-foreground transition hover:text-primary"
                   >
                     {product.name}
                   </Link>
                   <p className="max-w-xl text-sm text-muted-foreground">
                     {product.shortDescription}
                   </p>
-                  <p className="text-lg font-semibold text-white">
+                  <p className="text-lg font-semibold text-foreground">
                     {formatCurrency(product.price)}
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2 rounded-full border border-border/70 bg-secondary/55 px-2 py-1">
+                <div className="flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-2 py-1">
                   <Button
                     variant="ghost"
                     size="icon-sm"
@@ -109,7 +109,7 @@ export function CartView() {
                   >
                     <Minus className="size-4" />
                   </Button>
-                  <span className="min-w-8 text-center text-sm text-white">
+                  <span className="min-w-8 text-center text-sm text-foreground">
                     {item.quantity}
                   </span>
                   <Button
@@ -136,24 +136,24 @@ export function CartView() {
         })}
       </div>
 
-      <aside className="surface-panel gold-frame h-fit space-y-5 p-6">
+      <aside className="surface-panel h-fit space-y-5 p-6">
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-[0.22em] text-primary/75">
             Podsumowanie
           </p>
-          <h2 className="text-3xl text-white">Koszyk premium</h2>
+          <h2 className="text-3xl text-foreground">Gotowe do checkoutu</h2>
           <p className="text-sm text-muted-foreground">
-            Koszyk działa lokalnie, a finalizacja zamówienia uruchamia teraz
-            prawdziwy Stripe Checkout.
+            Zamówienie przejdzie teraz przez prawdziwy Stripe Checkout i po płatności trafi od
+            razu do biblioteki klienta.
           </p>
         </div>
 
-        <div className="rounded-[1.4rem] border border-border/70 bg-secondary/45 p-5">
+        <div className="rounded-[1.4rem] border border-border/70 bg-background/70 p-5">
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <span>Suma produktów</span>
             <span>{formatCurrency(subtotal)}</span>
           </div>
-          <div className="mt-3 flex items-center justify-between text-base font-semibold text-white">
+          <div className="mt-3 flex items-center justify-between text-base font-semibold text-foreground">
             <span>Łącznie</span>
             <span>{formatCurrency(subtotal)}</span>
           </div>

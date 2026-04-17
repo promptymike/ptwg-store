@@ -11,37 +11,55 @@ type ProductCardProps = {
   priority?: "default" | "featured";
 };
 
+function getBadgeLabel(product: Product) {
+  if (product.badge) {
+    return product.badge;
+  }
+
+  if (product.bestseller) {
+    return "bestseller";
+  }
+
+  if (product.featured) {
+    return "featured";
+  }
+
+  return null;
+}
+
 export function ProductCard({
   product,
   priority = "default",
 }: ProductCardProps) {
+  const badgeLabel = getBadgeLabel(product);
+
   return (
-    <article className="surface-panel gold-frame flex h-full flex-col overflow-hidden">
+    <article className="surface-panel flex h-full flex-col overflow-hidden">
       <div
-        className={`relative min-h-56 overflow-hidden border-b border-border/70 bg-gradient-to-br ${product.coverGradient} p-6`}
+        className={`relative min-h-64 overflow-hidden border-b border-border/70 bg-gradient-to-br ${product.coverGradient} p-6`}
       >
-        <div className="hero-orb right-4 top-4 size-20 bg-primary/30" />
-        <div className="hero-orb bottom-5 left-5 size-16 bg-white/10" />
+        <div className="hero-orb right-5 top-5 size-24 bg-white/45" />
+        <div className="hero-orb bottom-6 left-6 size-20 bg-primary/25" />
 
         <div className="relative flex h-full flex-col justify-between gap-8">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <Badge
-              className={`border-0 bg-gradient-to-r ${product.accent} text-[11px] uppercase tracking-[0.24em] text-brand-foreground`}
+              className={`border-0 bg-gradient-to-r ${product.accent} text-[11px] uppercase tracking-[0.22em] text-brand-foreground`}
             >
               {product.category}
             </Badge>
-            {product.bestseller ? (
-              <Badge variant="outline" className="border-primary/30 text-white">
-                Bestseller
+            {badgeLabel ? (
+              <Badge variant="outline" className="border-foreground/15 bg-background/75 text-foreground">
+                {badgeLabel}
               </Badge>
             ) : null}
           </div>
 
           <div className="space-y-3">
-            <p className="text-xs uppercase tracking-[0.26em] text-primary/70">
+            <p className="text-xs uppercase tracking-[0.24em] text-foreground/65">
               {product.heroNote}
             </p>
-            <h3 className="max-w-xs text-3xl text-white">{product.name}</h3>
+            <h3 className="max-w-xs text-3xl text-foreground">{product.name}</h3>
           </div>
         </div>
       </div>
@@ -50,14 +68,14 @@ export function ProductCard({
         <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
           <span>{product.format}</span>
           <span>{product.pages} stron</span>
-          <span className="inline-flex items-center gap-1 text-white">
+          <span className="inline-flex items-center gap-1 text-foreground">
             <Star className="size-3.5 fill-primary text-primary" />
             {product.rating.toFixed(1)}
           </span>
         </div>
 
         <div className="space-y-3">
-          <p className="text-sm leading-6 text-muted-foreground">
+          <p className="text-sm leading-7 text-muted-foreground">
             {product.shortDescription}
           </p>
           <p className="text-xs uppercase tracking-[0.18em] text-primary/80">
@@ -68,7 +86,7 @@ export function ProductCard({
         <div className="mt-auto flex flex-col gap-4">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="text-2xl font-semibold text-white">
+              <p className="text-2xl font-semibold text-foreground">
                 {formatCurrency(product.price)}
               </p>
               {product.compareAtPrice ? (

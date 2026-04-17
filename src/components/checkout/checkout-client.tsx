@@ -41,9 +41,7 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
     const missingEnv = getMissingStripeCheckoutEnv();
 
     if (missingEnv.length > 0) {
-      setErrorMessage(
-        `Brakuje konfiguracji Stripe: ${missingEnv.join(", ")}.`,
-      );
+      setErrorMessage(`Brakuje konfiguracji Stripe: ${missingEnv.join(", ")}.`);
       setIsSubmitting(false);
       return;
     }
@@ -99,22 +97,22 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-      <section className="surface-panel gold-frame space-y-6 p-6 sm:p-8">
+      <section className="surface-panel space-y-6 p-6 sm:p-8">
         <div className="space-y-3">
           <span className="eyebrow">Stripe Checkout</span>
           <div>
-            <h1 className="text-4xl text-white sm:text-5xl">
+            <h1 className="text-4xl text-foreground sm:text-5xl">
               Finalizacja zamówienia
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
-              Po kliknięciu przycisku utworzymy prawdziwą sesję Stripe Checkout
-              na podstawie produktów z Supabase i przeniesiemy Cię do płatności.
+              Po kliknięciu przycisku utworzymy prawdziwą sesję Stripe Checkout na podstawie
+              produktów z Supabase i przeniesiemy Cię do płatności.
             </p>
           </div>
         </div>
 
         <label className="space-y-2">
-          <span className="text-sm font-medium text-white">E-mail zamówienia</span>
+          <span className="text-sm font-medium text-foreground">E-mail zamówienia</span>
           <Input
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -123,8 +121,8 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
           />
         </label>
 
-        <div className="space-y-3 rounded-[1.5rem] border border-border/70 bg-secondary/45 p-5">
-          <p className="text-sm font-medium text-white">Co wydarzy się po płatności</p>
+        <div className="space-y-3 rounded-[1.5rem] border border-border/70 bg-background/70 p-5">
+          <p className="text-sm font-medium text-foreground">Co wydarzy się po płatności</p>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>Stripe otworzy bezpieczną stronę płatności dla Twojego koszyka.</li>
             <li>Zamówienie zapisze się w Supabase po webhooku `checkout.session.completed`.</li>
@@ -142,33 +140,33 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
         </Button>
 
         {errorMessage ? (
-          <div className="rounded-[1.5rem] border border-destructive/30 bg-destructive/10 p-5 text-sm text-white/90">
+          <div className="rounded-[1.5rem] border border-destructive/30 bg-destructive/10 p-5 text-sm text-foreground">
             {errorMessage}
           </div>
         ) : null}
       </section>
 
-      <aside className="surface-panel gold-frame h-fit space-y-4 p-6">
-        <h2 className="text-2xl text-white">Podsumowanie</h2>
+      <aside className="surface-panel h-fit space-y-4 p-6">
+        <h2 className="text-2xl text-foreground">Podsumowanie</h2>
         <div className="space-y-3">
           {lines.map((line) =>
             line ? (
               <div
                 key={line.id}
-                className="flex items-center justify-between gap-4 rounded-[1.2rem] border border-border/60 bg-secondary/45 px-4 py-3 text-sm"
+                className="flex items-center justify-between gap-4 rounded-[1.2rem] border border-border/60 bg-background/70 px-4 py-3 text-sm"
               >
                 <div>
-                  <p className="font-medium text-white">{line.name}</p>
+                  <p className="font-medium text-foreground">{line.name}</p>
                   <p className="text-muted-foreground">Ilość: {line.quantity}</p>
                 </div>
-                <span className="text-white">
+                <span className="text-foreground">
                   {formatCurrency(line.price * line.quantity)}
                 </span>
               </div>
             ) : null,
           )}
         </div>
-        <div className="flex items-center justify-between border-t border-border/60 pt-3 text-base font-semibold text-white">
+        <div className="flex items-center justify-between border-t border-border/60 pt-3 text-base font-semibold text-foreground">
           <span>Łącznie</span>
           <span>{formatCurrency(subtotal)}</span>
         </div>

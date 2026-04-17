@@ -22,8 +22,10 @@ export function SectionHeading({
     >
       <span className="eyebrow">{badge}</span>
       <div className="space-y-3">
-        <h2 className="text-4xl text-white sm:text-5xl">{title}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{description}</p>
+        <h2 className="text-balance text-4xl text-foreground sm:text-5xl">{title}</h2>
+        <p className="text-pretty text-sm leading-7 text-muted-foreground sm:text-base">
+          {description}
+        </p>
       </div>
     </div>
   );

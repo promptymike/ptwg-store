@@ -1,14 +1,18 @@
-# PTWG.pl MVP
+# Templify
 
-Sklep z cyfrowymi produktami premium zbudowany w `Next.js 16`, `TypeScript`, `Tailwind CSS v4` i `shadcn/ui`, z prawdziwym `Supabase Auth`, bazą danych, RLS, Storage i działającym `Stripe Checkout`.
+Premium storefront dla digital templates, gotowych systemów i produktów cyfrowych zbudowany w `Next.js 16`, `TypeScript`, `Tailwind CSS v4`, `Supabase` i `Stripe`.
 
-## Wymagane envy
+## Env
+
+Wymagane zmienne:
 
 ```bash
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SECRET_KEY=
+
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
@@ -29,51 +33,97 @@ npm run typecheck
 npm run build
 ```
 
-## Migracje Supabase
+## Migracje i typy Supabase
 
 Repo używa migracji w `supabase/migrations`.
 
-Uruchomienie:
+Uruchom:
 
 ```bash
 npx supabase db push --include-all
 ```
 
-Odświeżenie typów po zmianach w bazie:
+Odśwież typy:
 
 ```bash
 npx supabase gen types typescript --linked --schema public | Out-File -FilePath src/types/database.types.ts -Encoding utf8
 ```
 
-## Jak działa auth
+## Co kliknąć w Supabase
 
-- `/logowanie` używa `supabase.auth.signInWithPassword`
-- `/rejestracja` używa `supabase.auth.signUp`
-- profil użytkownika powstaje automatycznie przez trigger na `auth.users`
-- `/konto`, `/biblioteka` i `/admin` są chronione przez middleware oparte o auth cookies
-- checkout wymaga zalogowanego użytkownika, aby zakup można było przypisać do biblioteki
+1. `Authentication > Providers > Email`: włącz Email.
+2. `Storage`: utwórz buckety `product-files` i `product-covers`.
+3. `Table Editor`: sprawdź tabele:
+   `profiles`, `admin_allowlist`, `categories`, `products`, `product_previews`, `orders`, `order_items`, `library_items`, `site_sections`, `content_pages`, `faq_items`, `testimonials`.
+4. Jeśli chcesz testować bez potwierdzenia maila, wyłącz `Confirm email`.
+
+## Auth i role
+
+- Logowanie i rejestracja działają przez Supabase Auth.
+- Middleware chroni `/konto`, `/biblioteka` i `/admin`.
+- Profil użytkownika powstaje automatycznie po zmianach w `auth.users`.
+- Rola `admin` jest nadawana na podstawie tabeli `admin_allowlist`.
+- Jeśli mail znajduje się na allowliście i użytkownik zaloguje się lub zarejestruje, jego profil dostaje rolę `admin`.
+- Zmiany w allowliście synchronizują role także dla istniejących profili o tym samym adresie e-mail.
+
+## Domyślna allowlista adminów
+
+Migracja seeduje aktywne wpisy:
+
+- `kgodlewski04@gmail.com`
+- `michwel7@gmail.com`
+- `paweltokarski5@gmail.com`
+- `podsiadlo.bartosz.bp@gmail.com`
+- `ptwgadmin@gmail.com`
+
+Jeśli w adresie pojawią się znaki narodowe, trzymaj zapis w zwykłym ASCII albo dodaj konto przez dokładnie ten sam adres, którego używa logowanie.
 
 ## Storage i uploady
 
-1. W `Storage` utwórz buckety `product-files` i `product-covers`.
-2. Oba buckety zostaw jako prywatne.
-3. Upload okładek i plików działa z panelu admina przy tworzeniu i edycji produktu.
-4. Ścieżki plików zapisują się w `public.products.cover_path` oraz `public.products.file_path`.
-5. Pobrania z biblioteki działają tylko dla użytkownika, który ma rekord w `library_items`.
-6. Endpoint `/api/library/[productId]/download` generuje signed URL dla `product-files` i aktualizuje `download_count` oraz `last_downloaded_at`.
+- `product-files`: prywatne pliki cyfrowe do pobrania po zakupie.
+- `product-covers`: okładki i preview images.
+- Uploady okładek, plików i preview działają z panelu admina.
+- Pobrania z biblioteki idą przez signed URL i są dostępne tylko dla użytkownika z wpisem w `library_items`.
 
-## Stripe Checkout
+## Content i panel admina
 
-- `/checkout` tworzy prawdziwą `Checkout Session` na podstawie koszyka i produktów z Supabase
-- `success_url` i `cancel_url` używają `NEXT_PUBLIC_SITE_URL`
-- webhook działa pod `/api/stripe/webhook`
-- po `checkout.session.completed` aplikacja zapisuje:
-  - `orders`
-  - `order_items`
-  - `library_items`
-- fulfillment jest idempotentny dzięki unikalnemu `stripe_checkout_session_id`, unikalnym pozycjom `order_items` i tabeli `stripe_webhook_events`
+Panel admina ma sekcje:
 
-## Jak uruchomić Stripe lokalnie
+- `Dashboard`
+- `Produkty`
+- `Kategorie`
+- `Zamówienia`
+- `Content / Strony`
+- `Użytkownicy / Admini`
+- `Ustawienia`
+
+W `Content / Strony` edytujesz:
+
+- hero i sekcje homepage
+- FAQ
+- testimonials
+- legal pages
+
+W `Produkty` edytujesz:
+
+- status `draft / published / archived`
+- badge `bestseller / new / featured / pack`
+- pricing i compare-at price
+- category
+- cover image
+- product file
+- preview images
+- kolejność i featured order
+
+## Theme toggle i cookies
+
+- Theme toggle obsługuje `light`, `dark` i `system`.
+- Ustawienie zapisuje się w `localStorage` pod kluczem `templify-theme`.
+- Banner cookies zapisuje zgody w `localStorage` pod kluczem `templify-cookie-consent`.
+- Kategorie zgód: `necessary`, `analytics`, `marketing`.
+- To przygotowuje aplikację pod późniejsze podpięcie narzędzi analitycznych zgodnie ze zgodami.
+
+## Stripe lokalnie
 
 1. Zaloguj się do Stripe CLI:
 
@@ -81,60 +131,19 @@ npx supabase gen types typescript --linked --schema public | Out-File -FilePath 
 stripe login
 ```
 
-2. Uruchom forwarding webhooków do lokalnej aplikacji:
+2. Uruchom forwarding webhooków:
 
 ```bash
 stripe listen --events checkout.session.completed --forward-to localhost:3000/api/stripe/webhook
 ```
 
-3. Skopiuj sekret `whsec_...` z outputu CLI do `STRIPE_WEBHOOK_SECRET` w `.env.local`.
+3. Skopiuj sekret `whsec_...` do `STRIPE_WEBHOOK_SECRET`.
 
-## Jak testować webhook
+## Testowy zakup
 
-Najprostszy test to przejście pełnego checkoutu z UI. Możesz też użyć CLI:
-
-```bash
-stripe trigger checkout.session.completed
-```
-
-W praktyce najlepszy test to normalny zakup z koszyka, bo wtedy webhook dostaje prawdziwą sesję wygenerowaną przez aplikację.
-
-## Jak wykonać testowy zakup
-
-1. Uruchom aplikację przez `npm run dev`.
-2. Upewnij się, że działa `stripe listen --events checkout.session.completed --forward-to localhost:3000/api/stripe/webhook`.
-3. Zaloguj się do aplikacji.
-4. Dodaj produkt do koszyka i przejdź do `/checkout`.
-5. Kliknij przycisk płatności, aby wejść do Stripe Checkout.
-6. Użyj testowej karty `4242 4242 4242 4242`, dowolnej przyszłej daty, dowolnego CVC i kodu pocztowego.
-7. Po sukcesie wrócisz na `/checkout/sukces`, a produkt powinien pojawić się w `/biblioteka`.
-
-## Co kliknąć w Supabase
-
-1. Wejdź do `Authentication > Providers > Email` i upewnij się, że Email jest włączony.
-2. Jeśli chcesz logowanie bez potwierdzenia maila, wyłącz `Confirm email`.
-3. W `Storage` sprawdź buckety `product-files` i `product-covers`.
-4. W `Table Editor` zobacz tabele: `profiles`, `categories`, `products`, `orders`, `order_items`, `library_items`, `stripe_webhook_events`.
-
-## Jak ustawić role admin/user
-
-Nowi użytkownicy dostają domyślnie rolę `user`.
-
-Aby nadać admina, wykonaj w SQL Editor:
-
-```sql
-update public.profiles
-set role = 'admin'
-where email = 'twoj-adres@example.com';
-```
-
-## Obecny zakres integracji
-
-- realny Supabase Auth zamiast demo sesji
-- realne middleware z cookie auth
-- profile i role z tabeli `profiles`
-- listing produktów i karta produktu czytane z Supabase
-- admin ma działający CRUD kategorii i produktów
-- upload okładek i plików działa przez Supabase Storage
-- biblioteka obsługuje bezpieczne pobrania i liczniki downloadów
-- Stripe Checkout zapisuje prawdziwe zamówienia i automatycznie nadaje dostęp do biblioteki
+1. Uruchom aplikację.
+2. Zaloguj się.
+3. Dodaj produkt do koszyka.
+4. Przejdź do `/checkout`.
+5. Użyj testowej karty `4242 4242 4242 4242`.
+6. Po sukcesie sprawdź `/biblioteka` i `/konto`.

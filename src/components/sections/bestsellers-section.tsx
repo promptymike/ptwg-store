@@ -3,27 +3,40 @@ import Link from "next/link";
 import { ProductCard } from "@/components/products/product-card";
 import { SectionHeading } from "@/components/shared/section-heading";
 import { Button } from "@/components/ui/button";
-import { bestsellerProducts } from "@/data/mock-store";
+import type { Product, SiteSectionContent } from "@/types/store";
 
-export function BestsellersSection() {
+type BestsellersSectionProps = {
+  content: SiteSectionContent;
+  products: Product[];
+};
+
+export function BestsellersSection({
+  content,
+  products,
+}: BestsellersSectionProps) {
   return (
-    <section id="bestsellery" className="shell section-space">
+    <section id="featured" className="shell section-space">
       <div className="space-y-8">
         <SectionHeading
-          badge="Bestsellery"
-          title="Produkty, od których najłatwiej zacząć sprzedaż"
-          description="Wybrane pozycje spinają cały klimat sklepu: wysoka estetyka, jasna wartość i kategorie, które łatwo dalej rozwijać."
+          badge={content.eyebrow}
+          title={content.title}
+          description={content.description}
         />
 
         <div className="grid gap-5 lg:grid-cols-3">
-          {bestsellerProducts.map((product) => (
+          {products.map((product) => (
             <ProductCard key={product.id} product={product} priority="featured" />
           ))}
         </div>
 
-        <Button variant="outline" size="lg" render={<Link href="/produkty" />}>
-          Zobacz cały katalog
-        </Button>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
+            {content.body}
+          </p>
+          <Button variant="outline" size="lg" render={<Link href={content.ctaHref ?? "/produkty"} />}>
+            {content.ctaLabel ?? "Zobacz katalog"}
+          </Button>
+        </div>
       </div>
     </section>
   );

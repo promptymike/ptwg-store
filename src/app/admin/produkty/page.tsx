@@ -37,8 +37,8 @@ export default async function AdminProductsPage({
       {!products.length && !categories.length && productsError && categoriesError ? (
         <EmptyState
           badge="Admin produkty"
-          title="Nie udało się pobrać danych produktów"
-          description="Sprawdź konfigurację Supabase, polityki RLS i połączenie z bazą. Gdy dane wrócą, formularze CRUD pojawią się tutaj bez zmiany route'u."
+          title="Nie udało się pobrać danych produktowych"
+          description="Sprawdź konfigurację Supabase, role administratora i polityki RLS."
         />
       ) : (
         <AdminProductManager categories={categories} products={products} />

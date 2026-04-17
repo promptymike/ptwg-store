@@ -23,31 +23,31 @@ export function AdminCategoryManager({
 }: AdminCategoryManagerProps) {
   return (
     <div className="space-y-6">
-      <section className="surface-panel gold-frame space-y-5 p-6">
+      <section className="surface-panel space-y-5 p-6">
         <div className="space-y-2">
-          <h2 className="text-2xl text-white">Nowa kategoria</h2>
+          <h2 className="text-2xl text-foreground">Nowa kategoria</h2>
           <p className="text-sm text-muted-foreground">
-            Formularz zapisuje kategorię bezpośrednio do Supabase.
+            Kategorie sterują filtrowaniem katalogu, use caseami i logiką przypisywania produktów.
           </p>
         </div>
 
         <form action={createCategoryAction} className="grid gap-4 xl:grid-cols-2">
           <label className="space-y-2">
-            <span className="text-sm text-white">Nazwa</span>
-            <Input name="name" placeholder="Planery premium" />
+            <span className="text-sm text-foreground">Nazwa</span>
+            <Input name="name" placeholder="Planowanie i Notion" />
           </label>
 
           <label className="space-y-2">
-            <span className="text-sm text-white">Slug</span>
-            <Input name="slug" placeholder="planery-premium" />
+            <span className="text-sm text-foreground">Slug</span>
+            <Input name="slug" placeholder="planowanie-i-notion" />
           </label>
 
           <label className="space-y-2">
-            <span className="text-sm text-white">Sortowanie</span>
+            <span className="text-sm text-foreground">Sortowanie</span>
             <Input name="sortOrder" defaultValue="0" type="number" />
           </label>
 
-          <label className="flex items-center gap-3 rounded-[1.2rem] border border-border/70 bg-secondary/45 px-4 py-3 text-sm text-white">
+          <label className="flex items-center gap-3 rounded-[1.2rem] border border-border/70 bg-background/60 px-4 py-3 text-sm text-foreground">
             <input
               name="isActive"
               type="checkbox"
@@ -58,11 +58,11 @@ export function AdminCategoryManager({
           </label>
 
           <label className="space-y-2 xl:col-span-2">
-            <span className="text-sm text-white">Opis</span>
+            <span className="text-sm text-foreground">Opis</span>
             <Textarea
               name="description"
-              placeholder="Opis kategorii dla sklepu i panelu admina..."
-              className="min-h-32"
+              placeholder="Opisz kategorię tak, jak ma być rozumiana przez klienta i zespół."
+              className="min-h-28"
             />
           </label>
 
@@ -74,16 +74,16 @@ export function AdminCategoryManager({
         </form>
       </section>
 
-      <section className="surface-panel gold-frame space-y-5 p-6">
+      <section className="surface-panel space-y-5 p-6">
         <div className="space-y-2">
-          <h2 className="text-2xl text-white">Edycja kategorii</h2>
+          <h2 className="text-2xl text-foreground">Edycja kategorii</h2>
           <p className="text-sm text-muted-foreground">
-            Każda pozycja może być aktualizowana lub usuwana bezpośrednio z listy.
+            Każdą kategorię możesz zaktualizować lub wyłączyć bez zmiany istniejących routeów.
           </p>
         </div>
 
         {categories.length === 0 ? (
-          <p className="rounded-[1.2rem] border border-border/70 bg-secondary/45 px-4 py-4 text-sm text-muted-foreground">
+          <p className="rounded-[1.2rem] border border-border/70 bg-background/60 px-4 py-4 text-sm text-muted-foreground">
             Nie ma jeszcze żadnych kategorii do edycji.
           </p>
         ) : (
@@ -91,23 +91,23 @@ export function AdminCategoryManager({
             {categories.map((category) => (
               <article
                 key={category.id}
-                className="rounded-[1.4rem] border border-border/70 bg-secondary/45 p-4"
+                className="rounded-[1.4rem] border border-border/70 bg-background/60 p-4"
               >
                 <form action={updateCategoryAction} className="grid gap-4 xl:grid-cols-2">
                   <input type="hidden" name="categoryId" value={category.id} />
 
                   <label className="space-y-2">
-                    <span className="text-sm text-white">Nazwa</span>
+                    <span className="text-sm text-foreground">Nazwa</span>
                     <Input name="name" defaultValue={category.name} />
                   </label>
 
                   <label className="space-y-2">
-                    <span className="text-sm text-white">Slug</span>
+                    <span className="text-sm text-foreground">Slug</span>
                     <Input name="slug" defaultValue={category.slug} />
                   </label>
 
                   <label className="space-y-2">
-                    <span className="text-sm text-white">Sortowanie</span>
+                    <span className="text-sm text-foreground">Sortowanie</span>
                     <Input
                       name="sortOrder"
                       defaultValue={String(category.sortOrder)}
@@ -115,7 +115,7 @@ export function AdminCategoryManager({
                     />
                   </label>
 
-                  <label className="flex items-center gap-3 rounded-[1.2rem] border border-border/70 bg-background/30 px-4 py-3 text-sm text-white">
+                  <label className="flex items-center gap-3 rounded-[1.2rem] border border-border/70 bg-background/80 px-4 py-3 text-sm text-foreground">
                     <input
                       name="isActive"
                       type="checkbox"
@@ -126,11 +126,11 @@ export function AdminCategoryManager({
                   </label>
 
                   <label className="space-y-2 xl:col-span-2">
-                    <span className="text-sm text-white">Opis</span>
+                    <span className="text-sm text-foreground">Opis</span>
                     <Textarea
                       name="description"
                       defaultValue={category.description}
-                      className="min-h-28"
+                      className="min-h-24"
                     />
                   </label>
 

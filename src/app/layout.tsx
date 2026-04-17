@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Cormorant_Garamond, Manrope } from "next/font/google";
 
+import { CookieConsentBanner } from "@/components/compliance/cookie-consent";
 import { CartProvider } from "@/components/cart/cart-provider";
+import { ThemeProvider, ThemeScript } from "@/components/theme/theme-provider";
 import "./globals.css";
 
 const geistMono = Geist_Mono({
@@ -21,13 +23,13 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://ptwg.pl"),
+  metadataBase: new URL("https://templify.store"),
   title: {
-    default: "PTWG.pl | Cyfrowe produkty premium",
-    template: "%s | PTWG.pl",
+    default: "Templify | Premium digital templates",
+    template: "%s | Templify",
   },
   description:
-    "MVP sklepu z cyfrowymi produktami premium: planery, przepisy, plany treningowe, finanse i rozwój osobisty.",
+    "Templify to premium storefront z cyfrowymi templatekami, systemami operacyjnymi i produktami cyfrowymi dla nowoczesnych marek.",
 };
 
 export default function RootLayout({
@@ -39,10 +41,16 @@ export default function RootLayout({
     <html
       lang="pl"
       suppressHydrationWarning
-      className={`dark ${geistMono.variable} ${manrope.variable} ${cormorant.variable} h-full`}
+      className={`${geistMono.variable} ${manrope.variable} ${cormorant.variable} h-full`}
     >
-      <body className="min-h-full">
-        <CartProvider>{children}</CartProvider>
+      <body className="min-h-full bg-background text-foreground">
+        <ThemeScript />
+        <ThemeProvider>
+          <CartProvider>
+            {children}
+            <CookieConsentBanner />
+          </CartProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
