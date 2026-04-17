@@ -14,7 +14,7 @@ export const ORDER_STATUSES = [
   "Anulowane",
 ] as const;
 
-export type Category = (typeof CATEGORY_OPTIONS)[number];
+export type Category = string;
 export type UserRole = (typeof ROLE_OPTIONS)[number];
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 

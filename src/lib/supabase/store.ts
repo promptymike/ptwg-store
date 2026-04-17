@@ -9,13 +9,13 @@ import {
   getProductBySlug as getMockProductBySlug,
   products as mockProducts,
 } from "@/data/mock-store";
+import { formatCurrency } from "@/lib/format";
 import { hasSupabaseEnv } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { formatCurrency } from "@/lib/format";
 import type { Tables } from "@/types/database.types";
 
 type ProductRow = Tables<"products"> & {
-  categories: Pick<Tables<"categories">, "name" | "slug"> | null;
+  categories: Pick<Tables<"categories">, "id" | "name" | "slug"> | null;
 };
 
 type LibraryRow = Tables<"library_items"> & {
@@ -32,14 +32,16 @@ type AdminOrderRow = Tables<"orders"> & {
   order_items: Array<Pick<Tables<"order_items">, "product_name">>;
 };
 
+type AdminCategoryRow = Tables<"categories">;
+
 type AccountOrderRow = Pick<
   Tables<"orders">,
   "id" | "status" | "total" | "created_at"
 >;
 
 function normalizeCategory(value: string | null | undefined): Category {
-  const matchedCategory = CATEGORY_OPTIONS.find((category) => category === value);
-  return matchedCategory ?? CATEGORY_OPTIONS[0];
+  const normalizedValue = value?.trim();
+  return normalizedValue || CATEGORY_OPTIONS[0];
 }
 
 function mapProduct(row: ProductRow): Product {
@@ -107,7 +109,7 @@ export async function getStoreProducts(category?: string) {
 
   let query = supabase
     .from("products")
-    .select("*, categories(name, slug)")
+    .select("*, categories(id, name, slug)")
     .eq("is_active", true)
     .order("created_at", { ascending: true });
 
@@ -120,7 +122,7 @@ export async function getStoreProducts(category?: string) {
       .maybeSingle();
 
     if (!categoryRecord) {
-      return mockProducts.filter((product) => product.category === category);
+      return [];
     }
 
     query = query.eq("category_id", categoryRecord.id);
@@ -150,7 +152,7 @@ export async function getStoreProductBySlug(slug: string) {
 
   const { data, error } = await supabase
     .from("products")
-    .select("*, categories(name, slug)")
+    .select("*, categories(id, name, slug)")
     .eq("slug", slug)
     .eq("is_active", true)
     .maybeSingle();
@@ -267,33 +269,99 @@ export async function getAdminProductsSnapshot() {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    return [];
+    return {
+      products: [],
+      error: "Brak konfiguracji Supabase.",
+    };
   }
 
   const { data, error } = await supabase
     .from("products")
-    .select("id, name, format, pages, price, categories(name)")
+    .select(
+      "id, slug, name, short_description, description, price, compare_at_price, format, pages, tags, rating, sales_label, accent, cover_gradient, includes, hero_note, bestseller, featured, is_active, cover_path, file_path, categories(id, name, slug)",
+    )
     .order("created_at", { ascending: false });
 
   if (error || !data) {
-    return [];
+    return {
+      products: [],
+      error: error?.message ?? "Nie udało się pobrać produktów.",
+    };
   }
 
-  return data.map((product) => ({
-    id: product.id,
-    name: product.name,
-    category: normalizeCategory(product.categories?.name),
-    format: product.format,
-    pages: product.pages,
-    price: product.price,
-  }));
+  return {
+    products: data.map((product) => ({
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      shortDescription: product.short_description,
+      description: product.description,
+      price: product.price,
+      compareAtPrice: product.compare_at_price,
+      category: normalizeCategory(product.categories?.name),
+      categoryId: product.categories?.id ?? "",
+      format: product.format,
+      pages: product.pages,
+      tags: product.tags ?? [],
+      rating: product.rating,
+      salesLabel: product.sales_label,
+      accent: product.accent,
+      coverGradient: product.cover_gradient,
+      includes: product.includes ?? [],
+      heroNote: product.hero_note,
+      bestseller: product.bestseller,
+      featured: product.featured,
+      isActive: product.is_active,
+      coverPath: product.cover_path,
+      filePath: product.file_path,
+    })),
+    error: null,
+  };
+}
+
+export async function getAdminCategoriesSnapshot() {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return {
+      categories: [],
+      error: "Brak konfiguracji Supabase.",
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("categories")
+    .select("*")
+    .order("sort_order", { ascending: true });
+
+  if (error || !data) {
+    return {
+      categories: [],
+      error: error?.message ?? "Nie udało się pobrać kategorii.",
+    };
+  }
+
+  return {
+    categories: (data as AdminCategoryRow[]).map((category) => ({
+      id: category.id,
+      slug: category.slug,
+      name: category.name,
+      description: category.description,
+      sortOrder: category.sort_order,
+      isActive: category.is_active,
+    })),
+    error: null,
+  };
 }
 
 export async function getAdminOrdersSnapshot() {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    return [];
+    return {
+      orders: [],
+      error: "Brak konfiguracji Supabase.",
+    };
   }
 
   const { data, error } = await supabase
@@ -304,16 +372,22 @@ export async function getAdminOrdersSnapshot() {
     .order("created_at", { ascending: false });
 
   if (error || !data) {
-    return [];
+    return {
+      orders: [],
+      error: error?.message ?? "Nie udało się pobrać zamówień.",
+    };
   }
 
-  return (data as AdminOrderRow[]).map((order) => ({
-    id: order.id,
-    customer: order.profiles?.full_name ?? order.email,
-    email: order.email,
-    amount: order.total,
-    status: order.status,
-    date: order.created_at,
-    items: order.order_items.map((item) => item.product_name),
-  }));
+  return {
+    orders: (data as AdminOrderRow[]).map((order) => ({
+      id: order.id,
+      customer: order.profiles?.full_name ?? order.email,
+      email: order.email,
+      amount: order.total,
+      status: order.status,
+      date: order.created_at,
+      items: order.order_items.map((item) => item.product_name),
+    })),
+    error: null,
+  };
 }

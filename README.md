@@ -57,6 +57,15 @@ npx supabase gen types typescript --linked --schema public | Out-File -FilePath 
 - `/konto`, `/biblioteka` i `/admin` są chronione przez middleware oparte o auth cookies
 - rola użytkownika jest trzymana w `public.profiles.role`
 
+## Storage i uploady
+
+1. W `Storage` utwórz buckety `product-files` i `product-covers`.
+2. Oba buckety zostaw jako prywatne.
+3. Upload okładek i plików działa z panelu admina przy tworzeniu i edycji produktu.
+4. Ścieżki plików zapisują się w `public.products.cover_path` oraz `public.products.file_path`.
+5. Pobrania z biblioteki działają tylko dla użytkownika, który ma rekord w `library_items`.
+6. Endpoint `/api/library/[productId]/download` generuje signed URL dla `product-files` i aktualizuje `download_count` oraz `last_downloaded_at`.
+
 ## Co kliknąć w Supabase
 
 1. Wejdź do `Authentication > Providers > Email` i upewnij się, że Email jest włączony.
@@ -76,13 +85,6 @@ set role = 'admin'
 where email = 'twoj-adres@example.com';
 ```
 
-## Storage
-
-- `product-files` jest bucketem prywatnym pod pliki cyfrowe
-- `product-covers` jest bucketem prywatnym pod okładki
-- helper signed URL dla plików cyfrowych jest gotowy w `src/lib/supabase/storage.ts`
-- endpoint pobierania biblioteki działa pod `/api/library/[productId]/download`
-
 ## Obecny zakres integracji
 
 - realny Supabase Auth zamiast demo sesji
@@ -90,11 +92,13 @@ where email = 'twoj-adres@example.com';
 - profile i role z tabeli `profiles`
 - listing produktów i karta produktu czytane z Supabase, z bezpiecznym fallbackiem na mocki
 - konto, biblioteka i panel admina czytają prawdziwe dane z Supabase
-- formularze admina nadal są placeholderami UI pod kolejny etap CRUD
+- admin ma działający CRUD kategorii i produktów
+- upload okładek i plików działa przez Supabase Storage
+- biblioteka obsługuje bezpieczne pobrania i liczniki downloadów
 
 ## Następne kroki przed Stripe
 
-1. Dodać pełny CRUD produktów i kategorii w panelu admina.
-2. Dodać upload plików i okładek do bucketów storage.
-3. Uzupełnić bibliotekę o liczniki pobrań i zarządzanie signed URL.
-4. Przygotować zapis zamówień po stronie aplikacji przed wpięciem Stripe Checkout.
+1. Dodać finalny zapis zamówienia po prawdziwym checkout flow.
+2. Powiązać `orders`, `order_items` i `library_items` z webhookiem płatności.
+3. Dodać automatyczne nadawanie dostępu do biblioteki po opłaceniu zamówienia.
+4. Dodać historię statusów zamówień i mailowe potwierdzenia po zakupie.

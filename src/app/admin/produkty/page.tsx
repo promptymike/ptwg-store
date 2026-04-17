@@ -1,44 +1,48 @@
-import { AdminProductForms } from "@/components/admin/admin-product-forms";
-import { formatCurrency } from "@/lib/format";
-import { getAdminProductsSnapshot } from "@/lib/supabase/store";
+import { AdminProductManager } from "@/components/admin/admin-product-manager";
+import { AdminStatusNotice } from "@/components/admin/admin-status-notice";
+import { EmptyState } from "@/components/shared/empty-state";
+import {
+  getAdminCategoriesSnapshot,
+  getAdminProductsSnapshot,
+} from "@/lib/supabase/store";
 
-export default async function AdminProductsPage() {
-  const products = await getAdminProductsSnapshot();
+type AdminProductsPageProps = {
+  searchParams: Promise<{
+    type?: string;
+    message?: string;
+  }>;
+};
+
+export default async function AdminProductsPage({
+  searchParams,
+}: AdminProductsPageProps) {
+  const [{ products, error: productsError }, { categories, error: categoriesError }, status] =
+    await Promise.all([
+      getAdminProductsSnapshot(),
+      getAdminCategoriesSnapshot(),
+      searchParams,
+    ]);
+
+  const noticeMessage = [status.message, productsError, categoriesError]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div className="space-y-6">
-      <section className="surface-panel gold-frame space-y-5 p-6">
-        <div className="space-y-2">
-          <h2 className="text-2xl text-white">Lista produktów</h2>
-          <p className="text-sm text-muted-foreground">
-            Dane pochodzą już z tabeli `products`, a formularze niżej są przygotowane
-            pod kolejny etap CRUD.
-          </p>
-        </div>
+      <AdminStatusNotice
+        type={status.type ?? (productsError || categoriesError ? "error" : undefined)}
+        message={noticeMessage || undefined}
+      />
 
-        <div className="grid gap-3">
-          {products.map((product) => (
-            <article
-              key={product.id}
-              className="rounded-[1.4rem] border border-border/70 bg-secondary/45 px-4 py-4"
-            >
-              <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <p className="text-lg text-white">{product.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {product.category} • {product.format} • {product.pages} stron
-                  </p>
-                </div>
-                <p className="text-sm font-medium text-white">
-                  {formatCurrency(product.price)}
-                </p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <AdminProductForms />
+      {!products.length && !categories.length && productsError && categoriesError ? (
+        <EmptyState
+          badge="Admin produkty"
+          title="Nie udało się pobrać danych produktów"
+          description="Sprawdź konfigurację Supabase, polityki RLS i połączenie z bazą. Gdy dane wrócą, formularze CRUD pojawią się tutaj bez zmiany route'u."
+        />
+      ) : (
+        <AdminProductManager categories={categories} products={products} />
+      )}
     </div>
   );
 }

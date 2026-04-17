@@ -6,6 +6,7 @@ import { getCurrentProfile } from "@/lib/session";
 
 const adminLinks = [
   { href: "/admin", label: "Dashboard" },
+  { href: "/admin/kategorie", label: "Kategorie" },
   { href: "/admin/produkty", label: "Produkty" },
   { href: "/admin/zamowienia", label: "Zamówienia" },
 ];

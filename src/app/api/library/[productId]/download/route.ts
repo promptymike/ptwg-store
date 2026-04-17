@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { env } from "@/lib/env";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import { createProductFileSignedUrl } from "@/lib/supabase/storage";
 
 type DownloadRouteProps = {
@@ -10,14 +10,33 @@ type DownloadRouteProps = {
   }>;
 };
 
+function buildAppUrl(request: Request, path: string) {
+  return new URL(path, env.appUrl || request.url);
+}
+
+function redirectWithMessage(
+  request: Request,
+  path: string,
+  type: "success" | "error",
+  message: string,
+) {
+  const url = buildAppUrl(request, path);
+  url.searchParams.set("type", type);
+  url.searchParams.set("message", message);
+
+  return NextResponse.redirect(url);
+}
+
 export async function GET(request: Request, { params }: DownloadRouteProps) {
   const { productId } = await params;
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    return NextResponse.json(
-      { message: "Brak konfiguracji Supabase." },
-      { status: 500 },
+    return redirectWithMessage(
+      request,
+      "/biblioteka",
+      "error",
+      "Brak konfiguracji Supabase dla pobierania plików.",
     );
   }
 
@@ -26,30 +45,58 @@ export async function GET(request: Request, { params }: DownloadRouteProps) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.redirect(new URL("/logowanie", env.appUrl || request.url));
+    return NextResponse.redirect(
+      buildAppUrl(request, `/logowanie?next=${encodeURIComponent("/biblioteka")}`),
+    );
   }
 
   const { data, error } = await supabase
     .from("library_items")
-    .select("products!inner(file_path)")
+    .select("id, download_count, products!inner(name, file_path)")
     .eq("user_id", user.id)
     .eq("product_id", productId)
     .maybeSingle();
 
-  if (error || !data?.products?.file_path) {
-    return NextResponse.json(
-      { message: "Nie znaleziono pliku dla tego produktu." },
-      { status: 404 },
+  if (error || !data) {
+    return redirectWithMessage(
+      request,
+      "/biblioteka",
+      "error",
+      "Nie masz dostępu do tego produktu w bibliotece.",
+    );
+  }
+
+  if (!data.products.file_path) {
+    return redirectWithMessage(
+      request,
+      "/biblioteka",
+      "error",
+      "Plik dla tego produktu nie został jeszcze dodany.",
     );
   }
 
   const signedUrl = await createProductFileSignedUrl(data.products.file_path);
 
   if (!signedUrl) {
-    return NextResponse.json(
-      { message: "Nie udało się wygenerować signed URL." },
-      { status: 500 },
+    return redirectWithMessage(
+      request,
+      "/biblioteka",
+      "error",
+      "Nie udało się wygenerować bezpiecznego linku do pobrania.",
     );
+  }
+
+  const adminSupabase = createSupabaseAdminClient();
+
+  if (adminSupabase) {
+    await adminSupabase
+      .from("library_items")
+      .update({
+        download_count: data.download_count + 1,
+        last_downloaded_at: new Date().toISOString(),
+      })
+      .eq("id", data.id)
+      .eq("user_id", user.id);
   }
 
   return NextResponse.redirect(signedUrl);

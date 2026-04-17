@@ -5,18 +5,52 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { getCurrentUser } from "@/lib/session";
 import { getLibrarySnapshot } from "@/lib/supabase/store";
 
-export default async function LibraryPage() {
-  const user = await getCurrentUser();
+type LibraryPageProps = {
+  searchParams: Promise<{
+    type?: string;
+    message?: string;
+  }>;
+};
+
+function LibraryNotice({
+  type,
+  message,
+}: {
+  type?: string;
+  message?: string;
+}) {
+  if (!type || !message) {
+    return null;
+  }
+
+  const isSuccess = type === "success";
+
+  return (
+    <div
+      className={`rounded-[1.4rem] border p-4 text-sm ${
+        isSuccess
+          ? "border-primary/20 bg-primary/10 text-muted-foreground"
+          : "border-destructive/30 bg-destructive/10 text-white/90"
+      }`}
+    >
+      {message}
+    </div>
+  );
+}
+
+export default async function LibraryPage({ searchParams }: LibraryPageProps) {
+  const [user, status] = await Promise.all([getCurrentUser(), searchParams]);
 
   if (!user) {
-    redirect("/logowanie");
+    redirect("/logowanie?next=/biblioteka");
   }
 
   const items = await getLibrarySnapshot(user.id);
 
   if (items.length === 0) {
     return (
-      <div className="shell section-space">
+      <div className="shell section-space space-y-6">
+        <LibraryNotice type={status.type} message={status.message} />
         <EmptyState
           badge="Moja biblioteka"
           title="Biblioteka jest jeszcze pusta"
@@ -29,13 +63,14 @@ export default async function LibraryPage() {
 
   return (
     <div className="shell section-space space-y-6">
+      <LibraryNotice type={status.type} message={status.message} />
+
       <div className="space-y-3">
         <span className="eyebrow">Moja biblioteka</span>
         <div>
           <h1 className="text-4xl text-white sm:text-5xl">Twoje produkty cyfrowe</h1>
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
-            Lista korzysta z tabeli `library_items`, a pobrania są gotowe pod signed
-            URL z prywatnego bucketa `product-files`.
+            Lista korzysta z tabeli `library_items`, a pobrania działają przez signed URL z prywatnego bucketa `product-files`.
           </p>
         </div>
       </div>
@@ -55,8 +90,13 @@ export default async function LibraryPage() {
                 {item.shortDescription}
               </p>
               <p className="text-xs uppercase tracking-[0.18em] text-primary/70">
-                {item.format} • dodano{" "}
-                {new Date(item.createdAt).toLocaleDateString("pl-PL")}
+                {item.format} • dodano {new Date(item.createdAt).toLocaleDateString("pl-PL")}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Pobrania: {item.downloadCount}
+                {item.lastDownloadedAt
+                  ? ` • ostatnio ${new Date(item.lastDownloadedAt).toLocaleDateString("pl-PL")}`
+                  : " • jeszcze nie pobrano"}
               </p>
             </div>
 
