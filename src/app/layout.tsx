@@ -26,11 +26,11 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   metadataBase: new URL("https://templify.store"),
   title: {
-    default: "Templify | Premium digital templates",
+    default: "Templify | Premium szablony cyfrowe dla nowoczesnych marek",
     template: "%s | Templify",
   },
   description:
-    "Templify to premium storefront z cyfrowymi templatekami, systemami operacyjnymi i produktami cyfrowymi dla nowoczesnych marek.",
+    "Templify to premium sklep z szablonami cyfrowymi, plannerami i gotowymi systemami dla założycieli, studiów i marek usługowych. Natychmiastowy dostęp po zakupie.",
 };
 
 export default function RootLayout({

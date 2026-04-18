@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Mail } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -8,22 +9,27 @@ export function CtaSection() {
       <div className="surface-panel overflow-hidden p-6 sm:p-8 lg:p-12">
         <div className="grid gap-8 xl:grid-cols-[1.08fr_0.92fr] xl:items-center">
           <div className="space-y-4">
-            <span className="eyebrow">Ready to convert</span>
+            <span className="eyebrow">Gotowy na spokojniejszą pracę?</span>
             <h2 className="text-balance text-4xl text-foreground sm:text-5xl">
-              Build trust faster with a storefront that feels polished before the customer clicks buy.
+              Zacznij od jednego szablonu. Zmień tempo całego tygodnia.
             </h2>
             <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-              Templify already connects premium UI with real auth, storage, checkout and
-              fulfillment. The next layer can focus on growth, not rebuilding foundations.
+              Każdy produkt w Templify jest zaprojektowany pod wdrożenie od pierwszego dnia.
+              Natychmiastowy dostęp, 14 dni na zwrot i spokojny, klarowny styl, który wpisuje się
+              w Twoją markę.
+            </p>
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Mail className="size-4 text-primary" />
+              Pytanie przed zakupem? Napisz na <span className="text-foreground">kontakt@templify.store</span>
             </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <Button size="lg" render={<Link href="/produkty" />}>
-              Przeglądaj produkty
+              Przeglądaj katalog
             </Button>
-            <Button size="lg" variant="outline" render={<Link href="/admin" />}>
-              Otwórz panel admina
+            <Button size="lg" variant="outline" render={<Link href="/#bundles" />}>
+              Zobacz pakiety
             </Button>
           </div>
         </div>

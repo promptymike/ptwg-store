@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Minus, Plus, ShieldCheck, Trash2, Zap } from "lucide-react";
 
 import { useCart } from "@/components/cart/cart-provider";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -29,8 +29,8 @@ export function CartView() {
       <EmptyState
         badge="Koszyk"
         title="Twój koszyk jest jeszcze pusty"
-        description="Dodaj pierwszy produkt cyfrowy i przejdź do Stripe Checkout. Stan koszyka zapisuje się lokalnie w localStorage."
-        action={{ href: "/produkty", label: "Przeglądaj produkty" }}
+        description="Dodaj pierwszy szablon i przejdź do bezpiecznej płatności. Pliki pojawią się w Twojej bibliotece natychmiast po zakupie."
+        action={{ href: "/produkty", label: "Przeglądaj katalog" }}
       />
     );
   }
@@ -48,10 +48,10 @@ export function CartView() {
                 className="surface-panel flex flex-col gap-4 p-6"
               >
                 <div>
-                  <p className="text-lg text-foreground">Produkt wymaga ponownego dodania</p>
+                  <p className="text-lg text-foreground">Ten produkt wymaga ponownego dodania</p>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Ten wpis pochodzi ze starszej wersji koszyka i nie ma już pełnych danych
-                    podglądu. Usuń go i dodaj produkt ponownie z katalogu.
+                    Wpis pochodzi ze starszej wersji koszyka i nie zawiera już pełnych danych.
+                    Usuń go i dodaj produkt ponownie z katalogu.
                   </p>
                 </div>
                 <div className="flex gap-3">
@@ -59,7 +59,7 @@ export function CartView() {
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => removeItem(item.productId)}
-                    aria-label="Usuń produkt"
+                    aria-label="Usuń produkt z koszyka"
                   >
                     <Trash2 className="size-4 text-destructive" />
                   </Button>
@@ -126,7 +126,7 @@ export function CartView() {
                   variant="ghost"
                   size="icon-sm"
                   onClick={() => removeItem(item.productId)}
-                  aria-label="Usuń produkt"
+                  aria-label="Usuń produkt z koszyka"
                 >
                   <Trash2 className="size-4 text-destructive" />
                 </Button>
@@ -139,12 +139,11 @@ export function CartView() {
       <aside className="surface-panel h-fit space-y-5 p-6">
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-[0.22em] text-primary/75">
-            Podsumowanie
+            Podsumowanie zamówienia
           </p>
-          <h2 className="text-3xl text-foreground">Gotowe do checkoutu</h2>
+          <h2 className="text-3xl text-foreground">Wszystko gotowe do zakupu</h2>
           <p className="text-sm text-muted-foreground">
-            Zamówienie przejdzie teraz przez prawdziwy Stripe Checkout i po płatności trafi od
-            razu do biblioteki klienta.
+            Produkty pojawią się w Twojej bibliotece natychmiast po zaksięgowaniu płatności.
           </p>
         </div>
 
@@ -153,15 +152,29 @@ export function CartView() {
             <span>Suma produktów</span>
             <span>{formatCurrency(subtotal)}</span>
           </div>
-          <div className="mt-3 flex items-center justify-between text-base font-semibold text-foreground">
+          <div className="mt-3 flex items-center justify-between border-t border-border/50 pt-3 text-base font-semibold text-foreground">
             <span>Łącznie</span>
             <span>{formatCurrency(subtotal)}</span>
           </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Cena zawiera podatek. Fakturę VAT wystawiamy automatycznie po zakupie.
+          </p>
         </div>
 
         <Button className="w-full" size="lg" render={<Link href="/checkout" />}>
-          Przejdź do checkoutu
+          Przejdź do płatności
         </Button>
+
+        <ul className="space-y-2 text-xs text-muted-foreground">
+          <li className="flex items-start gap-2">
+            <ShieldCheck className="mt-0.5 size-4 text-primary" />
+            Bezpieczne płatności online — karta, BLIK, Apple Pay.
+          </li>
+          <li className="flex items-start gap-2">
+            <Zap className="mt-0.5 size-4 text-primary" />
+            Natychmiastowy dostęp do plików po zakupie.
+          </li>
+        </ul>
       </aside>
     </div>
   );

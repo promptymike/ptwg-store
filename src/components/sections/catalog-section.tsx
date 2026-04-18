@@ -33,7 +33,7 @@ export function CatalogSection({ content, categories }: CatalogSectionProps) {
                 href={`/produkty?kategoria=${encodeURIComponent(category.title)}`}
                 className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-primary transition hover:text-primary/80"
               >
-                Otwórz use case <ArrowUpRight className="size-4" />
+                Zobacz kategorię <ArrowUpRight className="size-4" />
               </Link>
             </article>
           ))}

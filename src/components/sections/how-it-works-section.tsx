@@ -4,27 +4,27 @@ import type { SiteSectionContent } from "@/types/store";
 const steps = [
   {
     step: "01",
-    title: "Choose the system",
+    title: "Wybierz system",
     description:
-      "Browse by category or outcome and pick the template that solves the next bottleneck.",
+      "Przeglądaj katalog po kategorii lub efekcie i wybierz szablon, który rozwiązuje Twój najbliższy problem.",
   },
   {
     step: "02",
-    title: "Checkout once",
+    title: "Opłać bezpiecznie",
     description:
-      "Secure Stripe checkout keeps the flow quick while the order is tied to a real account.",
+      "Przechodzisz przez bezpieczny checkout online. Płacisz kartą, BLIK-iem lub Apple Pay — jednym kliknięciem.",
   },
   {
     step: "03",
-    title: "Access your library",
+    title: "Otwórz bibliotekę",
     description:
-      "Products appear in the customer library automatically after successful payment.",
+      "Produkty pojawiają się w Twojej bibliotece natychmiast po płatności — bez czekania i ręcznego odbioru.",
   },
   {
     step: "04",
-    title: "Implement immediately",
+    title: "Wdrażaj od razu",
     description:
-      "Files, Notion systems and packs are structured to be useful on day one, not after a full setup project.",
+      "Pliki, systemy Notion i pakiety są tak zbudowane, by przyniosły efekt jeszcze tego samego dnia.",
   },
 ];
 

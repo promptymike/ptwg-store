@@ -22,9 +22,9 @@ function getSectionOrFallback(
 }
 
 export const metadata: Metadata = buildCanonicalMetadata({
-  title: "Templify | Premium digital templates i gotowe systemy",
+  title: "Templify | Premium szablony cyfrowe i gotowe systemy pracy",
   description:
-    "Templify to premium storefront z templatekami, systemami operacyjnymi i produktami cyfrowymi dla founderów, twórców i marek usługowych.",
+    "Szablony Notion, plannery i systemy operacyjne zaprojektowane dla założycieli, studiów i konsultantów. Natychmiastowy dostęp, bezterminowa licencja, 14 dni na zwrot.",
   path: "/",
 });
 
@@ -53,19 +53,19 @@ export default async function HomePage() {
         }}
       />
       <HeroSection content={getSectionOrFallback(sections, "hero")} stats={storeStats} />
-      <StatsSection stats={storeStats} />
       <BestsellersSection
         content={getSectionOrFallback(sections, "featured")}
         products={featuredProducts}
       />
+      <HowItWorksSection content={getSectionOrFallback(sections, "how-it-works")} />
       <CatalogSection
         content={getSectionOrFallback(sections, "use-cases")}
         categories={categoryHighlights}
       />
-      <WhyTemplifySection content={getSectionOrFallback(sections, "why-templify")} />
-      <BundlesSection recommendedBundle={recommendedBundle} />
-      <HowItWorksSection content={getSectionOrFallback(sections, "how-it-works")} />
       <TestimonialsSection testimonials={testimonials} />
+      <BundlesSection recommendedBundle={recommendedBundle} />
+      <WhyTemplifySection content={getSectionOrFallback(sections, "why-templify")} />
+      <StatsSection stats={storeStats} />
       <FaqSection content={getSectionOrFallback(sections, "faq")} faqs={faqs} />
       <CtaSection />
     </>

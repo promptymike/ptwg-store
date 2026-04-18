@@ -187,8 +187,8 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 ) : null}
               </div>
               <p className="max-w-xs text-sm text-muted-foreground">
-                Produkt cyfrowy do pobrania. Po opłaceniu zamówienia zakup trafi automatycznie do
-                biblioteki użytkownika.
+                Produkt cyfrowy. Po zakupie pliki pojawią się w Twojej bibliotece natychmiast —
+                bez czekania, bez wysyłki.
               </p>
             </div>
           </div>

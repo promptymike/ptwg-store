@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 const primaryLinks = [
   { href: "/", label: "Start" },
   { href: "/produkty", label: "Produkty" },
-  { href: "/#use-cases", label: "Use cases" },
+  { href: "/#use-cases", label: "Kategorie" },
   { href: "/#bundles", label: "Pakiety" },
   { href: "/#faq", label: "FAQ" },
   { href: "/konto", label: "Konto" },
@@ -34,7 +34,7 @@ export function SiteHeader({ isAuthenticated = false }: SiteHeaderProps) {
           <Link href="/" className="flex items-baseline gap-3">
             <span className="font-heading text-3xl leading-none text-foreground">Templify</span>
             <span className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
-              premium templates
+              szablony premium
             </span>
           </Link>
 

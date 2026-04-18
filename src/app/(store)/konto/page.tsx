@@ -41,7 +41,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         <EmptyState
           badge="Konto użytkownika"
           title="Nie udało się pobrać profilu"
-          description="Widok konta wymaga aktywnego profilu w tabeli `profiles` powiązanego z kontem Supabase Auth."
+          description="Nie udało się wczytać Twojego profilu. Odśwież stronę lub zaloguj się ponownie — jeśli problem wróci, napisz do nas na kontakt@templify.store."
           action={{ href: "/produkty", label: "Wróć do sklepu" }}
         />
       </div>
@@ -59,8 +59,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 {profile.full_name ?? "Twoje konto"}
               </h1>
               <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
-                Tutaj widzisz swoje zamówienia, status biblioteki i dostęp do panelu admina, jeśli
-                Twój mail znajduje się na allowliście.
+                Tutaj znajdziesz swoje zamówienia, stan biblioteki i szybki dostęp do pobranych
+                plików. Wszystko w jednym miejscu, zawsze pod ręką.
               </p>
             </div>
           </div>
@@ -84,8 +84,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
 
         {resolvedSearchParams.denied ? (
           <div className="rounded-[1.4rem] border border-primary/20 bg-primary/10 p-4 text-sm text-muted-foreground">
-            Brak dostępu do panelu admina dla roli `{profile.role}`. Jeśli ten adres ma być
-            administracyjny, dodaj go do tabeli `admin_allowlist` i zaloguj się ponownie.
+            To konto nie ma uprawnień administracyjnych. Jeśli uważasz, że to pomyłka, napisz
+            do nas na kontakt@templify.store.
           </div>
         ) : null}
 
@@ -111,7 +111,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         <div className="space-y-2">
           <h2 className="text-2xl text-foreground">Ostatnie zamówienia</h2>
           <p className="text-sm text-muted-foreground">
-            Zamówienia zapisane po Stripe Checkout pojawiają się tutaj automatycznie.
+            Każde zakończone zamówienie pojawia się tutaj automatycznie — razem z fakturą VAT
+            wysłaną na Twój e-mail.
           </p>
         </div>
 
@@ -119,7 +120,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           <EmptyState
             badge="Brak zamówień"
             title="Nie masz jeszcze żadnych zamówień"
-            description="Po pierwszym udanym checkoutcie historia zakupów pojawi się tutaj wraz z dostępem do biblioteki."
+            description="Po pierwszym zakupie historia zamówień pojawi się tutaj, a pliki trafią prosto do Twojej biblioteki."
             action={{ href: "/produkty", label: "Przeglądaj katalog" }}
           />
         ) : (

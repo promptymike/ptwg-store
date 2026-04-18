@@ -20,7 +20,7 @@ export function AuthCard({
 }: AuthCardProps) {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("klientka@ptwg.pl");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,8 +31,9 @@ export function AuthCard({
     const supabase = createSupabaseBrowserClient();
 
     if (!supabase) {
+      console.warn("Auth missing env:", getMissingSupabaseEnv().join(", "));
       setFeedback(
-        `Brakuje konfiguracji Supabase: ${getMissingSupabaseEnv().join(", ")}.`,
+        "Logowanie jest chwilowo niedostępne. Spróbuj ponownie za chwilę lub napisz na kontakt@templify.store.",
       );
       return;
     }
@@ -91,13 +92,13 @@ export function AuthCard({
       }
 
       setFeedback(
-        "Konto zostało utworzone. Jeśli potwierdzenie e-mail jest włączone w Supabase, dokończ je w skrzynce i zaloguj się ponownie.",
+        "Konto zostało utworzone. Sprawdź skrzynkę e-mail i potwierdź adres, a potem zaloguj się ponownie.",
       );
     } catch (error) {
       setFeedback(
         error instanceof Error
           ? error.message
-          : "Nie udało się wykonać operacji auth.",
+          : "Nie udało się zalogować. Spróbuj ponownie za chwilę.",
       );
     } finally {
       setIsLoading(false);
@@ -115,8 +116,9 @@ export function AuthCard({
             {mode === "login" ? "Witaj ponownie" : "Załóż konto"}
           </h1>
           <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-            Formularz korzysta już z prawdziwego Supabase Auth i zachowuje obecny
-            UX placeholderów, ale bez demo sesji.
+            {mode === "login"
+              ? "Zaloguj się, aby zobaczyć swoje zamówienia i pobrać pliki z biblioteki."
+              : "Konto pozwala pobierać pliki, śledzić zamówienia i wracać do zakupów w dowolnym momencie."}
           </p>
         </div>
       </div>

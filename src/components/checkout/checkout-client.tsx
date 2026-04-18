@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { Lock, ShieldCheck, Zap } from "lucide-react";
 
 import { useAnalytics } from "@/components/analytics/analytics-provider";
 import { useCart } from "@/components/cart/cart-provider";
@@ -68,7 +69,9 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
     const missingEnv = getMissingStripeCheckoutEnv();
 
     if (missingEnv.length > 0) {
-      setErrorMessage(`Brakuje konfiguracji Stripe: ${missingEnv.join(", ")}.`);
+      setErrorMessage(
+        "Płatności są chwilowo niedostępne. Napisz do nas na kontakt@templify.store — pomożemy dokończyć zamówienie.",
+      );
       setIsSubmitting(false);
       return;
     }
@@ -92,7 +95,7 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
 
       if (!response.ok || !data.url) {
         throw new Error(
-          data.message ?? "Nie udało się utworzyć sesji Stripe Checkout.",
+          data.message ?? "Nie udało się rozpocząć płatności. Spróbuj ponownie za chwilę.",
         );
       }
 
@@ -101,7 +104,7 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "Nie udało się uruchomić Stripe Checkout.",
+          : "Nie udało się rozpocząć płatności. Spróbuj ponownie za chwilę.",
       );
       setIsSubmitting(false);
     }
@@ -114,10 +117,10 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
   if (items.length === 0) {
     return (
       <EmptyState
-        badge="Checkout"
+        badge="Płatność"
         title="Najpierw dodaj coś do koszyka"
-        description="Stripe Checkout wymaga co najmniej jednego produktu. Dodaj produkt do koszyka i wróć tutaj, aby przejść do płatności."
-        action={{ href: "/produkty", label: "Przejdź do katalogu" }}
+        description="Żeby przejść do płatności, wybierz przynajmniej jeden szablon z katalogu. Zajmie Ci to chwilę."
+        action={{ href: "/produkty", label: "Przeglądaj katalog" }}
       />
     );
   }
@@ -126,35 +129,38 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
     <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
       <section className="surface-panel space-y-6 p-6 sm:p-8">
         <div className="space-y-3">
-          <span className="eyebrow">Stripe Checkout</span>
+          <span className="eyebrow">Bezpieczna płatność</span>
           <div>
             <h1 className="text-4xl text-foreground sm:text-5xl">
               Finalizacja zamówienia
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
-              Po kliknięciu przycisku utworzymy prawdziwą sesję Stripe Checkout na podstawie
-              produktów z Supabase i przeniesiemy Cię do płatności.
+              Jeszcze tylko jeden krok. Po kliknięciu poniżej przejdziesz do bezpiecznej strony
+              płatności. Dostęp do plików otrzymasz natychmiast po zakupie.
             </p>
           </div>
         </div>
 
         <label className="space-y-2">
-          <span className="text-sm font-medium text-foreground">E-mail zamówienia</span>
+          <span className="text-sm font-medium text-foreground">Adres e-mail do zamówienia</span>
           <Input
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="twoj@email.pl"
             type="email"
           />
+          <span className="block text-xs text-muted-foreground">
+            Na ten adres wyślemy potwierdzenie zakupu i fakturę VAT.
+          </span>
         </label>
 
         <div className="space-y-3 rounded-[1.5rem] border border-border/70 bg-background/70 p-5">
-          <p className="text-sm font-medium text-foreground">Co wydarzy się po płatności</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>Stripe otworzy bezpieczną stronę płatności dla Twojego koszyka.</li>
-            <li>Zamówienie zapisze się w Supabase po webhooku `checkout.session.completed`.</li>
-            <li>Produkty trafią automatycznie do biblioteki Twojego konta.</li>
-          </ul>
+          <p className="text-sm font-medium text-foreground">Co dzieje się po kliknięciu?</p>
+          <ol className="space-y-2 text-sm text-muted-foreground">
+            <li>1. Przejdziesz do bezpiecznej strony płatności — karta, BLIK lub Apple Pay.</li>
+            <li>2. Po zapłaceniu zobaczysz potwierdzenie i numer zamówienia.</li>
+            <li>3. Pliki pojawią się w Twojej bibliotece w Templify natychmiast po płatności.</li>
+          </ol>
         </div>
 
         <Button
@@ -163,8 +169,23 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
           onClick={handleCheckout}
           disabled={isSubmitting || lines.length === 0}
         >
-          {isSubmitting ? "Przekierowanie do Stripe..." : "Przejdź do płatności"}
+          {isSubmitting ? "Przekierowanie do płatności..." : "Przejdź do bezpiecznej płatności"}
         </Button>
+
+        <ul className="grid gap-3 sm:grid-cols-3">
+          <li className="flex items-start gap-2 text-xs text-muted-foreground">
+            <Lock className="mt-0.5 size-4 text-primary" />
+            Szyfrowane połączenie SSL.
+          </li>
+          <li className="flex items-start gap-2 text-xs text-muted-foreground">
+            <ShieldCheck className="mt-0.5 size-4 text-primary" />
+            14 dni na zwrot bez pytań.
+          </li>
+          <li className="flex items-start gap-2 text-xs text-muted-foreground">
+            <Zap className="mt-0.5 size-4 text-primary" />
+            Dostęp do plików natychmiast.
+          </li>
+        </ul>
 
         {errorMessage ? (
           <div className="rounded-[1.5rem] border border-destructive/30 bg-destructive/10 p-5 text-sm text-foreground">
@@ -197,8 +218,11 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
           <span>Łącznie</span>
           <span>{formatCurrency(subtotal)}</span>
         </div>
-        <Link href="/koszyk" className="text-sm text-primary transition hover:text-primary/80">
-          Wróć do koszyka
+        <p className="text-xs text-muted-foreground">
+          Cena zawiera podatek. Fakturę VAT wyślemy na adres e-mail z zamówienia.
+        </p>
+        <Link href="/koszyk" className="inline-flex text-sm text-primary transition hover:text-primary/80">
+          ← Wróć do koszyka
         </Link>
       </aside>
     </div>

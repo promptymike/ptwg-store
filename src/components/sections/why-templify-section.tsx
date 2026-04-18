@@ -3,19 +3,19 @@ import type { SiteSectionContent } from "@/types/store";
 
 const reasons = [
   {
-    title: "Sell the result",
+    title: "Sprzedajemy efekt, nie plik",
     description:
-      "Copy, hierarchy and cards are framed around transformation instead of file format.",
+      "Każdy szablon jest skupiony na realnej zmianie w Twojej pracy — nie na liczbie stron ani formacie pliku.",
   },
   {
-    title: "Keep the premium feel readable",
+    title: "Premium, które pozostaje czytelne",
     description:
-      "Editorial spacing, calm color balance and clear conversion paths keep the experience expensive-looking without getting busy.",
+      "Edytorskie odstępy, spokojna paleta i jasne ścieżki zakupu. Marka wygląda drogo, a strona dalej jest łatwa w użyciu.",
   },
   {
-    title: "Ready for real operations",
+    title: "Gotowe do wdrożenia",
     description:
-      "Supabase, Stripe, legal pages and admin workflows are already part of the product layer.",
+      "Wszystkie pliki są zaprojektowane tak, żebyś mógł ich użyć w ciągu godziny — bez długich konfiguracji i instrukcji.",
   },
 ];
 

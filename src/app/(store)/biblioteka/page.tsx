@@ -79,8 +79,8 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
         <div>
           <h1 className="text-4xl text-foreground sm:text-5xl">Twoje produkty cyfrowe</h1>
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
-            Pliki są udostępniane przez signed URL z prywatnego bucketa `product-files`, więc
-            dostęp jest przypisany do prawdziwego zakupu i konta użytkownika.
+            Twoje pliki są przypisane do konta — tylko Ty masz do nich dostęp. Możesz pobierać
+            je bez limitów, kiedy tylko ich potrzebujesz.
           </p>
         </div>
       </div>
