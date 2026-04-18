@@ -1358,6 +1358,11 @@ export async function updateSiteSettingsAction(formData: FormData) {
     const parsed = siteSettingsFormSchema.safeParse({
       recommendedBundleId: formData.get("recommendedBundleId"),
       homepageFeaturedLimit: formData.get("homepageFeaturedLimit"),
+      businessName: parseNullableString(formData.get("businessName")) ?? "",
+      businessTaxId: parseNullableString(formData.get("businessTaxId")) ?? "",
+      businessAddress: parseNullableString(formData.get("businessAddress")) ?? "",
+      supportEmail:
+        parseNullableString(formData.get("supportEmail")) ?? "kontakt@templify.store",
     });
 
     if (!parsed.success) {
@@ -1373,6 +1378,22 @@ export async function updateSiteSettingsAction(formData: FormData) {
         {
           key: "homepage_featured_limit",
           value: String(parsed.data.homepageFeaturedLimit),
+        },
+        {
+          key: "business_name",
+          value: parsed.data.businessName ?? "",
+        },
+        {
+          key: "business_tax_id",
+          value: parsed.data.businessTaxId ?? "",
+        },
+        {
+          key: "business_address",
+          value: parsed.data.businessAddress ?? "",
+        },
+        {
+          key: "support_email",
+          value: parsed.data.supportEmail,
         },
       ],
       {

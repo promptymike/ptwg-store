@@ -3,22 +3,18 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, ShoppingBag, X } from "lucide-react";
+import { Menu, ShoppingBag, UserRound, X } from "lucide-react";
 
-import { LogoutButton } from "@/components/auth/logout-button";
 import { useCart } from "@/components/cart/cart-provider";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const primaryLinks = [
-  { href: "/", label: "Start" },
   { href: "/produkty", label: "Produkty" },
   { href: "/#use-cases", label: "Kategorie" },
   { href: "/#bundles", label: "Pakiety" },
   { href: "/test", label: "Test" },
-  { href: "/#faq", label: "FAQ" },
-  { href: "/konto", label: "Konto" },
 ];
 
 type SiteHeaderProps = {
@@ -31,7 +27,7 @@ export function SiteHeader({ isAuthenticated = false }: SiteHeaderProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- close mobile menu when route changes
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- close mobile menu after navigation
     setIsMobileOpen(false);
   }, [pathname]);
 
@@ -56,10 +52,7 @@ export function SiteHeader({ isAuthenticated = false }: SiteHeaderProps) {
 
         <nav className="hidden flex-wrap items-center gap-1 xl:flex">
           {primaryLinks.map((link) => {
-            const isActive =
-              link.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(link.href.replace("/#", "/"));
+            const isActive = pathname.startsWith(link.href.replace("/#", "/"));
 
             return (
               <Link
@@ -81,16 +74,19 @@ export function SiteHeader({ isAuthenticated = false }: SiteHeaderProps) {
         <div className="hidden items-center gap-2 xl:flex">
           <ThemeToggle />
           {isAuthenticated ? (
-            <LogoutButton />
+            <Button
+              variant="outline"
+              size="sm"
+              className="size-10 rounded-full p-0"
+              render={<Link href="/konto" />}
+            >
+              <UserRound className="size-4" />
+              <span className="sr-only">Konto</span>
+            </Button>
           ) : (
-            <>
-              <Button variant="ghost" size="sm" render={<Link href="/logowanie" />}>
-                Logowanie
-              </Button>
-              <Button variant="outline" size="sm" render={<Link href="/rejestracja" />}>
-                Załóż konto
-              </Button>
-            </>
+            <Button variant="outline" size="sm" render={<Link href="/logowanie?next=/checkout" />}>
+              Zaloguj się
+            </Button>
           )}
           <Button size="sm" render={<Link href="/koszyk" />}>
             <ShoppingBag className="size-4" />
@@ -135,10 +131,7 @@ export function SiteHeader({ isAuthenticated = false }: SiteHeaderProps) {
           <div className="relative z-50 border-t border-border/60 bg-background/95 shadow-[0_24px_80px_-24px_rgba(0,0,0,0.2)]">
             <nav className="shell flex flex-col gap-1 py-4">
               {primaryLinks.map((link) => {
-                const isActive =
-                  link.href === "/"
-                    ? pathname === "/"
-                    : pathname.startsWith(link.href.replace("/#", "/"));
+                const isActive = pathname.startsWith(link.href.replace("/#", "/"));
 
                 return (
                   <Link
@@ -157,13 +150,17 @@ export function SiteHeader({ isAuthenticated = false }: SiteHeaderProps) {
               })}
               <div className="mt-2 flex flex-col gap-2 border-t border-border/60 pt-3">
                 {isAuthenticated ? (
-                  <LogoutButton />
+                  <Button variant="outline" render={<Link href="/konto" />}>
+                    Konto
+                  </Button>
                 ) : (
                   <>
-                    <Button variant="outline" render={<Link href="/logowanie" />}>
+                    <Button variant="outline" render={<Link href="/logowanie?next=/checkout" />}>
                       Logowanie
                     </Button>
-                    <Button render={<Link href="/rejestracja" />}>Załóż konto</Button>
+                    <Button render={<Link href="/rejestracja?next=/checkout" />}>
+                      Załóż konto
+                    </Button>
                   </>
                 )}
               </div>

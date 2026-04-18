@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CheckCircle2, Star } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Sparkles, Zap } from "lucide-react";
 
 import { AnalyticsProductView } from "@/components/analytics/analytics-product-view";
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
 import { getCanonicalUrl } from "@/lib/seo";
 import {
+  getFaqSnapshot,
   getRelatedStoreProducts,
   getStoreProductBySlug,
 } from "@/lib/supabase/store";
@@ -21,6 +22,24 @@ type ProductPageProps = {
     slug: string;
   }>;
 };
+
+const trustItems = [
+  {
+    icon: Zap,
+    title: "Natychmiastowy dostęp",
+    description: "Pliki pojawiają się w bibliotece od razu po opłaceniu zamówienia.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "14 dni na zwrot",
+    description: "Jeśli produkt nie pasuje do Twojego procesu, napisz do nas po zakupie.",
+  },
+  {
+    icon: Sparkles,
+    title: "Licencja do pracy",
+    description: "Szablon wdrażasz we własnym biznesie i wracasz do niego, kiedy chcesz.",
+  },
+];
 
 export async function generateMetadata({
   params,
@@ -65,7 +84,11 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const relatedProducts = await getRelatedStoreProducts(product);
+  const [relatedProducts, faqs] = await Promise.all([
+    getRelatedStoreProducts(product),
+    getFaqSnapshot(),
+  ]);
+
   const productStructuredData = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -87,7 +110,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   };
 
   return (
-    <div className="shell section-space space-y-10">
+    <div className="shell section-space space-y-10 pb-28 sm:pb-0">
       <AnalyticsProductView
         id={product.id}
         slug={product.slug}
@@ -101,6 +124,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           __html: JSON.stringify(productStructuredData),
         }}
       />
+
       <section className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
         <div
           className={`surface-panel relative min-h-[420px] overflow-hidden bg-gradient-to-br ${product.coverGradient} p-8`}
@@ -145,21 +169,33 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         <div className="surface-panel space-y-6 p-6 sm:p-8">
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-3 text-sm">
-              <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-foreground">
-                <Star className="size-4 fill-primary text-primary" />
-                {product.rating.toFixed(1)}
+              <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1 text-muted-foreground">
+                {product.format}
               </span>
               <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1 text-muted-foreground">
                 {product.pages} stron
               </span>
-              <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1 text-muted-foreground">
-                {product.salesLabel}
-              </span>
+              {product.badge ? (
+                <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-primary">
+                  {product.badge}
+                </span>
+              ) : null}
             </div>
 
-            <p className="text-lg leading-8 text-muted-foreground">
-              {product.description}
-            </p>
+            <p className="text-lg leading-8 text-muted-foreground">{product.description}</p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            {trustItems.map((item) => (
+              <article
+                key={item.title}
+                className="rounded-[1.4rem] border border-border/70 bg-background/70 p-4"
+              >
+                <item.icon className="size-5 text-primary" />
+                <p className="mt-3 text-sm font-medium text-foreground">{item.title}</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>
+              </article>
+            ))}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -188,7 +224,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               </div>
               <p className="max-w-xs text-sm text-muted-foreground">
                 Produkt cyfrowy. Po zakupie pliki pojawią się w Twojej bibliotece natychmiast —
-                bez czekania, bez wysyłki.
+                bez czekania i bez wysyłki.
               </p>
             </div>
           </div>
@@ -206,11 +242,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               }}
               fullWidth
             />
-            <Button
-              variant="outline"
-              size="lg"
-              render={<Link href="/produkty" />}
-            >
+            <Button variant="outline" size="lg" render={<Link href="/produkty" />}>
               Wróć do katalogu
             </Button>
           </div>
@@ -220,18 +252,13 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       {product.previews && product.previews.length > 0 ? (
         <section className="space-y-6">
           <div className="space-y-2">
-            <p className="text-xs uppercase tracking-[0.24em] text-primary/75">
-              Preview
-            </p>
+            <p className="text-xs uppercase tracking-[0.24em] text-primary/75">Preview</p>
             <h2 className="text-4xl text-foreground">Zobacz wnętrze produktu</h2>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {product.previews.map((preview) => (
-              <div
-                key={preview.id}
-                className="surface-panel overflow-hidden"
-              >
+              <div key={preview.id} className="surface-panel overflow-hidden">
                 {preview.imageUrl ? (
                   <img
                     src={preview.imageUrl}
@@ -243,6 +270,24 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 )}
                 <div className="p-4 text-sm text-muted-foreground">{preview.altText}</div>
               </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {faqs.length > 0 ? (
+        <section className="space-y-6">
+          <div className="space-y-2">
+            <p className="text-xs uppercase tracking-[0.24em] text-primary/75">FAQ</p>
+            <h2 className="text-4xl text-foreground">Najczęstsze pytania przed zakupem</h2>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            {faqs.slice(0, 4).map((faq) => (
+              <article key={faq.id} className="surface-panel p-6">
+                <h3 className="text-xl text-foreground">{faq.question}</h3>
+                <p className="mt-3 text-sm leading-7 text-muted-foreground">{faq.answer}</p>
+              </article>
             ))}
           </div>
         </section>
@@ -264,6 +309,29 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           </div>
         </section>
       ) : null}
+
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border/70 bg-background/95 p-4 backdrop-blur sm:hidden">
+        <div className="shell flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm text-muted-foreground">{product.name}</p>
+            <p className="text-lg font-semibold text-foreground">{formatCurrency(product.price)}</p>
+          </div>
+          <div className="w-[200px]">
+            <AddToCartButton
+              product={{
+                id: product.id,
+                slug: product.slug,
+                name: product.name,
+                category: product.category,
+                shortDescription: product.shortDescription,
+                price: product.price,
+                coverGradient: product.coverGradient,
+              }}
+              fullWidth
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

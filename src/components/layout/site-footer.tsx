@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { getSiteSettingsSnapshot } from "@/lib/supabase/store";
+
 const footerGroups = [
   {
     title: "Sklep",
@@ -7,7 +9,7 @@ const footerGroups = [
       { href: "/produkty", label: "Wszystkie produkty" },
       { href: "/#featured", label: "Bestsellery" },
       { href: "/#bundles", label: "Pakiety" },
-      { href: "/#faq", label: "Najczęstsze pytania" },
+      { href: "/test", label: "Test stylu pracy" },
     ],
   },
   {
@@ -30,8 +32,12 @@ const footerGroups = [
   },
 ];
 
-export function SiteFooter() {
+export async function SiteFooter() {
   const currentYear = new Date().getFullYear();
+  const settings = await getSiteSettingsSnapshot();
+  const hasBusinessDetails = Boolean(
+    settings.businessName || settings.businessTaxId || settings.businessAddress,
+  );
 
   return (
     <footer className="border-t border-border/60">
@@ -47,9 +53,24 @@ export function SiteFooter() {
               lepsze decyzje i spokojniejszą pracę każdego dnia.
             </p>
           </div>
-          <div className="space-y-1.5 text-sm text-muted-foreground">
-            <p>kontakt@templify.store</p>
-            <p>Pomoc dostępna w dni robocze, 9:00–17:00</p>
+
+          <div className="rounded-[1.5rem] border border-border/70 bg-background/60 p-5 text-sm text-muted-foreground">
+            <p className="text-xs uppercase tracking-[0.22em] text-primary/75">Operator sklepu</p>
+            {hasBusinessDetails ? (
+              <div className="mt-3 space-y-1.5">
+                {settings.businessName ? (
+                  <p className="font-medium text-foreground">{settings.businessName}</p>
+                ) : null}
+                {settings.businessTaxId ? <p>NIP: {settings.businessTaxId}</p> : null}
+                {settings.businessAddress ? <p>{settings.businessAddress}</p> : null}
+                <p>{settings.supportEmail}</p>
+              </div>
+            ) : (
+              <p className="mt-3">
+                Uzupełnij dane operatora sklepu w panelu admina przed szerszym ruchem lub kampanią
+                sprzedażową. Kontakt do wsparcia: {settings.supportEmail}
+              </p>
+            )}
           </div>
         </div>
 
@@ -75,9 +96,7 @@ export function SiteFooter() {
 
       <div className="border-t border-border/50">
         <div className="shell flex flex-col gap-3 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            © {currentYear} Templify. Wszystkie prawa zastrzeżone.
-          </p>
+          <p>© {currentYear} Templify. Wszystkie prawa zastrzeżone.</p>
           <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <span>Bezpieczne płatności online</span>
             <span aria-hidden>·</span>

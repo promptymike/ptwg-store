@@ -57,6 +57,7 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
     setPromoInput("");
     setPromoMessage(null);
   }
+
   const lines = useMemo(
     () =>
       items
@@ -161,9 +162,7 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
         <div className="space-y-3">
           <span className="eyebrow">Bezpieczna płatność</span>
           <div>
-            <h1 className="text-4xl text-foreground sm:text-5xl">
-              Finalizacja zamówienia
-            </h1>
+            <h1 className="text-4xl text-foreground sm:text-5xl">Finalizacja zamówienia</h1>
             <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
               Jeszcze tylko jeden krok. Po kliknięciu poniżej przejdziesz do bezpiecznej strony
               płatności. Dostęp do plików otrzymasz natychmiast po zakupie.
@@ -180,7 +179,7 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
             type="email"
           />
           <span className="block text-xs text-muted-foreground">
-            Na ten adres wyślemy potwierdzenie zakupu i fakturę VAT.
+            Na ten adres wyślemy potwierdzenie zakupu i szczegóły zamówienia.
           </span>
         </label>
 
@@ -254,7 +253,7 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
             <div className="flex items-center justify-between gap-3 rounded-xl bg-primary/10 px-3 py-2 text-sm">
               <span className="inline-flex items-center gap-2 font-semibold text-primary">
                 <Check className="size-4" />
-                {promoRule.code} · −{promoRule.percentOff}%
+                {promoRule.code} · -{promoRule.percentOff}%
               </span>
               <button
                 type="button"
@@ -292,7 +291,7 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
           {promoRule ? (
             <div className="flex items-center justify-between text-primary">
               <span>Rabat ({promoRule.code})</span>
-              <span>−{formatCurrency(discountAmount)}</span>
+              <span>-{formatCurrency(discountAmount)}</span>
             </div>
           ) : null}
           <div className="flex items-center justify-between pt-1 text-base font-semibold text-foreground">
@@ -302,7 +301,8 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Cena zawiera podatek. Fakturę VAT wyślemy na adres e-mail z zamówienia.
+          Cena zawiera podatek. Jeśli potrzebujesz danych do dokumentu zakupu, odpisz na maila z
+          potwierdzeniem.
         </p>
         <Link href="/koszyk" className="inline-flex text-sm text-primary transition hover:text-primary/80">
           ← Wróć do koszyka

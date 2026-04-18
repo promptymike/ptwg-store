@@ -113,4 +113,8 @@ export const siteSettingsFormSchema = z.object({
     .int()
     .min(1, "Limit featured musi być większy od zera.")
     .max(12, "Limit featured jest za duży."),
+  businessName: z.string().max(120, "Nazwa firmy jest zbyt długa.").optional(),
+  businessTaxId: z.string().max(32, "NIP jest zbyt długi.").optional(),
+  businessAddress: z.string().max(240, "Adres jest zbyt długi.").optional(),
+  supportEmail: z.email("Podaj poprawny adres e-mail wsparcia."),
 });

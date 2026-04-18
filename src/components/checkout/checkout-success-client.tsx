@@ -58,7 +58,7 @@ export function CheckoutSuccessClient({
           <h1 className="text-4xl text-foreground sm:text-5xl">Dziękujemy za zakup</h1>
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
             Wszystko się udało. Twoje pliki są już w bibliotece i możesz z nich korzystać
-            natychmiast. Potwierdzenie zakupu i fakturę VAT wysłaliśmy na Twój adres e-mail.
+            natychmiast. Potwierdzenie zakupu wysłaliśmy na Twój adres e-mail.
           </p>
         </div>
       </div>
@@ -83,8 +83,8 @@ export function CheckoutSuccessClient({
           <Mail className="mt-0.5 size-5 text-primary" />
           <p>
             Potwierdzenie zakupu wysłaliśmy na adres{" "}
-            <span className="font-medium text-foreground">{email}</span>. Jeśli e-mail nie
-            dotrze w ciągu kilku minut, sprawdź folder „Oferty” lub napisz do nas na{" "}
+            <span className="font-medium text-foreground">{email}</span>. Jeśli e-mail nie dotrze
+            w ciągu kilku minut, sprawdź folder „Oferty” lub napisz do nas na{" "}
             <span className="text-foreground">kontakt@templify.store</span>.
           </p>
         </div>

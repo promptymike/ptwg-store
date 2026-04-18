@@ -291,7 +291,15 @@ export async function getSiteSectionsSnapshot() {
 }
 
 export async function getFaqSnapshot() {
-  return mockFaqItems;
+  return mockFaqItems.map((faq) =>
+    faq.id === "faq-06"
+      ? {
+          ...faq,
+          answer:
+            "Po zakupie wysyłamy potwierdzenie zamówienia na e-mail. Jeśli potrzebujesz danych do dokumentu zakupu, napisz do nas po zakupie na kontakt@templify.store.",
+        }
+      : faq,
+  );
 }
 
 export async function getTestimonialsSnapshot() {
@@ -749,6 +757,10 @@ export async function getSiteSettingsSnapshot() {
   const defaults = {
     recommendedBundleId: "bundle-01",
     homepageFeaturedLimit: 4,
+    businessName: "",
+    businessTaxId: "",
+    businessAddress: "",
+    supportEmail: "kontakt@templify.store",
   };
 
   if (!hasSupabaseEnv()) {
@@ -780,6 +792,10 @@ export async function getSiteSettingsSnapshot() {
       Number.isFinite(parsedFeaturedLimit) && parsedFeaturedLimit > 0
         ? parsedFeaturedLimit
         : defaults.homepageFeaturedLimit,
+    businessName: settingsMap.get("business_name") ?? defaults.businessName,
+    businessTaxId: settingsMap.get("business_tax_id") ?? defaults.businessTaxId,
+    businessAddress: settingsMap.get("business_address") ?? defaults.businessAddress,
+    supportEmail: settingsMap.get("support_email") ?? defaults.supportEmail,
   };
 }
 

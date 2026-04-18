@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { ArrowUpRight, Star } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
 import { Badge } from "@/components/ui/badge";
-import { type Product } from "@/types/store";
 import { formatCurrency } from "@/lib/format";
+import { type Product } from "@/types/store";
 
 type ProductCardProps = {
   product: Product;
@@ -45,12 +45,12 @@ export function ProductCard({
         <div
           className={`relative min-h-64 overflow-hidden border-b border-border/70 bg-gradient-to-br ${product.coverGradient} p-6 transition group-hover:brightness-105`}
         >
-          <div className="hero-orb right-5 top-5 size-24 bg-white/45" />
-          <div className="hero-orb bottom-6 left-6 size-20 bg-primary/25" />
+          <div className="hero-orb right-5 top-5 size-20 bg-white/35" />
+          <div className="hero-orb bottom-6 left-6 size-16 bg-primary/18" />
 
           {discountPercent ? (
             <span className="absolute left-1/2 top-0 z-10 inline-flex -translate-x-1/2 translate-y-3 items-center gap-1 rounded-full bg-destructive px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-white shadow-[0_10px_30px_-10px_rgba(185,76,66,0.65)]">
-              −{discountPercent}%
+              -{discountPercent}%
             </span>
           ) : null}
 
@@ -69,9 +69,6 @@ export function ProductCard({
             </div>
 
             <div className="space-y-3">
-              <p className="text-xs uppercase tracking-[0.24em] text-foreground/65">
-                {product.heroNote}
-              </p>
               <h3 className="max-w-xs text-3xl text-foreground">{product.name}</h3>
             </div>
           </div>
@@ -79,21 +76,9 @@ export function ProductCard({
       </Link>
 
       <div className="flex flex-1 flex-col gap-5 p-6">
-        <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-          <span>{product.format}</span>
-          <span>{product.pages} stron</span>
-          <span className="inline-flex items-center gap-1 text-foreground">
-            <Star className="size-3.5 fill-primary text-primary" />
-            {product.rating.toFixed(1)}
-          </span>
-        </div>
-
         <Link href={productHref} className="block space-y-3">
           <p className="text-sm leading-7 text-muted-foreground transition group-hover:text-foreground/80">
             {product.shortDescription}
-          </p>
-          <p className="text-xs uppercase tracking-[0.18em] text-primary/80">
-            {product.salesLabel}
           </p>
         </Link>
 
@@ -108,11 +93,6 @@ export function ProductCard({
                   <p className="text-sm text-muted-foreground line-through">
                     {formatCurrency(product.compareAtPrice)}
                   </p>
-                  {discountPercent ? (
-                    <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-semibold text-destructive">
-                      oszczędzasz {formatCurrency(product.compareAtPrice - product.price)}
-                    </span>
-                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -120,7 +100,7 @@ export function ProductCard({
               href={productHref}
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary transition hover:text-primary/80"
             >
-              Zobacz produkt
+              Zobacz
               <ArrowUpRight className="size-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Link>
           </div>
@@ -135,7 +115,7 @@ export function ProductCard({
               price: product.price,
               coverGradient: product.coverGradient,
             }}
-            fullWidth={priority === "featured"}
+            fullWidth={priority === "featured" || priority === "default"}
           />
         </div>
       </div>

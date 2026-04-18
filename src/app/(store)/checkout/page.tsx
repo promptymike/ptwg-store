@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 
+import { CheckoutAuthGate } from "@/components/checkout/checkout-auth-gate";
 import { CheckoutClient } from "@/components/checkout/checkout-client";
 import { getCurrentUser } from "@/lib/session";
 
@@ -16,7 +16,11 @@ export default async function CheckoutPage() {
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect("/logowanie?next=/checkout");
+    return (
+      <div className="shell section-space">
+        <CheckoutAuthGate />
+      </div>
+    );
   }
 
   return (

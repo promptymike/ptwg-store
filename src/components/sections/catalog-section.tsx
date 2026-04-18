@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { SectionHeading } from "@/components/shared/section-heading";
+import { products } from "@/data/mock-store";
 import type { CategoryHighlight, SiteSectionContent } from "@/types/store";
 
 type CatalogSectionProps = {
@@ -31,6 +32,20 @@ function pickIcon(slug: string) {
 }
 
 export function CatalogSection({ content, categories }: CatalogSectionProps) {
+  const categoryMetrics = new Map(
+    categories.map((category) => {
+      const matchingProducts = products.filter((product) => product.category === category.title);
+
+      return [
+        category.slug,
+        {
+          productCount: matchingProducts.length,
+          sampleName: matchingProducts[0]?.name ?? null,
+        },
+      ] as const;
+    }),
+  );
+
   return (
     <section id="use-cases" className="shell section-space">
       <div className="space-y-10">
@@ -41,47 +56,44 @@ export function CatalogSection({ content, categories }: CatalogSectionProps) {
         />
 
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {categories.map((category, index) => {
+          {categories.map((category) => {
             const Icon = pickIcon(category.slug);
-            const isFeatured = index === 0;
+            const metrics = categoryMetrics.get(category.slug);
 
             return (
               <Link
                 key={category.slug}
                 href={`/produkty?kategoria=${encodeURIComponent(category.title)}`}
-                className={`group surface-panel relative flex flex-col gap-5 overflow-hidden p-6 transition hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_40px_120px_-40px_rgba(139,94,52,0.3)] ${
-                  isFeatured ? "md:col-span-2 lg:row-span-2" : ""
-                }`}
+                className="group surface-panel flex flex-col gap-5 p-6 transition hover:-translate-y-1 hover:border-primary/30"
               >
-                <div
-                  aria-hidden
-                  className={`absolute inset-0 -z-10 bg-gradient-to-br ${category.accent} opacity-60 transition-opacity duration-500 group-hover:opacity-90`}
-                />
-                <div
-                  aria-hidden
-                  className="absolute -right-16 -top-16 size-56 rounded-full bg-gradient-to-br from-primary/20 via-transparent to-transparent opacity-60 blur-3xl transition duration-500 group-hover:opacity-100"
-                />
-
                 <div className="flex items-center justify-between gap-3">
-                  <span className="inline-flex size-12 items-center justify-center rounded-2xl bg-background/80 text-primary shadow-[0_12px_30px_-18px_rgba(139,94,52,0.4)] backdrop-blur">
+                  <span className="inline-flex size-12 items-center justify-center rounded-2xl border border-border/70 bg-background/80 text-primary">
                     <Icon className="size-5" />
                   </span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-background/75 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary/80 backdrop-blur">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/75 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary/80">
                     Kategoria
                   </span>
                 </div>
 
                 <div className="space-y-3">
-                  <h3 className={`text-foreground ${isFeatured ? "text-3xl sm:text-4xl" : "text-2xl"}`}>
-                    {category.title}
-                  </h3>
-                  <p className="max-w-md text-sm leading-7 text-foreground/75">
+                  <h3 className="text-2xl text-foreground">{category.title}</h3>
+                  <p className="max-w-md text-sm leading-7 text-muted-foreground">
                     {category.description}
                   </p>
                 </div>
 
+                <div className="rounded-[1.25rem] border border-border/70 bg-background/70 px-4 py-3">
+                  <p className="text-xs uppercase tracking-[0.18em] text-primary/75">
+                    Szybki start
+                  </p>
+                  <p className="mt-2 text-sm text-foreground">
+                    {metrics?.productCount ?? 0} produktów
+                    {metrics?.sampleName ? ` · np. ${metrics.sampleName}` : ""}
+                  </p>
+                </div>
+
                 <span className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-primary">
-                  Zobacz kategorię
+                  Zobacz produkty
                   <ArrowUpRight className="size-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </span>
               </Link>
