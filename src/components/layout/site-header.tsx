@@ -16,6 +16,7 @@ const primaryLinks = [
   { href: "/produkty", label: "Produkty" },
   { href: "/#use-cases", label: "Kategorie" },
   { href: "/#bundles", label: "Pakiety" },
+  { href: "/test", label: "Test" },
   { href: "/#faq", label: "FAQ" },
   { href: "/konto", label: "Konto" },
 ];
@@ -82,9 +83,14 @@ export function SiteHeader({ isAuthenticated = false }: SiteHeaderProps) {
           {isAuthenticated ? (
             <LogoutButton />
           ) : (
-            <Button variant="outline" size="sm" render={<Link href="/logowanie" />}>
-              Logowanie
-            </Button>
+            <>
+              <Button variant="ghost" size="sm" render={<Link href="/logowanie" />}>
+                Logowanie
+              </Button>
+              <Button variant="outline" size="sm" render={<Link href="/rejestracja" />}>
+                Załóż konto
+              </Button>
+            </>
           )}
           <Button size="sm" render={<Link href="/koszyk" />}>
             <ShoppingBag className="size-4" />
@@ -153,9 +159,12 @@ export function SiteHeader({ isAuthenticated = false }: SiteHeaderProps) {
                 {isAuthenticated ? (
                   <LogoutButton />
                 ) : (
-                  <Button variant="outline" render={<Link href="/logowanie" />}>
-                    Logowanie
-                  </Button>
+                  <>
+                    <Button variant="outline" render={<Link href="/logowanie" />}>
+                      Logowanie
+                    </Button>
+                    <Button render={<Link href="/rejestracja" />}>Załóż konto</Button>
+                  </>
                 )}
               </div>
             </nav>

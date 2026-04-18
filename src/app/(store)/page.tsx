@@ -8,6 +8,7 @@ import { FaqSection } from "@/components/sections/faq-section";
 import { HeroSection } from "@/components/sections/hero-section";
 import { HowItWorksSection } from "@/components/sections/how-it-works-section";
 import { StatsSection } from "@/components/sections/stats-section";
+import { TestPromoSection } from "@/components/sections/test-promo-section";
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
 import { WhyTemplifySection } from "@/components/sections/why-templify-section";
 import { categoryHighlights, storeStats } from "@/data/mock-store";
@@ -62,6 +63,7 @@ export default async function HomePage() {
         content={getSectionOrFallback(sections, "use-cases")}
         categories={categoryHighlights}
       />
+      <TestPromoSection />
       <TestimonialsSection testimonials={testimonials} />
       <BundlesSection recommendedBundle={recommendedBundle} />
       <WhyTemplifySection content={getSectionOrFallback(sections, "why-templify")} />
