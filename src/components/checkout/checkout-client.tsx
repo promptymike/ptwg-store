@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Lock, ShieldCheck, Zap } from "lucide-react";
+import { Check, Lock, ShieldCheck, Tag, Zap } from "lucide-react";
 
 import { useAnalytics } from "@/components/analytics/analytics-provider";
 import { useCart } from "@/components/cart/cart-provider";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getMissingStripeCheckoutEnv } from "@/lib/env";
 import { formatCurrency } from "@/lib/format";
+import { findPromoRule, type PromoRule } from "@/lib/promo";
 
 type CheckoutResponse = {
   url?: string;
@@ -27,7 +28,35 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
   const [email, setEmail] = useState(initialEmail);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [promoInput, setPromoInput] = useState("");
+  const [promoRule, setPromoRule] = useState<PromoRule | null>(null);
+  const [promoMessage, setPromoMessage] = useState<string | null>(null);
   const trackedCheckoutRef = useRef(false);
+
+  const discountAmount = promoRule ? Math.round(subtotal * (promoRule.percentOff / 100)) : 0;
+  const totalAfterPromo = Math.max(subtotal - discountAmount, 0);
+
+  function handleApplyPromo() {
+    setPromoMessage(null);
+    if (!promoInput.trim()) {
+      setPromoRule(null);
+      return;
+    }
+    const rule = findPromoRule(promoInput);
+    if (rule) {
+      setPromoRule(rule);
+      setPromoMessage(`Zastosowano: ${rule.label}`);
+    } else {
+      setPromoRule(null);
+      setPromoMessage("Ten kod nie działa lub wygasł.");
+    }
+  }
+
+  function handleRemovePromo() {
+    setPromoRule(null);
+    setPromoInput("");
+    setPromoMessage(null);
+  }
   const lines = useMemo(
     () =>
       items
@@ -88,6 +117,7 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
             productId: item.productId,
             quantity: item.quantity,
           })),
+          promoCode: promoRule?.code,
         }),
       });
 
@@ -214,10 +244,63 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
             ) : null,
           )}
         </div>
-        <div className="flex items-center justify-between border-t border-border/60 pt-3 text-base font-semibold text-foreground">
-          <span>Łącznie</span>
-          <span>{formatCurrency(subtotal)}</span>
+
+        <div className="space-y-2 rounded-[1.2rem] border border-border/60 bg-background/70 p-4">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Tag className="size-4 text-primary" />
+            Kod rabatowy
+          </div>
+          {promoRule ? (
+            <div className="flex items-center justify-between gap-3 rounded-xl bg-primary/10 px-3 py-2 text-sm">
+              <span className="inline-flex items-center gap-2 font-semibold text-primary">
+                <Check className="size-4" />
+                {promoRule.code} · −{promoRule.percentOff}%
+              </span>
+              <button
+                type="button"
+                onClick={handleRemovePromo}
+                className="text-xs text-muted-foreground transition hover:text-foreground"
+              >
+                Usuń
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <Input
+                value={promoInput}
+                onChange={(event) => setPromoInput(event.target.value)}
+                placeholder="np. TEMPLIFY15"
+                className="uppercase tracking-[0.16em]"
+              />
+              <Button type="button" variant="outline" onClick={handleApplyPromo}>
+                Użyj
+              </Button>
+            </div>
+          )}
+          {promoMessage ? (
+            <p className={`text-xs ${promoRule ? "text-primary" : "text-destructive"}`}>
+              {promoMessage}
+            </p>
+          ) : null}
         </div>
+
+        <div className="space-y-2 border-t border-border/60 pt-3 text-sm">
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span>Suma produktów</span>
+            <span>{formatCurrency(subtotal)}</span>
+          </div>
+          {promoRule ? (
+            <div className="flex items-center justify-between text-primary">
+              <span>Rabat ({promoRule.code})</span>
+              <span>−{formatCurrency(discountAmount)}</span>
+            </div>
+          ) : null}
+          <div className="flex items-center justify-between pt-1 text-base font-semibold text-foreground">
+            <span>Do zapłaty</span>
+            <span>{formatCurrency(totalAfterPromo)}</span>
+          </div>
+        </div>
+
         <p className="text-xs text-muted-foreground">
           Cena zawiera podatek. Fakturę VAT wyślemy na adres e-mail z zamówienia.
         </p>

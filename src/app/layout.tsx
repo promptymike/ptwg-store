@@ -5,6 +5,7 @@ import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { CookieConsentBanner } from "@/components/compliance/cookie-consent";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { ThemeProvider, ThemeScript } from "@/components/theme/theme-provider";
+import { CursorGlow } from "@/components/ui/cursor-glow";
 import "./globals.css";
 
 const geistMono = Geist_Mono({
@@ -51,6 +52,7 @@ export default function RootLayout({
             <CartProvider>
               {children}
               <CookieConsentBanner />
+              <CursorGlow />
             </CartProvider>
           </AnalyticsProvider>
         </ThemeProvider>

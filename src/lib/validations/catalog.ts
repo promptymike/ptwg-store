@@ -10,4 +10,5 @@ export const checkoutSchema = z.object({
       }),
     )
     .min(1, "Koszyk nie może być pusty."),
+  promoCode: z.string().trim().max(40).optional(),
 });

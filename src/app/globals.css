@@ -202,6 +202,70 @@
   }
 }
 
+.cursor-glow {
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--primary) 55%, transparent) 0%,
+    color-mix(in oklab, var(--primary) 20%, transparent) 45%,
+    transparent 70%
+  );
+  mix-blend-mode: plus-lighter;
+  transition:
+    width 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 260ms ease;
+  opacity: 1;
+}
+
+.cursor-glow[data-visible="false"] {
+  opacity: 0;
+}
+
+.cursor-glow[data-active="true"] {
+  width: 72px;
+  height: 72px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .dark .cursor-glow {
+    mix-blend-mode: screen;
+  }
+}
+
+@keyframes templify-ripple {
+  from {
+    transform: scale(0);
+    opacity: 0.45;
+  }
+  to {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+button:not(:disabled):active,
+a:active {
+  transform: translateY(1px);
+}
+
+button,
+a {
+  transition:
+    transform 140ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 220ms ease;
+}
+
 .light .text-white,
 .light .text-white\/90,
 .light .text-white\/92 {

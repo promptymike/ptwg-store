@@ -7,6 +7,7 @@ import {
   updateProductPreviewAction,
 } from "@/app/admin/actions";
 import { AdminSubmitButton } from "@/components/admin/admin-submit-button";
+import { FileDropzone } from "@/components/admin/file-dropzone";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PRODUCT_BADGES, PRODUCT_STATUSES } from "@/types/store";
@@ -271,29 +272,39 @@ function ProductFormFields({
         />
       </label>
 
-      <label className="space-y-2">
+      <div className="space-y-2">
         <span className="text-sm text-foreground">Okładka produktu</span>
-        <Input name="coverFile" type="file" accept="image/png,image/jpeg,image/webp" />
-      </label>
-
-      <label className="space-y-2">
-        <span className="text-sm text-foreground">Plik cyfrowy</span>
-        <Input
-          name="productFile"
-          type="file"
-          accept=".pdf,.zip,.png,.jpg,.jpeg,.webp,application/pdf,application/zip"
+        <FileDropzone
+          name="coverFile"
+          accept="image/png,image/jpeg,image/webp"
+          label="Upuść okładkę"
+          hint="PNG, JPG lub WEBP, do 8 MB"
+          maxSizeMb={8}
         />
-      </label>
+      </div>
 
-      <label className="space-y-2 xl:col-span-2">
+      <div className="space-y-2">
+        <span className="text-sm text-foreground">Plik cyfrowy</span>
+        <FileDropzone
+          name="productFile"
+          accept=".pdf,.zip,.png,.jpg,.jpeg,.webp,application/pdf,application/zip"
+          label="Upuść plik cyfrowy"
+          hint="PDF lub ZIP, do 50 MB"
+          maxSizeMb={50}
+        />
+      </div>
+
+      <div className="space-y-2 xl:col-span-2">
         <span className="text-sm text-foreground">Preview images</span>
-        <Input
+        <FileDropzone
           name="previewFiles"
-          type="file"
           accept="image/png,image/jpeg,image/webp"
           multiple
+          label="Upuść zrzuty"
+          hint="Możesz wrzucić wiele obrazów na raz"
+          maxSizeMb={8}
         />
-      </label>
+      </div>
 
       <div className="grid gap-3 sm:grid-cols-3 xl:col-span-2">
         <label className="flex items-center gap-3 rounded-[1.2rem] border border-border/70 bg-background/60 px-4 py-3 text-sm text-foreground">
@@ -345,13 +356,21 @@ function PreviewManager({ product }: { product: ProductRecord }) {
 
       <form
         action={createProductPreviewAction}
-        className="grid gap-3 lg:grid-cols-[1fr_160px_160px_auto]"
+        className="space-y-3"
         encType="multipart/form-data"
       >
         <input type="hidden" name="productId" value={product.id} />
-        <Input name="altText" placeholder="Alt tekst preview" />
-        <Input name="sortOrder" type="number" defaultValue={product.previews.length} />
-        <Input name="previewFile" type="file" accept="image/png,image/jpeg,image/webp" />
+        <div className="grid gap-3 lg:grid-cols-[1fr_160px]">
+          <Input name="altText" placeholder="Alt tekst preview" />
+          <Input name="sortOrder" type="number" defaultValue={product.previews.length} />
+        </div>
+        <FileDropzone
+          name="previewFile"
+          accept="image/png,image/jpeg,image/webp"
+          label="Upuść zrzut preview"
+          hint="Jeden obraz (PNG/JPG/WEBP), do 8 MB"
+          maxSizeMb={8}
+        />
         <AdminSubmitButton idleLabel="Dodaj preview" pendingLabel="Dodawanie..." />
       </form>
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getMissingStripeCheckoutEnv, env } from "@/lib/env";
+import { applyPromoPercent, findPromoRule } from "@/lib/promo";
 import { getStripeServerClient } from "@/lib/stripe";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { checkoutSchema } from "@/lib/validations/catalog";
@@ -95,6 +96,8 @@ export async function POST(request: Request) {
     );
   }
 
+  const promoRule = findPromoRule(parsed.data.promoCode);
+
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card"],
@@ -106,6 +109,7 @@ export async function POST(request: Request) {
     metadata: {
       user_id: user.id,
       user_email: user.email ?? parsed.data.email,
+      promo_code: promoRule?.code ?? "",
     },
     line_items: aggregatedItems.map(([productId, quantity]) => {
       const product = productMap.get(productId);
@@ -114,13 +118,18 @@ export async function POST(request: Request) {
         throw new Error(`Brak produktu ${productId} w mapie checkoutu.`);
       }
 
+      const baseUnitAmount = product.price * 100;
+      const unitAmount = promoRule
+        ? applyPromoPercent(baseUnitAmount, promoRule.percentOff)
+        : baseUnitAmount;
+
       return {
         quantity,
         price_data: {
           currency: "pln",
-          unit_amount: product.price * 100,
+          unit_amount: unitAmount,
           product_data: {
-            name: product.name,
+            name: promoRule ? `${product.name} (${promoRule.label})` : product.name,
             description: product.short_description,
             metadata: {
               product_id: product.id,

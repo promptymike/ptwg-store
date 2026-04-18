@@ -32,6 +32,10 @@ export function ProductCard({
   priority = "default",
 }: ProductCardProps) {
   const badgeLabel = getBadgeLabel(product);
+  const discountPercent =
+    product.compareAtPrice && product.compareAtPrice > product.price
+      ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+      : null;
 
   const productHref = `/produkty/${product.slug}`;
 
@@ -43,6 +47,12 @@ export function ProductCard({
         >
           <div className="hero-orb right-5 top-5 size-24 bg-white/45" />
           <div className="hero-orb bottom-6 left-6 size-20 bg-primary/25" />
+
+          {discountPercent ? (
+            <span className="absolute left-1/2 top-0 z-10 inline-flex -translate-x-1/2 translate-y-3 items-center gap-1 rounded-full bg-destructive px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-white shadow-[0_10px_30px_-10px_rgba(185,76,66,0.65)]">
+              −{discountPercent}%
+            </span>
+          ) : null}
 
           <div className="relative flex h-full flex-col justify-between gap-8">
             <div className="flex items-center justify-between gap-3">
@@ -94,9 +104,16 @@ export function ProductCard({
                 {formatCurrency(product.price)}
               </p>
               {product.compareAtPrice ? (
-                <p className="text-sm text-muted-foreground line-through">
-                  {formatCurrency(product.compareAtPrice)}
-                </p>
+                <div className="mt-0.5 flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground line-through">
+                    {formatCurrency(product.compareAtPrice)}
+                  </p>
+                  {discountPercent ? (
+                    <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-semibold text-destructive">
+                      oszczędzasz {formatCurrency(product.compareAtPrice - product.price)}
+                    </span>
+                  ) : null}
+                </div>
               ) : null}
             </div>
             <Link
