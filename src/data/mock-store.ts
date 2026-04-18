@@ -15,7 +15,7 @@ export const products: Product[] = [
   {
     id: "template-01",
     slug: "notion-ceo-week",
-    name: "Notion CEO Week",
+    name: "Tydzień Założyciela w Notion",
     category: "Planowanie i Notion",
     shortDescription:
       "Tygodniowy system pracy dla założycieli, którzy chcą więcej spokoju, wyraźnych priorytetów i lepszych decyzji.",

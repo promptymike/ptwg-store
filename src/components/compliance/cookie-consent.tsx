@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,13 +15,25 @@ type ConsentCategory = "necessary" | "analytics" | "marketing";
 
 function writeConsent(consent: ConsentState) {
   const serialized = JSON.stringify(consent);
-  window.localStorage.setItem(CONSENT_STORAGE_KEY, serialized);
-  document.cookie = `${CONSENT_COOKIE_KEY}=${encodeURIComponent(serialized)}; path=/; max-age=${60 * 60 * 24 * 180}; samesite=lax`;
-  window.dispatchEvent(
-    new CustomEvent(CONSENT_UPDATED_EVENT, {
-      detail: consent,
-    }),
-  );
+  try {
+    window.localStorage.setItem(CONSENT_STORAGE_KEY, serialized);
+  } catch {
+    // private mode or storage quota — safe to ignore, cookie still persists
+  }
+  try {
+    document.cookie = `${CONSENT_COOKIE_KEY}=${encodeURIComponent(serialized)}; path=/; max-age=${60 * 60 * 24 * 180}; samesite=lax`;
+  } catch {
+    // no-op
+  }
+  try {
+    window.dispatchEvent(
+      new CustomEvent(CONSENT_UPDATED_EVENT, {
+        detail: consent,
+      }),
+    );
+  } catch {
+    // no-op
+  }
 }
 
 function buildConsentState(
@@ -36,11 +48,28 @@ function buildConsentState(
 }
 
 export function CookieConsentBanner() {
-  const storedConsent = readConsentFromStorage();
-  const [isVisible, setIsVisible] = useState(() => storedConsent === null);
+  const [hasMounted, setHasMounted] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [analytics, setAnalytics] = useState(() => Boolean(storedConsent?.analytics));
-  const [marketing, setMarketing] = useState(() => Boolean(storedConsent?.marketing));
+  const [analytics, setAnalytics] = useState(false);
+  const [marketing, setMarketing] = useState(false);
+
+  useEffect(() => {
+    const stored = readConsentFromStorage();
+    const nextVisible = stored === null;
+    const nextAnalytics = Boolean(stored?.analytics);
+    const nextMarketing = Boolean(stored?.marketing);
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe post-mount read of localStorage consent
+    setHasMounted(true);
+    setIsVisible(nextVisible);
+    setAnalytics(nextAnalytics);
+    setMarketing(nextMarketing);
+  }, []);
+
+  if (!hasMounted) {
+    return null;
+  }
 
   function saveConsent(consent: ConsentState) {
     writeConsent(consent);
@@ -59,15 +88,15 @@ export function CookieConsentBanner() {
           <div className="space-y-3">
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/75">
-                Cookies & privacy
+                Cookies i prywatność
               </p>
               <h3 className="font-heading text-3xl text-foreground">
                 Ustawienia prywatności w Templify
               </h3>
               <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-                Używamy niezbędnych cookies do działania sklepu oraz opcjonalnych kategorii
-                analitycznych i marketingowych. Zgody są zapisywane lokalnie i mogą zostać później
-                podpięte do narzędzi trackingowych.
+                Używamy tylko niezbędnych cookies do działania sklepu oraz opcjonalnych kategorii
+                analitycznych i marketingowych. Możesz wszystko zaakceptować, odrzucić lub
+                skonfigurować ręcznie — zmienisz to później w ustawieniach.
               </p>
             </div>
 

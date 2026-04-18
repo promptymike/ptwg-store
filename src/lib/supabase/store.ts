@@ -4,12 +4,10 @@ import {
   CATEGORY_OPTIONS,
   type Category,
   type ContentPage,
-  type FaqItem,
   type Product,
   type ProductBadge,
   type ProductStatus,
   type SiteSectionContent,
-  type Testimonial,
 } from "@/types/store";
 import {
   bestsellerProducts as mockBestsellers,
@@ -66,6 +64,10 @@ const SECTION_ORDER = [
   "faq",
 ] as const;
 
+const mockProductsBySlug = new Map(
+  mockProducts.map((product) => [product.slug, product] as const),
+);
+
 function normalizeCategory(value: string | null | undefined): Category {
   const normalizedValue = value?.trim();
   return normalizedValue || CATEGORY_OPTIONS[0];
@@ -89,24 +91,26 @@ async function mapProductRow(
       ])
     : [null, []];
 
+  const polishOverride = mockProductsBySlug.get(row.slug);
+
   return {
     id: row.id,
     slug: row.slug,
-    name: row.name,
+    name: polishOverride?.name ?? row.name,
     category: normalizeCategory(row.categories?.name),
-    shortDescription: row.short_description,
-    description: row.description,
+    shortDescription: polishOverride?.shortDescription ?? row.short_description,
+    description: polishOverride?.description ?? row.description,
     price: row.price,
     compareAtPrice: row.compare_at_price ?? undefined,
-    format: row.format,
+    format: polishOverride?.format ?? row.format,
     pages: row.pages,
-    tags: row.tags ?? [],
+    tags: polishOverride?.tags ?? row.tags ?? [],
     rating: Number(row.rating),
-    salesLabel: row.sales_label,
+    salesLabel: polishOverride?.salesLabel ?? row.sales_label,
     accent: row.accent,
     coverGradient: row.cover_gradient,
-    includes: row.includes ?? [],
-    heroNote: row.hero_note,
+    includes: polishOverride?.includes ?? row.includes ?? [],
+    heroNote: polishOverride?.heroNote ?? row.hero_note,
     badge: (row.badge as ProductBadge | null) ?? null,
     status: row.status as ProductStatus,
     bestseller: row.bestseller,
@@ -283,90 +287,15 @@ export async function getRelatedStoreProducts(product: Product, limit = 3) {
 }
 
 export async function getSiteSectionsSnapshot() {
-  if (!hasSupabaseEnv()) {
-    return sortSections(mockSiteSections);
-  }
-
-  const supabase = await createSupabaseServerClient();
-
-  if (!supabase) {
-    return sortSections(mockSiteSections);
-  }
-
-  const { data, error } = await supabase
-    .from("site_sections")
-    .select("section_key, eyebrow, title, description, body, cta_label, cta_href")
-    .eq("is_published", true);
-
-  if (error || !data || data.length === 0) {
-    return sortSections(mockSiteSections);
-  }
-
-  return sortSections(
-    data.map((section) => ({
-      key: section.section_key,
-      eyebrow: section.eyebrow,
-      title: section.title,
-      description: section.description,
-      body: section.body,
-      ctaLabel: section.cta_label,
-      ctaHref: section.cta_href,
-    })),
-  );
+  return sortSections(mockSiteSections);
 }
 
 export async function getFaqSnapshot() {
-  if (!hasSupabaseEnv()) {
-    return mockFaqItems;
-  }
-
-  const supabase = await createSupabaseServerClient();
-
-  if (!supabase) {
-    return mockFaqItems;
-  }
-
-  const { data, error } = await supabase
-    .from("faq_items")
-    .select("id, question, answer")
-    .eq("is_published", true)
-    .order("sort_order", { ascending: true });
-
-  if (error || !data || data.length === 0) {
-    return mockFaqItems;
-  }
-
-  return data as FaqItem[];
+  return mockFaqItems;
 }
 
 export async function getTestimonialsSnapshot() {
-  if (!hasSupabaseEnv()) {
-    return mockTestimonials;
-  }
-
-  const supabase = await createSupabaseServerClient();
-
-  if (!supabase) {
-    return mockTestimonials;
-  }
-
-  const { data, error } = await supabase
-    .from("testimonials")
-    .select("id, author, role, quote, score")
-    .eq("is_published", true)
-    .order("sort_order", { ascending: true });
-
-  if (error || !data || data.length === 0) {
-    return mockTestimonials;
-  }
-
-  return data.map((testimonial) => ({
-    id: testimonial.id,
-    author: testimonial.author,
-    role: testimonial.role,
-    quote: testimonial.quote,
-    score: Number(testimonial.score).toFixed(1),
-  })) as Testimonial[];
+  return mockTestimonials;
 }
 
 export async function getContentPageBySlug(slug: string) {
