@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 import { BestsellersSection } from "@/components/sections/bestsellers-section";
 import { BundlesSection } from "@/components/sections/bundles-section";
 import { CatalogSection } from "@/components/sections/catalog-section";
@@ -9,6 +11,7 @@ import { StatsSection } from "@/components/sections/stats-section";
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
 import { WhyTemplifySection } from "@/components/sections/why-templify-section";
 import { categoryHighlights, storeStats } from "@/data/mock-store";
+import { buildCanonicalMetadata } from "@/lib/seo";
 import { getStorefrontSnapshot } from "@/lib/supabase/store";
 
 function getSectionOrFallback(
@@ -18,12 +21,37 @@ function getSectionOrFallback(
   return sections.find((section) => section.key === key) ?? sections[0];
 }
 
+export const metadata: Metadata = buildCanonicalMetadata({
+  title: "Templify | Premium digital templates i gotowe systemy",
+  description:
+    "Templify to premium storefront z templatekami, systemami operacyjnymi i produktami cyfrowymi dla founderów, twórców i marek usługowych.",
+  path: "/",
+});
+
 export default async function HomePage() {
-  const { sections, featuredProducts, faqs, testimonials } =
+  const { sections, featuredProducts, recommendedBundle, faqs, testimonials } =
     await getStorefrontSnapshot();
+  const faqStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqStructuredData),
+        }}
+      />
       <HeroSection content={getSectionOrFallback(sections, "hero")} stats={storeStats} />
       <StatsSection stats={storeStats} />
       <BestsellersSection
@@ -35,7 +63,7 @@ export default async function HomePage() {
         categories={categoryHighlights}
       />
       <WhyTemplifySection content={getSectionOrFallback(sections, "why-templify")} />
-      <BundlesSection />
+      <BundlesSection recommendedBundle={recommendedBundle} />
       <HowItWorksSection content={getSectionOrFallback(sections, "how-it-works")} />
       <TestimonialsSection testimonials={testimonials} />
       <FaqSection content={getSectionOrFallback(sections, "faq")} faqs={faqs} />

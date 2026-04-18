@@ -3,44 +3,30 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  CONSENT_COOKIE_KEY,
+  CONSENT_STORAGE_KEY,
+  CONSENT_UPDATED_EVENT,
+  type ConsentState,
+  readConsentFromStorage,
+} from "@/lib/consent";
 
 type ConsentCategory = "necessary" | "analytics" | "marketing";
 
-type ConsentState = {
-  necessary: true;
-  analytics: boolean;
-  marketing: boolean;
-  updatedAt: string;
-};
-
-const STORAGE_KEY = "templify-cookie-consent";
-const COOKIE_KEY = "templify_cookie_consent";
-
-function readStoredConsent() {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-
-  if (!stored) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(stored) as Partial<ConsentState>;
-  } catch {
-    return null;
-  }
-}
-
 function writeConsent(consent: ConsentState) {
   const serialized = JSON.stringify(consent);
-  window.localStorage.setItem(STORAGE_KEY, serialized);
-  document.cookie = `${COOKIE_KEY}=${encodeURIComponent(serialized)}; path=/; max-age=${60 * 60 * 24 * 180}; samesite=lax`;
+  window.localStorage.setItem(CONSENT_STORAGE_KEY, serialized);
+  document.cookie = `${CONSENT_COOKIE_KEY}=${encodeURIComponent(serialized)}; path=/; max-age=${60 * 60 * 24 * 180}; samesite=lax`;
+  window.dispatchEvent(
+    new CustomEvent(CONSENT_UPDATED_EVENT, {
+      detail: consent,
+    }),
+  );
 }
 
-function buildConsentState(overrides: Partial<Omit<ConsentState, "updatedAt">>): ConsentState {
+function buildConsentState(
+  overrides: Partial<Omit<ConsentState, "updatedAt">>,
+): ConsentState {
   return {
     necessary: true,
     analytics: overrides.analytics ?? false,
@@ -50,7 +36,7 @@ function buildConsentState(overrides: Partial<Omit<ConsentState, "updatedAt">>):
 }
 
 export function CookieConsentBanner() {
-  const storedConsent = readStoredConsent();
+  const storedConsent = readConsentFromStorage();
   const [isVisible, setIsVisible] = useState(() => storedConsent === null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [analytics, setAnalytics] = useState(() => Boolean(storedConsent?.analytics));
@@ -98,7 +84,7 @@ export function CookieConsentBanner() {
                   {
                     key: "analytics" as ConsentCategory,
                     label: "Analityczne",
-                    description: "Przyszłe statystyki, pomiary ruchu i optymalizacja UX.",
+                    description: "Pomiar page view, produktu, koszyka i checkoutu wyłącznie po zgodzie.",
                     checked: analytics,
                     disabled: false,
                   },

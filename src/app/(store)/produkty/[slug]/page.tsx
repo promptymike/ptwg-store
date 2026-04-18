@@ -4,11 +4,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CheckCircle2, Star } from "lucide-react";
 
+import { AnalyticsProductView } from "@/components/analytics/analytics-product-view";
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
 import { ProductCard } from "@/components/products/product-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
+import { getCanonicalUrl } from "@/lib/seo";
 import {
   getRelatedStoreProducts,
   getStoreProductBySlug,
@@ -35,6 +37,23 @@ export async function generateMetadata({
   return {
     title: product.name,
     description: product.shortDescription,
+    alternates: {
+      canonical: getCanonicalUrl(`/produkty/${product.slug}`),
+    },
+    openGraph: {
+      title: `${product.name} | Templify`,
+      description: product.shortDescription,
+      url: getCanonicalUrl(`/produkty/${product.slug}`),
+      siteName: "Templify",
+      type: "website",
+      images: product.coverImageUrl
+        ? [
+            {
+              url: product.coverImageUrl,
+            },
+          ]
+        : undefined,
+    },
   };
 }
 
@@ -47,9 +66,41 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   }
 
   const relatedProducts = await getRelatedStoreProducts(product);
+  const productStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    category: product.category,
+    image: product.coverImageUrl ? [product.coverImageUrl] : undefined,
+    brand: {
+      "@type": "Brand",
+      name: "Templify",
+    },
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "PLN",
+      price: String(product.price),
+      availability: "https://schema.org/InStock",
+      url: getCanonicalUrl(`/produkty/${product.slug}`),
+    },
+  };
 
   return (
     <div className="shell section-space space-y-10">
+      <AnalyticsProductView
+        id={product.id}
+        slug={product.slug}
+        name={product.name}
+        category={product.category}
+        price={product.price}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(productStructuredData),
+        }}
+      />
       <section className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
         <div
           className={`surface-panel relative min-h-[420px] overflow-hidden bg-gradient-to-br ${product.coverGradient} p-8`}

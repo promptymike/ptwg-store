@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
@@ -6,6 +7,14 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { formatCurrency, formatOrderStatus } from "@/lib/format";
 import { getCurrentProfile, getCurrentUser } from "@/lib/session";
 import { getAccountSnapshot } from "@/lib/supabase/store";
+
+export const metadata: Metadata = {
+  title: "Konto | Templify",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 type AccountPageProps = {
   searchParams: Promise<{

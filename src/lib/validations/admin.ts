@@ -105,3 +105,12 @@ export const allowlistFormSchema = z.object({
   note: z.string().max(120, "Notatka jest za długa.").optional(),
   isActive: z.boolean().optional(),
 });
+
+export const siteSettingsFormSchema = z.object({
+  recommendedBundleId: z.string().min(1, "Wybierz rekomendowany bundle."),
+  homepageFeaturedLimit: z.coerce
+    .number()
+    .int()
+    .min(1, "Limit featured musi być większy od zera.")
+    .max(12, "Limit featured jest za duży."),
+});

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Cormorant_Garamond, Manrope } from "next/font/google";
 
+import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { CookieConsentBanner } from "@/components/compliance/cookie-consent";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { ThemeProvider, ThemeScript } from "@/components/theme/theme-provider";
@@ -46,10 +47,12 @@ export default function RootLayout({
       <body className="min-h-full bg-background text-foreground">
         <ThemeScript />
         <ThemeProvider>
-          <CartProvider>
-            {children}
-            <CookieConsentBanner />
-          </CartProvider>
+          <AnalyticsProvider>
+            <CartProvider>
+              {children}
+              <CookieConsentBanner />
+            </CartProvider>
+          </AnalyticsProvider>
         </ThemeProvider>
       </body>
     </html>

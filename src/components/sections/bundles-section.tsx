@@ -1,8 +1,20 @@
 import { bundles, getProductById } from "@/data/mock-store";
 import { formatCurrency } from "@/lib/format";
 import { SectionHeading } from "@/components/shared/section-heading";
+import type { Bundle } from "@/types/store";
 
-export function BundlesSection() {
+type BundlesSectionProps = {
+  recommendedBundle?: Bundle | null;
+};
+
+export function BundlesSection({ recommendedBundle }: BundlesSectionProps) {
+  const orderedBundles = recommendedBundle
+    ? [
+        recommendedBundle,
+        ...bundles.filter((bundle) => bundle.id !== recommendedBundle.id),
+      ]
+    : bundles;
+
   return (
     <section id="bundles" className="shell section-space">
       <div className="space-y-8">
@@ -13,7 +25,7 @@ export function BundlesSection() {
         />
 
         <div className="grid gap-5 lg:grid-cols-2">
-          {bundles.map((bundle) => (
+          {orderedBundles.map((bundle, index) => (
             <article key={bundle.id} className="surface-panel p-6 sm:p-8">
               <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
                 <div className="space-y-4">
@@ -22,7 +34,9 @@ export function BundlesSection() {
                   />
                   <div>
                     <p className="text-xs uppercase tracking-[0.24em] text-primary/75">
-                      Premium bundle
+                      {index === 0 && recommendedBundle?.id === bundle.id
+                        ? "Recommended bundle"
+                        : "Premium bundle"}
                     </p>
                     <h3 className="mt-2 text-4xl text-foreground">{bundle.name}</h3>
                     <p className="mt-3 text-sm leading-7 text-muted-foreground">

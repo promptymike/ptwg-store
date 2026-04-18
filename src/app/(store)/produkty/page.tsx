@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 import { CategoryFilterBar } from "@/components/products/category-filter-bar";
 import { ProductCard } from "@/components/products/product-card";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -7,6 +9,14 @@ import {
   getCategoryFilterOptions,
   getStoreProducts,
 } from "@/lib/supabase/store";
+import { buildCanonicalMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildCanonicalMetadata({
+  title: "Produkty | Templify",
+  description:
+    "Przeglądaj premium digital templates Templify: planowanie, content, sprzedaż, finanse i produktywność osobista.",
+  path: "/produkty",
+});
 
 type ProductsPageProps = {
   searchParams: Promise<{

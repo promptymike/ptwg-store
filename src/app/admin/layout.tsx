@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 
@@ -14,6 +15,17 @@ const adminLinks = [
   { href: "/admin/admini", label: "Użytkownicy / Admini" },
   { href: "/admin/ustawienia", label: "Ustawienia" },
 ];
+
+export const metadata: Metadata = {
+  title: {
+    default: "Admin | Templify",
+    template: "%s | Admin | Templify",
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const profile = await getCurrentProfile();

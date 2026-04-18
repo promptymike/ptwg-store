@@ -510,6 +510,10 @@ export function getProductById(productId: string) {
   return products.find((product) => product.id === productId);
 }
 
+export function getBundleById(bundleId: string) {
+  return bundles.find((bundle) => bundle.id === bundleId);
+}
+
 export function getProductsByCategory(category?: string) {
   if (!category) {
     return products;

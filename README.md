@@ -123,6 +123,36 @@ W `Produkty` edytujesz:
 - Kategorie zgód: `necessary`, `analytics`, `marketing`.
 - To przygotowuje aplikację pod późniejsze podpięcie narzędzi analitycznych zgodnie ze zgodami.
 
+## Consent-aware analytics
+
+- Eventy są uruchamiane tylko po zgodzie na kategorię `analytics`.
+- Warstwa analytics jest abstrakcją gotową pod późniejsze podpięcie docelowego narzędzia.
+- Aktualnie emituje eventy:
+  - `page_view`
+  - `view_product`
+  - `add_to_cart`
+  - `begin_checkout`
+  - `purchase`
+- Eventy trafiają do lokalnej kolejki `window.templifyAnalyticsQueue` oraz do `window.dataLayer`, jeśli istnieje.
+
+## SEO i soft launch
+
+- Homepage, listing, produkt i legal pages mają osobne metadata i canonical URLs.
+- Produkt ma Open Graph oraz structured data `Product`.
+- Homepage renderuje structured data `FAQPage`.
+- `robots.txt` blokuje prywatne sekcje (`/admin`, `/konto`, `/biblioteka`, `/checkout`, `/logowanie`, `/rejestracja`).
+- `sitemap.xml` zawiera storefront, produkty i legal pages.
+
+## Co przetestować przed soft launch
+
+1. Zwykły user nie powinien dostać się do `/admin` ani wykonać mutacji admina.
+2. Spróbuj wgrać niepoprawny plik do produktu i sprawdź komunikat błędu.
+3. Wykonaj testowy checkout i odśwież kilka razy `/checkout/sukces`.
+4. Sprawdź, że produkt pojawia się w bibliotece tylko raz.
+5. Przetestuj `light`, `dark` i `system`.
+6. Wyczyść `localStorage` dla consentu i sprawdź zachowanie bannera cookies.
+7. Otwórz `/robots.txt` i `/sitemap.xml`.
+
 ## Stripe lokalnie
 
 1. Zaloguj się do Stripe CLI:

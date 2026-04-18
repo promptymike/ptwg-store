@@ -1,9 +1,18 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { getCurrentUser } from "@/lib/session";
 import { getLibrarySnapshot } from "@/lib/supabase/store";
+
+export const metadata: Metadata = {
+  title: "Biblioteka | Templify",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 type LibraryPageProps = {
   searchParams: Promise<{

@@ -10,6 +10,7 @@ import {
   PRODUCT_FILES_BUCKET,
   removeStorageFile,
   uploadStorageFile,
+  validateUploadFile,
 } from "@/lib/supabase/storage";
 import {
   allowlistFormSchema,
@@ -19,6 +20,7 @@ import {
   faqFormSchema,
   previewFormSchema,
   productFormSchema,
+  siteSettingsFormSchema,
   testimonialFormSchema,
 } from "@/lib/validations/admin";
 
@@ -93,6 +95,12 @@ async function uploadProductAssets(params: {
   let filePath = params.previousFilePath ?? null;
 
   if (params.coverFile && params.coverFile.size > 0) {
+    const validationError = validateUploadFile("cover", params.coverFile);
+
+    if (validationError) {
+      throw new Error(`Niepoprawna okładka: ${validationError}`);
+    }
+
     const nextCoverPath = `products/${params.productId}/covers/${Date.now()}-${slugifyFilename(
       params.coverFile.name,
     )}`;
@@ -114,6 +122,12 @@ async function uploadProductAssets(params: {
   }
 
   if (params.productFile && params.productFile.size > 0) {
+    const validationError = validateUploadFile("product", params.productFile);
+
+    if (validationError) {
+      throw new Error(`Niepoprawny plik produktu: ${validationError}`);
+    }
+
     const nextFilePath = `products/${params.productId}/files/${Date.now()}-${slugifyFilename(
       params.productFile.name,
     )}`;
@@ -143,6 +157,12 @@ async function uploadProductPreview(params: {
   productId: string;
   previewFile: File;
 }) {
+  const validationError = validateUploadFile("preview", params.previewFile);
+
+  if (validationError) {
+    throw new Error(`Niepoprawny preview image: ${validationError}`);
+  }
+
   const storagePath = `products/${params.productId}/previews/${Date.now()}-${slugifyFilename(
     params.previewFile.name,
   )}`;
@@ -158,6 +178,20 @@ async function uploadProductPreview(params: {
   }
 
   return storagePath;
+}
+
+async function cleanupProductFiles(params: {
+  coverPath?: string | null;
+  filePath?: string | null;
+  previewPaths?: string[];
+}) {
+  await Promise.all([
+    removeStorageFile(PRODUCT_COVERS_BUCKET, params.coverPath),
+    removeStorageFile(PRODUCT_FILES_BUCKET, params.filePath),
+    ...(params.previewPaths ?? []).map((previewPath) =>
+      removeStorageFile(PRODUCT_COVERS_BUCKET, previewPath),
+    ),
+  ]);
 }
 
 function revalidateStorefront(productSlug?: string) {
@@ -293,6 +327,10 @@ export async function deleteCategoryAction(formData: FormData) {
 export async function createProductAction(formData: FormData) {
   let redirectType: "success" | "error" = "success";
   let redirectMessage = "Produkt został utworzony.";
+  let createdProductId: string | null = null;
+  let uploadedCoverPath: string | null = null;
+  let uploadedFilePath: string | null = null;
+  let uploadedPreviewPaths: string[] = [];
 
   try {
     const { supabase } = await ensureAdmin();
@@ -360,6 +398,8 @@ export async function createProductAction(formData: FormData) {
       throw error ?? new Error("Nie udało się utworzyć produktu.");
     }
 
+    createdProductId = product.id;
+
     const coverFile = formData.get("coverFile");
     const productFile = formData.get("productFile");
 
@@ -369,6 +409,8 @@ export async function createProductAction(formData: FormData) {
       coverFile: coverFile instanceof File ? coverFile : null,
       productFile: productFile instanceof File ? productFile : null,
     });
+    uploadedCoverPath = assets.coverPath;
+    uploadedFilePath = assets.filePath;
 
     const previewFiles = formData.getAll("previewFiles");
     const previewUploads = await Promise.all(
@@ -384,6 +426,7 @@ export async function createProductAction(formData: FormData) {
           product_id: product.id,
         })),
     );
+    uploadedPreviewPaths = previewUploads.map((preview) => preview.storage_path);
 
     const { error: updateError } = await supabase
       .from("products")
@@ -410,6 +453,22 @@ export async function createProductAction(formData: FormData) {
     revalidatePath("/admin/produkty");
     revalidateStorefront(product.slug);
   } catch (error) {
+    if (createdProductId) {
+      const supabase = createSupabaseAdminClient();
+
+      if (supabase) {
+        await supabase.from("products").delete().eq("id", createdProductId);
+      }
+    }
+
+    if (uploadedCoverPath || uploadedFilePath || uploadedPreviewPaths.length > 0) {
+      await cleanupProductFiles({
+        coverPath: uploadedCoverPath,
+        filePath: uploadedFilePath,
+        previewPaths: uploadedPreviewPaths,
+      });
+    }
+
     redirectType = "error";
     redirectMessage =
       error instanceof Error ? error.message : "Nie udało się utworzyć produktu.";
@@ -421,6 +480,10 @@ export async function createProductAction(formData: FormData) {
 export async function updateProductAction(formData: FormData) {
   let redirectType: "success" | "error" = "success";
   let redirectMessage = "Produkt został zaktualizowany.";
+  let replacedCoverPath: string | null = null;
+  let replacedFilePath: string | null = null;
+  let uploadedPreviewPaths: string[] = [];
+  let productUpdated = false;
 
   try {
     const { supabase } = await ensureAdmin();
@@ -475,6 +538,10 @@ export async function updateProductAction(formData: FormData) {
       previousCoverPath: existingProduct.cover_path,
       previousFilePath: existingProduct.file_path,
     });
+    replacedCoverPath =
+      assets.coverPath !== existingProduct.cover_path ? assets.coverPath : null;
+    replacedFilePath =
+      assets.filePath !== existingProduct.file_path ? assets.filePath : null;
 
     const { error } = await supabase
       .from("products")
@@ -511,6 +578,8 @@ export async function updateProductAction(formData: FormData) {
       throw error;
     }
 
+    productUpdated = true;
+
     const previewFiles = formData.getAll("previewFiles");
     const previewUploads = await Promise.all(
       previewFiles
@@ -525,6 +594,7 @@ export async function updateProductAction(formData: FormData) {
           product_id: existingProduct.id,
         })),
     );
+    uploadedPreviewPaths = previewUploads.map((preview) => preview.storage_path);
 
     if (previewUploads.length > 0) {
       const { error: previewsError } = await supabase
@@ -540,6 +610,14 @@ export async function updateProductAction(formData: FormData) {
     revalidateStorefront(existingProduct.slug);
     revalidateStorefront(parsed.data.slug);
   } catch (error) {
+    if ((!productUpdated && (replacedCoverPath || replacedFilePath)) || uploadedPreviewPaths.length > 0) {
+      await cleanupProductFiles({
+        coverPath: productUpdated ? null : replacedCoverPath,
+        filePath: productUpdated ? null : replacedFilePath,
+        previewPaths: uploadedPreviewPaths,
+      });
+    }
+
     redirectType = "error";
     redirectMessage =
       error instanceof Error ? error.message : "Nie udało się zaktualizować produktu.";
@@ -606,6 +684,7 @@ export async function createProductPreviewAction(formData: FormData) {
   let redirectType: "success" | "error" = "success";
   let redirectMessage = "Preview został dodany.";
   const returnPath = "/admin/produkty";
+  let uploadedPreviewPath: string | null = null;
 
   try {
     const { supabase } = await ensureAdmin();
@@ -629,6 +708,7 @@ export async function createProductPreviewAction(formData: FormData) {
       productId: parsed.data.productId,
       previewFile,
     });
+    uploadedPreviewPath = storagePath;
 
     const { error } = await supabase.from("product_previews").insert({
       product_id: parsed.data.productId,
@@ -643,6 +723,12 @@ export async function createProductPreviewAction(formData: FormData) {
 
     revalidatePath(returnPath);
   } catch (error) {
+    if (uploadedPreviewPath) {
+      await cleanupProductFiles({
+        previewPaths: [uploadedPreviewPath],
+      });
+    }
+
     redirectType = "error";
     redirectMessage =
       error instanceof Error ? error.message : "Nie udało się dodać preview.";
@@ -1257,6 +1343,53 @@ export async function deleteAllowlistEntryAction(formData: FormData) {
     redirectType = "error";
     redirectMessage =
       error instanceof Error ? error.message : "Nie udało się usunąć wpisu.";
+  }
+
+  redirectWithMessage(returnPath, redirectType, redirectMessage);
+}
+
+export async function updateSiteSettingsAction(formData: FormData) {
+  let redirectType: "success" | "error" = "success";
+  let redirectMessage = "Ustawienia merchandisingu zostały zapisane.";
+  const returnPath = "/admin/ustawienia";
+
+  try {
+    const { supabase } = await ensureAdmin();
+    const parsed = siteSettingsFormSchema.safeParse({
+      recommendedBundleId: formData.get("recommendedBundleId"),
+      homepageFeaturedLimit: formData.get("homepageFeaturedLimit"),
+    });
+
+    if (!parsed.success) {
+      throw new Error(parsed.error.issues[0]?.message ?? "Niepoprawne dane ustawień.");
+    }
+
+    const { error } = await supabase.from("site_settings").upsert(
+      [
+        {
+          key: "recommended_bundle_id",
+          value: parsed.data.recommendedBundleId,
+        },
+        {
+          key: "homepage_featured_limit",
+          value: String(parsed.data.homepageFeaturedLimit),
+        },
+      ],
+      {
+        onConflict: "key",
+      },
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    revalidatePath("/admin/ustawienia");
+    revalidatePath("/");
+  } catch (error) {
+    redirectType = "error";
+    redirectMessage =
+      error instanceof Error ? error.message : "Nie udało się zapisać ustawień.";
   }
 
   redirectWithMessage(returnPath, redirectType, redirectMessage);

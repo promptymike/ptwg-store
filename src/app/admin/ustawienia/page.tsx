@@ -1,6 +1,29 @@
-export default function AdminSettingsPage() {
+import { updateSiteSettingsAction } from "@/app/admin/actions";
+import { AdminSubmitButton } from "@/components/admin/admin-submit-button";
+import { AdminStatusNotice } from "@/components/admin/admin-status-notice";
+import { Input } from "@/components/ui/input";
+import { bundles } from "@/data/mock-store";
+import { getSiteSettingsSnapshot } from "@/lib/supabase/store";
+
+type AdminSettingsPageProps = {
+  searchParams: Promise<{
+    type?: string;
+    message?: string;
+  }>;
+};
+
+export default async function AdminSettingsPage({
+  searchParams,
+}: AdminSettingsPageProps) {
+  const [settings, status] = await Promise.all([
+    getSiteSettingsSnapshot(),
+    searchParams,
+  ]);
+
   return (
     <div className="space-y-6">
+      <AdminStatusNotice type={status.type} message={status.message} />
+
       <section className="surface-panel space-y-5 p-6">
         <div className="space-y-2">
           <span className="eyebrow">Ustawienia</span>
@@ -36,6 +59,40 @@ export default function AdminSettingsPage() {
             </p>
           </article>
         </div>
+
+        <form action={updateSiteSettingsAction} className="grid gap-4 rounded-[1.5rem] border border-border/70 bg-background/60 p-5 lg:grid-cols-2">
+          <label className="space-y-2">
+            <span className="text-sm text-foreground">Recommended bundle</span>
+            <select
+              name="recommendedBundleId"
+              defaultValue={settings.recommendedBundleId}
+              className="flex h-12 w-full rounded-2xl border border-border bg-input px-4 text-sm text-foreground"
+            >
+              {bundles.map((bundle) => (
+                <option key={bundle.id} value={bundle.id}>
+                  {bundle.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="space-y-2">
+            <span className="text-sm text-foreground">Homepage featured limit</span>
+            <Input
+              name="homepageFeaturedLimit"
+              type="number"
+              min="1"
+              max="12"
+              defaultValue={settings.homepageFeaturedLimit}
+            />
+          </label>
+
+          <AdminSubmitButton
+            idleLabel="Zapisz merchandising"
+            pendingLabel="Zapisywanie..."
+            className="lg:col-span-2"
+          />
+        </form>
       </section>
     </div>
   );

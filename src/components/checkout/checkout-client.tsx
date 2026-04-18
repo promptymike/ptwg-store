@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 
+import { useAnalytics } from "@/components/analytics/analytics-provider";
 import { useCart } from "@/components/cart/cart-provider";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
@@ -21,9 +22,11 @@ type CheckoutClientProps = {
 
 export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
   const { items, subtotal, isReady } = useCart();
+  const { track } = useAnalytics();
   const [email, setEmail] = useState(initialEmail);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const trackedCheckoutRef = useRef(false);
   const lines = useMemo(
     () =>
       items
@@ -33,6 +36,30 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
         .filter(Boolean),
     [items],
   );
+
+  useEffect(() => {
+    if (!isReady || lines.length === 0 || trackedCheckoutRef.current) {
+      return;
+    }
+
+    track("begin_checkout", {
+      itemCount: lines.length,
+      subtotal,
+      items: lines.map((line) =>
+        line
+          ? {
+              productId: line.id,
+              slug: line.slug,
+              name: line.name,
+              quantity: line.quantity,
+              price: line.price,
+            }
+          : null,
+      ),
+    });
+
+    trackedCheckoutRef.current = true;
+  }, [isReady, lines, subtotal, track]);
 
   async function handleCheckout() {
     setIsSubmitting(true);

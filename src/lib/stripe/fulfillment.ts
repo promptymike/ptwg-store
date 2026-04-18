@@ -18,6 +18,21 @@ type FulfilledLineItem = {
   unitPrice: number;
 };
 
+type ExistingOrderRow = {
+  id: string;
+  stripe_checkout_session_id: string | null;
+  email: string;
+  total: number;
+  subtotal: number;
+  user_id: string;
+  order_items: Array<{
+    product_id: string;
+    product_name: string;
+    quantity: number;
+    unit_price: number;
+  }>;
+};
+
 export type CheckoutFulfillmentResult = {
   orderId: string;
   sessionId: string;
@@ -106,6 +121,40 @@ async function recordWebhookEvent(
   );
 }
 
+async function getExistingFulfillmentResult(
+  supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
+  sessionId: string,
+): Promise<CheckoutFulfillmentResult | null> {
+  const { data, error } = await supabase
+    .from("orders")
+    .select(
+      "id, stripe_checkout_session_id, email, total, subtotal, user_id, order_items(product_id, product_name, quantity, unit_price)",
+    )
+    .eq("stripe_checkout_session_id", sessionId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  const order = data as ExistingOrderRow;
+
+  return {
+    orderId: order.id,
+    sessionId: order.stripe_checkout_session_id ?? sessionId,
+    email: order.email,
+    total: order.total,
+    subtotal: order.subtotal,
+    userId: order.user_id,
+    items: order.order_items.map((item) => ({
+      productId: item.product_id,
+      productName: item.product_name,
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+    })),
+  };
+}
+
 export async function fulfillCheckoutSession(
   sessionId: string,
   options: FulfillmentOptions = {},
@@ -115,6 +164,29 @@ export async function fulfillCheckoutSession(
 
   if (!stripe || !supabase) {
     throw new Error("Brakuje konfiguracji Stripe lub Supabase dla fulfillmentu.");
+  }
+
+  if (options.eventId) {
+    const { data: existingEvent } = await supabase
+      .from("stripe_webhook_events")
+      .select("id")
+      .eq("id", options.eventId)
+      .maybeSingle();
+
+    if (existingEvent) {
+      const existingResult = await getExistingFulfillmentResult(supabase, sessionId);
+
+      if (existingResult) {
+        return existingResult;
+      }
+    }
+  }
+
+  const existingOrder = await getExistingFulfillmentResult(supabase, sessionId);
+
+  if (existingOrder) {
+    await recordWebhookEvent(supabase, options.eventId, options.eventType, sessionId);
+    return existingOrder;
   }
 
   const session = await stripe.checkout.sessions.retrieve(sessionId);
@@ -210,12 +282,7 @@ export async function fulfillCheckoutSession(
     throw new Error(libraryError.message);
   }
 
-  await recordWebhookEvent(
-    supabase,
-    options.eventId,
-    options.eventType,
-    session.id,
-  );
+  await recordWebhookEvent(supabase, options.eventId, options.eventType, session.id);
 
   return {
     orderId: order.id,

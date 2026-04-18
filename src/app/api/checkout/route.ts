@@ -70,7 +70,7 @@ export async function POST(request: Request) {
 
   const { data: products, error } = await supabase
     .from("products")
-    .select("id, slug, name, short_description, price, is_active")
+    .select("id, slug, name, short_description, price, is_active, status")
     .in("id", productIds)
     .eq("is_active", true);
 
@@ -83,8 +83,9 @@ export async function POST(request: Request) {
 
   const productMap = new Map(products.map((product) => [product.id, product]));
   const missingProducts = productIds.filter((productId) => !productMap.has(productId));
+  const unpublishedProducts = products.filter((product) => product.status !== "published");
 
-  if (missingProducts.length > 0) {
+  if (missingProducts.length > 0 || unpublishedProducts.length > 0) {
     return NextResponse.json(
       {
         message:

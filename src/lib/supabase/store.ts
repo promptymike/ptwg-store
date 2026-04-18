@@ -13,7 +13,9 @@ import {
 } from "@/types/store";
 import {
   bestsellerProducts as mockBestsellers,
+  bundles,
   faqItems as mockFaqItems,
+  getBundleById,
   getLegalPage,
   getProductBySlug as getMockProductBySlug,
   homeFeaturedProducts as mockFeaturedProducts,
@@ -814,10 +816,49 @@ export async function getAdminUsersSnapshot() {
   };
 }
 
+export async function getSiteSettingsSnapshot() {
+  const defaults = {
+    recommendedBundleId: "bundle-01",
+    homepageFeaturedLimit: 4,
+  };
+
+  if (!hasSupabaseEnv()) {
+    return defaults;
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return defaults;
+  }
+
+  const { data, error } = await supabase.from("site_settings").select("key, value");
+
+  if (error || !data) {
+    return defaults;
+  }
+
+  const settingsMap = new Map(data.map((entry) => [entry.key, entry.value]));
+  const parsedFeaturedLimit = Number.parseInt(
+    settingsMap.get("homepage_featured_limit") ?? String(defaults.homepageFeaturedLimit),
+    10,
+  );
+
+  return {
+    recommendedBundleId:
+      settingsMap.get("recommended_bundle_id") ?? defaults.recommendedBundleId,
+    homepageFeaturedLimit:
+      Number.isFinite(parsedFeaturedLimit) && parsedFeaturedLimit > 0
+        ? parsedFeaturedLimit
+        : defaults.homepageFeaturedLimit,
+  };
+}
+
 export async function getStorefrontSnapshot() {
-  const [sections, featuredProducts, bestsellerProducts, faqs, testimonials] =
+  const [sections, settings, featuredProducts, bestsellerProducts, faqs, testimonials] =
     await Promise.all([
       getSiteSectionsSnapshot(),
+      getSiteSettingsSnapshot(),
       getFeaturedStoreProducts(),
       getBestsellerStoreProducts(),
       getFaqSnapshot(),
@@ -826,9 +867,15 @@ export async function getStorefrontSnapshot() {
 
   return {
     sections,
-    featuredProducts: featuredProducts.length > 0 ? featuredProducts : mockFeaturedProducts,
+    featuredProducts:
+      (featuredProducts.length > 0 ? featuredProducts : mockFeaturedProducts).slice(
+        0,
+        Math.max(1, settings.homepageFeaturedLimit || 4),
+      ),
     bestsellerProducts:
       bestsellerProducts.length > 0 ? bestsellerProducts : mockBestsellers,
+    recommendedBundle:
+      getBundleById(settings.recommendedBundleId) ?? bundles[0] ?? null,
     faqs,
     testimonials,
   };

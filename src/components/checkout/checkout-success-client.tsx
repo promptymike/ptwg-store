@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 
+import { useAnalytics } from "@/components/analytics/analytics-provider";
 import { useCart } from "@/components/cart/cart-provider";
 import { Button } from "@/components/ui/button";
 
@@ -20,7 +21,9 @@ export function CheckoutSuccessClient({
   itemCount,
 }: CheckoutSuccessClientProps) {
   const { clearCart } = useCart();
+  const { track } = useAnalytics();
   const clearedRef = useRef(false);
+  const trackedPurchaseRef = useRef(false);
 
   useEffect(() => {
     if (clearedRef.current) {
@@ -30,6 +33,21 @@ export function CheckoutSuccessClient({
     clearCart();
     clearedRef.current = true;
   }, [clearCart]);
+
+  useEffect(() => {
+    if (trackedPurchaseRef.current) {
+      return;
+    }
+
+    track("purchase", {
+      orderId,
+      amount,
+      email,
+      itemCount,
+    });
+
+    trackedPurchaseRef.current = true;
+  }, [amount, email, itemCount, orderId, track]);
 
   return (
     <section className="surface-panel space-y-6 p-6 sm:p-8">
