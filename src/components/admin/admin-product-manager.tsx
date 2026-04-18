@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   createProductAction,
   createProductPreviewAction,
@@ -10,8 +12,16 @@ import { AdminSubmitButton } from "@/components/admin/admin-submit-button";
 import { FileDropzone } from "@/components/admin/file-dropzone";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { PRODUCT_BADGES, PRODUCT_STATUSES } from "@/types/store";
-import { formatCurrency } from "@/lib/format";
+import {
+  formatCurrency,
+  formatProductPipelineStatus,
+  formatProductStatus,
+} from "@/lib/format";
+import {
+  PRODUCT_BADGES,
+  PRODUCT_PIPELINE_STATUSES,
+  PRODUCT_STATUSES,
+} from "@/types/store";
 
 type CategoryOption = {
   id: string;
@@ -48,6 +58,7 @@ type ProductRecord = {
   heroNote: string;
   badge: string | null;
   status: string;
+  pipelineStatus: string;
   bestseller: boolean;
   featured: boolean;
   sortOrder: number;
@@ -56,12 +67,31 @@ type ProductRecord = {
   coverPath: string | null;
   coverImageUrl: string | null;
   filePath: string | null;
+  hasCover: boolean;
+  hasFile: boolean;
+  isVisibleOnStorefront: boolean;
+  linkedSource: {
+    id: string;
+    title: string;
+  } | null;
   previews: ProductPreviewRecord[];
 };
 
 type AdminProductManagerProps = {
   categories: CategoryOption[];
   products: ProductRecord[];
+  summary: {
+    total: number;
+    draftCount: number;
+    readyCount: number;
+    publishedCount: number;
+    missingSourceCount: number;
+  };
+  filters: {
+    status?: string;
+    pipelineStatus?: string;
+    categoryId?: string;
+  };
 };
 
 function CategorySelect({
@@ -115,6 +145,71 @@ function SelectField({
   );
 }
 
+function SummaryCard({
+  label,
+  value,
+  detail,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+}) {
+  return (
+    <article className="rounded-[1.3rem] border border-border/70 bg-background/70 p-4">
+      <p className="text-[11px] uppercase tracking-[0.22em] text-primary/75">{label}</p>
+      <p className="mt-3 text-3xl text-foreground">{value}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{detail}</p>
+    </article>
+  );
+}
+
+function FilterSelect({
+  name,
+  defaultValue,
+  options,
+}: {
+  name: string;
+  defaultValue?: string;
+  options: Array<{ value: string; label: string }>;
+}) {
+  return (
+    <select
+      name={name}
+      defaultValue={defaultValue ?? "all"}
+      className="h-11 rounded-2xl border border-border bg-background px-4 text-sm text-foreground"
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function Chip({
+  label,
+  tone = "default",
+}: {
+  label: string;
+  tone?: "default" | "positive" | "warning";
+}) {
+  const toneClass =
+    tone === "positive"
+      ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-200"
+      : tone === "warning"
+        ? "border-amber-500/20 bg-amber-500/10 text-amber-100"
+        : "border-border/70 bg-background/60 text-muted-foreground";
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.18em] ${toneClass}`}
+    >
+      {label}
+    </span>
+  );
+}
+
 function ProductFormFields({
   categories,
   product,
@@ -124,6 +219,13 @@ function ProductFormFields({
 }) {
   return (
     <div className="grid gap-4 xl:grid-cols-2">
+      {product?.linkedSource ? (
+        <div className="rounded-[1.2rem] border border-primary/20 bg-primary/10 px-4 py-4 text-sm text-muted-foreground xl:col-span-2">
+          <input type="hidden" name="sourceId" value={product.linkedSource.id} />
+          Powiązane źródło: <span className="text-foreground">{product.linkedSource.title}</span>
+        </div>
+      ) : null}
+
       <label className="space-y-2">
         <span className="text-sm text-foreground">Nazwa</span>
         <Input name="name" defaultValue={product?.name} placeholder="Founder OS Template" />
@@ -141,7 +243,7 @@ function ProductFormFields({
 
       <label className="space-y-2">
         <span className="text-sm text-foreground">Format</span>
-        <Input name="format" defaultValue={product?.format ?? "PDF"} placeholder="Notion + PDF" />
+        <Input name="format" defaultValue={product?.format ?? "PDF"} placeholder="PDF + Notion" />
       </label>
 
       <label className="space-y-2">
@@ -161,11 +263,21 @@ function ProductFormFields({
 
       <SelectField
         name="status"
-        label="Status"
+        label="Status sklepu"
         defaultValue={product?.status ?? "draft"}
         options={PRODUCT_STATUSES.map((status) => ({
           value: status,
-          label: status,
+          label: formatProductStatus(status),
+        }))}
+      />
+
+      <SelectField
+        name="pipelineStatus"
+        label="Pipeline publikacji"
+        defaultValue={product?.pipelineStatus ?? "working"}
+        options={PRODUCT_PIPELINE_STATUSES.map((status) => ({
+          value: status,
+          label: formatProductPipelineStatus(status),
         }))}
       />
 
@@ -174,13 +286,18 @@ function ProductFormFields({
         label="Badge"
         defaultValue={product?.badge ?? ""}
         options={[
-          { value: "", label: "brak" },
+          { value: "", label: "Brak" },
           ...PRODUCT_BADGES.map((badge) => ({
             value: badge,
             label: badge,
           })),
         ]}
       />
+
+      <label className="space-y-2">
+        <span className="text-sm text-foreground">Liczba stron</span>
+        <Input name="pages" type="number" defaultValue={product?.pages ?? 0} />
+      </label>
 
       <label className="space-y-2">
         <span className="text-sm text-foreground">Sort order</span>
@@ -197,16 +314,11 @@ function ProductFormFields({
       </label>
 
       <label className="space-y-2">
-        <span className="text-sm text-foreground">Liczba stron</span>
-        <Input name="pages" type="number" defaultValue={product?.pages ?? 0} />
-      </label>
-
-      <label className="space-y-2">
         <span className="text-sm text-foreground">Etykieta sprzedażowa</span>
         <Input
           name="salesLabel"
           defaultValue={product?.salesLabel}
-          placeholder="Best for founders"
+          placeholder="Szablon dla małych zespołów"
         />
       </label>
 
@@ -216,7 +328,7 @@ function ProductFormFields({
           name="shortDescription"
           defaultValue={product?.shortDescription}
           className="min-h-24"
-          placeholder="Krótki opis karty produktu..."
+          placeholder="Jedno zdanie o efekcie, jaki daje produkt."
         />
       </label>
 
@@ -226,7 +338,7 @@ function ProductFormFields({
           name="description"
           defaultValue={product?.description}
           className="min-h-32"
-          placeholder="Rozwiń rezultat, use case i zawartość produktu..."
+          placeholder="Opisz use case, rezultat i zawartość produktu."
         />
       </label>
 
@@ -235,7 +347,7 @@ function ProductFormFields({
         <Input
           name="heroNote"
           defaultValue={product?.heroNote}
-          placeholder="Sell the result, not the file."
+          placeholder="Sprzedaj rezultat, nie sam plik."
         />
       </label>
 
@@ -244,7 +356,7 @@ function ProductFormFields({
         <Input
           name="tags"
           defaultValue={product?.tags.join(", ")}
-          placeholder="notion, sales, founder"
+          placeholder="biznes, finanse, oferta"
         />
       </label>
 
@@ -258,17 +370,17 @@ function ProductFormFields({
         <Input
           name="coverGradient"
           defaultValue={product?.coverGradient}
-          placeholder="from-[#f8f1e8] ..."
+          placeholder="from-[#f7f0e7] ..."
         />
       </label>
 
       <label className="space-y-2 xl:col-span-2">
-        <span className="text-sm text-foreground">Sekcja &quot;co zawiera&quot;</span>
+        <span className="text-sm text-foreground">Sekcja „co zawiera”</span>
         <Textarea
           name="includes"
           defaultValue={product?.includes.join("\n")}
           className="min-h-24"
-          placeholder="Jedna pozycja na linię albo po przecinku"
+          placeholder="Jedna pozycja na linię albo po przecinku."
         />
       </label>
 
@@ -288,7 +400,7 @@ function ProductFormFields({
         <FileDropzone
           name="productFile"
           accept=".pdf,.zip,.png,.jpg,.jpeg,.webp,application/pdf,application/zip"
-          label="Upuść plik cyfrowy"
+          label="Upuść plik produktu"
           hint="PDF lub ZIP, do 50 MB"
           maxSizeMb={50}
         />
@@ -300,8 +412,8 @@ function ProductFormFields({
           name="previewFiles"
           accept="image/png,image/jpeg,image/webp"
           multiple
-          label="Upuść zrzuty"
-          hint="Możesz wrzucić wiele obrazów na raz"
+          label="Upuść preview"
+          hint="Możesz wrzucić kilka plików na raz."
           maxSizeMb={8}
         />
       </div>
@@ -346,7 +458,7 @@ function PreviewManager({ product }: { product: ProductRecord }) {
         <div>
           <p className="text-sm font-medium text-foreground">Preview images</p>
           <p className="text-xs text-muted-foreground">
-            Dodaj dodatkowe zrzuty lub mockupy pokazujące wnętrze produktu.
+            Dodatkowe zrzuty pokazujące wnętrze i jakość produktu.
           </p>
         </div>
         <span className="text-xs uppercase tracking-[0.22em] text-primary/75">
@@ -368,7 +480,7 @@ function PreviewManager({ product }: { product: ProductRecord }) {
           name="previewFile"
           accept="image/png,image/jpeg,image/webp"
           label="Upuść zrzut preview"
-          hint="Jeden obraz (PNG/JPG/WEBP), do 8 MB"
+          hint="Jeden obraz PNG, JPG lub WEBP, do 8 MB"
           maxSizeMb={8}
         />
         <AdminSubmitButton idleLabel="Dodaj preview" pendingLabel="Dodawanie..." />
@@ -387,9 +499,7 @@ function PreviewManager({ product }: { product: ProductRecord }) {
             >
               <div className="space-y-2">
                 <p className="text-sm text-foreground">{preview.altText || "Preview image"}</p>
-                <p className="text-xs text-muted-foreground break-all">
-                  {preview.storagePath}
-                </p>
+                <p className="break-all text-xs text-muted-foreground">{preview.storagePath}</p>
               </div>
 
               <form action={updateProductPreviewAction} className="grid gap-3 sm:grid-cols-2">
@@ -418,15 +528,111 @@ function PreviewManager({ product }: { product: ProductRecord }) {
 export function AdminProductManager({
   categories,
   products,
+  summary,
+  filters,
 }: AdminProductManagerProps) {
   return (
     <div className="space-y-6">
       <section className="surface-panel space-y-5 p-6">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <div className="space-y-2">
+            <h2 className="text-2xl text-foreground">Operacyjny katalog produktów</h2>
+            <p className="max-w-2xl text-sm text-muted-foreground">
+              Filtruj pipeline publikacji, sprawdzaj kompletność assetów i szybko przechodź do
+              edycji lub publikacji produktu.
+            </p>
+          </div>
+          <Link
+            href="/admin/import"
+            className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm text-foreground transition hover:border-primary/30"
+          >
+            Import / Źródła produktów
+          </Link>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <SummaryCard
+            label="Wszystkie"
+            value={String(summary.total)}
+            detail="produkty w systemie"
+          />
+          <SummaryCard
+            label="Draft"
+            value={String(summary.draftCount)}
+            detail="niewidoczne jeszcze w sklepie"
+          />
+          <SummaryCard
+            label="Gotowe"
+            value={String(summary.readyCount)}
+            detail="pipeline ready to publish"
+          />
+          <SummaryCard
+            label="Opublikowane"
+            value={String(summary.publishedCount)}
+            detail="aktywne na storefront"
+          />
+          <SummaryCard
+            label="Bez źródła"
+            value={String(summary.missingSourceCount)}
+            detail="produkty bez podpiętego pliku roboczego"
+          />
+        </div>
+
+        <form className="grid gap-3 rounded-[1.3rem] border border-border/70 bg-background/70 p-4 lg:grid-cols-[1fr_1fr_1fr_auto_auto]">
+          <FilterSelect
+            name="status"
+            defaultValue={filters.status}
+            options={[
+              { value: "all", label: "Wszystkie statusy sklepu" },
+              ...PRODUCT_STATUSES.map((status) => ({
+                value: status,
+                label: formatProductStatus(status),
+              })),
+            ]}
+          />
+          <FilterSelect
+            name="pipelineStatus"
+            defaultValue={filters.pipelineStatus}
+            options={[
+              { value: "all", label: "Cały pipeline" },
+              ...PRODUCT_PIPELINE_STATUSES.map((status) => ({
+                value: status,
+                label: formatProductPipelineStatus(status),
+              })),
+            ]}
+          />
+          <FilterSelect
+            name="categoryId"
+            defaultValue={filters.categoryId}
+            options={[
+              { value: "all", label: "Wszystkie kategorie" },
+              ...categories.map((category) => ({
+                value: category.id,
+                label: category.name,
+              })),
+            ]}
+          />
+          <button
+            type="submit"
+            className="rounded-2xl border border-border/70 px-4 py-2 text-sm text-foreground transition hover:border-primary/30"
+          >
+            Filtruj
+          </button>
+          <Link
+            href="/admin/produkty"
+            className="rounded-2xl border border-border/70 px-4 py-2 text-center text-sm text-muted-foreground transition hover:text-foreground"
+          >
+            Wyczyść
+          </Link>
+        </form>
+      </section>
+
+      <section className="surface-panel space-y-5 p-6">
         <div className="space-y-2">
           <h2 className="text-2xl text-foreground">Nowy produkt</h2>
           <p className="text-sm text-muted-foreground">
-            Formularz zapisuje produkt do Supabase, wgrywa okładkę, plik cyfrowy i opcjonalne
-            preview images.
+            Ręczne dodanie produktu do Supabase. Jeśli masz już gotowy plik roboczy, wygodniej
+            zacząć od sekcji importu źródeł.
           </p>
         </div>
 
@@ -452,15 +658,16 @@ export function AdminProductManager({
 
       <section className="surface-panel space-y-5 p-6">
         <div className="space-y-2">
-          <h2 className="text-2xl text-foreground">Katalog operacyjny</h2>
+          <h2 className="text-2xl text-foreground">Lista produktów</h2>
           <p className="text-sm text-muted-foreground">
-            Tu zarządzasz statusem publikacji, kolejnością, pricingiem, plikami i preview.
+            Szybki podgląd gotowości: status, pipeline, okładka, plik produktu, widoczność i
+            powiązane źródło.
           </p>
         </div>
 
         {products.length === 0 ? (
-          <p className="rounded-[1.2rem] border border-border/70 bg-background/70 px-4 py-4 text-sm text-muted-foreground">
-            Nie ma jeszcze żadnych produktów do edycji.
+          <p className="rounded-[1.2rem] border border-dashed border-border/70 px-4 py-5 text-sm text-muted-foreground">
+            Brak produktów dla wybranych filtrów. Zmień filtry albo dodaj pierwszy produkt.
           </p>
         ) : (
           <div className="grid gap-4">
@@ -469,42 +676,69 @@ export function AdminProductManager({
                 key={product.id}
                 className="rounded-[1.5rem] border border-border/70 bg-background/60 p-5"
               >
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-lg text-foreground">{product.name}</p>
-                      <span className="rounded-full border border-border/70 px-3 py-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                        {product.status}
-                      </span>
-                      {product.badge ? (
-                        <span className="rounded-full bg-primary/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-primary">
-                          {product.badge}
-                        </span>
-                      ) : null}
+                <div className="flex flex-col gap-5">
+                  <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-lg text-foreground">{product.name}</p>
+                        <Chip label={formatProductStatus(product.status)} />
+                        <Chip
+                          label={formatProductPipelineStatus(product.pipelineStatus)}
+                          tone={product.pipelineStatus === "ready" ? "positive" : "default"}
+                        />
+                        {product.badge ? <Chip label={product.badge} tone="warning" /> : null}
+                      </div>
+
+                      <p className="text-sm text-muted-foreground">
+                        {product.category} • {product.format} • {formatCurrency(product.price)}
+                      </p>
+
+                      <p className="max-w-3xl text-sm text-muted-foreground">
+                        {product.shortDescription}
+                      </p>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {product.category} • {product.format} • {product.pages} stron
-                    </p>
-                    <p className="text-sm text-foreground">{formatCurrency(product.price)}</p>
-                    <p className="text-xs uppercase tracking-[0.18em] text-primary/75">
-                      {product.coverPath ? "okładka dodana" : "brak okładki"} •{" "}
-                      {product.filePath ? "plik dodany" : "brak pliku"} •{" "}
-                      {product.previews.length} preview
-                    </p>
+
+                    <div className="grid gap-2 sm:grid-cols-2 xl:min-w-[340px]">
+                      <Chip
+                        label={product.hasFile ? "Plik dodany" : "Brak pliku"}
+                        tone={product.hasFile ? "positive" : "default"}
+                      />
+                      <Chip
+                        label={product.hasCover ? "Cover dodany" : "Brak coveru"}
+                        tone={product.hasCover ? "positive" : "default"}
+                      />
+                      <Chip
+                        label={
+                          product.isVisibleOnStorefront
+                            ? "Widoczny na storefront"
+                            : "Niewidoczny w sklepie"
+                        }
+                        tone={product.isVisibleOnStorefront ? "positive" : "default"}
+                      />
+                      <Chip
+                        label={
+                          product.linkedSource
+                            ? `Źródło: ${product.linkedSource.title}`
+                            : "Brak źródła"
+                        }
+                        tone={product.linkedSource ? "positive" : "default"}
+                      />
+                    </div>
                   </div>
 
-                  <details className="w-full max-w-5xl">
-                    <summary className="cursor-pointer rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm text-foreground">
+                  <details className="rounded-[1.3rem] border border-border/70 bg-background/80 p-4">
+                    <summary className="cursor-pointer list-none text-sm text-foreground">
                       Edytuj produkt
                     </summary>
 
-                    <div className="mt-4 space-y-4 rounded-[1.4rem] border border-border/70 bg-background/80 p-4">
+                    <div className="mt-4 space-y-4">
                       <form
                         action={updateProductAction}
                         className="space-y-4"
                         encType="multipart/form-data"
                       >
                         <input type="hidden" name="productId" value={product.id} />
+                        <input type="hidden" name="returnPath" value="/admin/produkty" />
                         <ProductFormFields categories={categories} product={product} />
                         <AdminSubmitButton
                           idleLabel="Zapisz zmiany"

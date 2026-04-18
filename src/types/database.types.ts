@@ -316,6 +316,53 @@ export type Database = {
           },
         ]
       }
+      product_sources: {
+        Row: {
+          created_at: string
+          drive_file_id: string
+          drive_url: string
+          id: string
+          mime_type: string
+          modified_at: string | null
+          product_id: string | null
+          source_stage: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          drive_file_id: string
+          drive_url: string
+          id?: string
+          mime_type: string
+          modified_at?: string | null
+          product_id?: string | null
+          source_stage?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          drive_file_id?: string
+          drive_url?: string
+          id?: string
+          mime_type?: string
+          modified_at?: string | null
+          product_id?: string | null
+          source_stage?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_sources_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           accent: string
@@ -337,6 +384,7 @@ export type Database = {
           is_active: boolean
           name: string
           pages: number
+          pipeline_status: Database["public"]["Enums"]["product_pipeline_status"]
           price: number
           rating: number
           sales_label: string
@@ -367,6 +415,7 @@ export type Database = {
           is_active?: boolean
           name: string
           pages?: number
+          pipeline_status?: Database["public"]["Enums"]["product_pipeline_status"]
           price: number
           rating?: number
           sales_label?: string
@@ -397,6 +446,7 @@ export type Database = {
           is_active?: boolean
           name?: string
           pages?: number
+          pipeline_status?: Database["public"]["Enums"]["product_pipeline_status"]
           price?: number
           rating?: number
           sales_label?: string
@@ -570,6 +620,7 @@ export type Database = {
     }
     Enums: {
       order_status: "new" | "paid" | "fulfilled" | "cancelled"
+      product_pipeline_status: "working" | "refining" | "ready" | "published"
       product_status: "draft" | "published" | "archived"
       user_role: "admin" | "user"
     }
@@ -700,6 +751,7 @@ export const Constants = {
   public: {
     Enums: {
       order_status: ["new", "paid", "fulfilled", "cancelled"],
+      product_pipeline_status: ["working", "refining", "ready", "published"],
       product_status: ["draft", "published", "archived"],
       user_role: ["admin", "user"],
     },

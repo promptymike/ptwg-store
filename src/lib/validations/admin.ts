@@ -1,9 +1,14 @@
 import { z } from "zod";
 
-import { PRODUCT_BADGES, PRODUCT_STATUSES } from "@/types/store";
+import {
+  PRODUCT_BADGES,
+  PRODUCT_PIPELINE_STATUSES,
+  PRODUCT_STATUSES,
+} from "@/types/store";
 
 export const productFormSchema = z.object({
   productId: z.string().uuid().optional(),
+  sourceId: z.string().uuid().optional(),
   name: z.string().min(3, "Nazwa produktu jest za krótka."),
   slug: z
     .string()
@@ -28,6 +33,7 @@ export const productFormSchema = z.object({
   coverGradient: z.string().min(5, "Podaj klasę gradientu okładki."),
   badge: z.enum(PRODUCT_BADGES).nullable().optional(),
   status: z.enum(PRODUCT_STATUSES),
+  pipelineStatus: z.enum(PRODUCT_PIPELINE_STATUSES),
   sortOrder: z.coerce.number().int().min(0, "Sortowanie nie może być ujemne."),
   featuredOrder: z.coerce
     .number()

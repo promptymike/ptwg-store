@@ -9,6 +9,7 @@ import { getCurrentProfile } from "@/lib/session";
 const adminLinks = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/produkty", label: "Produkty" },
+  { href: "/admin/import", label: "Import / Źródła produktów" },
   { href: "/admin/kategorie", label: "Kategorie" },
   { href: "/admin/zamowienia", label: "Zamówienia" },
   { href: "/admin/content", label: "Content / Strony" },

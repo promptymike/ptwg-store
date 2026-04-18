@@ -331,11 +331,17 @@ export async function createProductAction(formData: FormData) {
   let uploadedCoverPath: string | null = null;
   let uploadedFilePath: string | null = null;
   let uploadedPreviewPaths: string[] = [];
+  const returnPathValue = formData.get("returnPath");
+  const returnPath =
+    typeof returnPathValue === "string" && returnPathValue.startsWith("/admin")
+      ? returnPathValue
+      : "/admin/produkty";
 
   try {
     const { supabase } = await ensureAdmin();
 
     const parsed = productFormSchema.safeParse({
+      sourceId: formData.get("sourceId"),
       name: formData.get("name"),
       slug: formData.get("slug"),
       categoryId: formData.get("categoryId"),
@@ -351,6 +357,7 @@ export async function createProductAction(formData: FormData) {
       coverGradient: formData.get("coverGradient"),
       badge: parseNullableString(formData.get("badge")) ?? null,
       status: formData.get("status"),
+      pipelineStatus: formData.get("pipelineStatus") ?? "working",
       sortOrder: formData.get("sortOrder"),
       featuredOrder: formData.get("featuredOrder"),
       tags: formData.get("tags"),
@@ -382,6 +389,7 @@ export async function createProductAction(formData: FormData) {
         cover_gradient: parsed.data.coverGradient,
         badge: parsed.data.badge ?? null,
         status: parsed.data.status,
+        pipeline_status: parsed.data.pipelineStatus,
         sort_order: parsed.data.sortOrder,
         featured_order: parsed.data.featured ? parsed.data.featuredOrder : 0,
         tags: parseList(parsed.data.tags),
@@ -450,7 +458,30 @@ export async function createProductAction(formData: FormData) {
       }
     }
 
+    if (parsed.data.sourceId) {
+      await supabase
+        .from("product_sources")
+        .update({
+          product_id: null,
+        })
+        .eq("product_id", product.id)
+        .neq("id", parsed.data.sourceId);
+
+      const { error: sourceLinkError } = await supabase
+        .from("product_sources")
+        .update({
+          product_id: product.id,
+        })
+        .eq("id", parsed.data.sourceId);
+
+      if (sourceLinkError) {
+        throw sourceLinkError;
+      }
+    }
+
     revalidatePath("/admin/produkty");
+    revalidatePath("/admin/import");
+    revalidatePath(returnPath);
     revalidateStorefront(product.slug);
   } catch (error) {
     if (createdProductId) {
@@ -474,7 +505,7 @@ export async function createProductAction(formData: FormData) {
       error instanceof Error ? error.message : "Nie udało się utworzyć produktu.";
   }
 
-  redirectWithMessage("/admin/produkty", redirectType, redirectMessage);
+  redirectWithMessage(returnPath, redirectType, redirectMessage);
 }
 
 export async function updateProductAction(formData: FormData) {
@@ -484,12 +515,18 @@ export async function updateProductAction(formData: FormData) {
   let replacedFilePath: string | null = null;
   let uploadedPreviewPaths: string[] = [];
   let productUpdated = false;
+  const returnPathValue = formData.get("returnPath");
+  const returnPath =
+    typeof returnPathValue === "string" && returnPathValue.startsWith("/admin")
+      ? returnPathValue
+      : "/admin/produkty";
 
   try {
     const { supabase } = await ensureAdmin();
 
     const parsed = productFormSchema.safeParse({
       productId: formData.get("productId"),
+      sourceId: formData.get("sourceId"),
       name: formData.get("name"),
       slug: formData.get("slug"),
       categoryId: formData.get("categoryId"),
@@ -505,6 +542,7 @@ export async function updateProductAction(formData: FormData) {
       coverGradient: formData.get("coverGradient"),
       badge: parseNullableString(formData.get("badge")) ?? null,
       status: formData.get("status"),
+      pipelineStatus: formData.get("pipelineStatus") ?? "working",
       sortOrder: formData.get("sortOrder"),
       featuredOrder: formData.get("featuredOrder"),
       tags: formData.get("tags"),
@@ -561,6 +599,7 @@ export async function updateProductAction(formData: FormData) {
         cover_gradient: parsed.data.coverGradient,
         badge: parsed.data.badge ?? null,
         status: parsed.data.status,
+        pipeline_status: parsed.data.pipelineStatus,
         sort_order: parsed.data.sortOrder,
         featured_order: parsed.data.featured ? parsed.data.featuredOrder : 0,
         tags: parseList(parsed.data.tags),
@@ -606,7 +645,30 @@ export async function updateProductAction(formData: FormData) {
       }
     }
 
+    if (parsed.data.sourceId) {
+      await supabase
+        .from("product_sources")
+        .update({
+          product_id: null,
+        })
+        .eq("product_id", parsed.data.productId)
+        .neq("id", parsed.data.sourceId);
+
+      const { error: sourceLinkError } = await supabase
+        .from("product_sources")
+        .update({
+          product_id: parsed.data.productId,
+        })
+        .eq("id", parsed.data.sourceId);
+
+      if (sourceLinkError) {
+        throw sourceLinkError;
+      }
+    }
+
     revalidatePath("/admin/produkty");
+    revalidatePath("/admin/import");
+    revalidatePath(returnPath);
     revalidateStorefront(existingProduct.slug);
     revalidateStorefront(parsed.data.slug);
   } catch (error) {
@@ -623,7 +685,7 @@ export async function updateProductAction(formData: FormData) {
       error instanceof Error ? error.message : "Nie udało się zaktualizować produktu.";
   }
 
-  redirectWithMessage("/admin/produkty", redirectType, redirectMessage);
+  redirectWithMessage(returnPath, redirectType, redirectMessage);
 }
 
 export async function deleteProductAction(formData: FormData) {
@@ -668,6 +730,7 @@ export async function deleteProductAction(formData: FormData) {
     ]);
 
     revalidatePath("/admin/produkty");
+    revalidatePath("/admin/import");
     revalidateStorefront(existingProduct.slug);
   } catch (error) {
     redirectType = "error";

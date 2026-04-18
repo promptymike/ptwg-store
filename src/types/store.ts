@@ -20,12 +20,19 @@ export const PRODUCT_BADGES = [
   "pack",
 ] as const;
 export const PRODUCT_STATUSES = ["draft", "published", "archived"] as const;
+export const PRODUCT_PIPELINE_STATUSES = [
+  "working",
+  "refining",
+  "ready",
+  "published",
+] as const;
 
 export type Category = string;
 export type UserRole = (typeof ROLE_OPTIONS)[number];
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export type ProductBadge = (typeof PRODUCT_BADGES)[number];
 export type ProductStatus = (typeof PRODUCT_STATUSES)[number];
+export type ProductPipelineStatus = (typeof PRODUCT_PIPELINE_STATUSES)[number];
 
 export type ProductPreview = {
   id: string;
@@ -53,6 +60,7 @@ export type Product = {
   heroNote: string;
   badge?: ProductBadge | null;
   status?: ProductStatus;
+  pipelineStatus?: ProductPipelineStatus;
   bestseller?: boolean;
   featured?: boolean;
   coverImageUrl?: string | null;

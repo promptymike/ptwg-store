@@ -6,9 +6,24 @@ export default async function AdminDashboardPage() {
   const snapshot = await getAdminDashboardSnapshot();
   const cards = [
     {
-      label: "Produkty",
-      value: String(snapshot.productCount),
-      detail: `${snapshot.publishedCount} opublikowanych`,
+      label: "Draft",
+      value: String(snapshot.draftCount),
+      detail: "produkty niewidoczne jeszcze w sklepie",
+    },
+    {
+      label: "Gotowe do publikacji",
+      value: String(snapshot.readyToPublishCount),
+      detail: "pipeline ustawiony na ready",
+    },
+    {
+      label: "Opublikowane",
+      value: String(snapshot.publishedCount),
+      detail: "produkty aktywne na storefront",
+    },
+    {
+      label: "Niepodpięte pliki",
+      value: String(snapshot.unattachedSourceCount),
+      detail: "materiały czekające w imporcie",
     },
     {
       label: "Zamówienia",
@@ -20,21 +35,11 @@ export default async function AdminDashboardPage() {
       value: snapshot.revenue,
       detail: "suma z tabeli orders",
     },
-    {
-      label: "Strony",
-      value: String(snapshot.contentCount),
-      detail: "content pages i sekcje legal",
-    },
-    {
-      label: "Admini",
-      value: String(snapshot.adminCount),
-      detail: "aktywne wpisy allowlisty",
-    },
   ];
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {cards.map((card) => (
           <article key={card.label} className="surface-panel p-6">
             <p className="text-xs uppercase tracking-[0.22em] text-primary/75">
@@ -46,33 +51,33 @@ export default async function AdminDashboardPage() {
         ))}
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <section className="surface-panel space-y-4 p-6">
           <h2 className="text-2xl text-foreground">Szybkie akcje</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             <Link
+              href="/admin/import"
+              className="rounded-[1.2rem] border border-primary/20 bg-primary/10 px-4 py-4 text-sm text-foreground transition hover:border-primary/30"
+            >
+              Przejrzyj źródła produktów i utwórz drafty
+            </Link>
+            <Link
               href="/admin/produkty"
               className="rounded-[1.2rem] border border-border/70 bg-background/60 px-4 py-4 text-sm text-muted-foreground transition hover:text-foreground"
             >
-              Dodaj produkt, pricing i pliki
+              Zarządzaj pricingiem, plikami i publikacją
             </Link>
             <Link
               href="/admin/kategorie"
               className="rounded-[1.2rem] border border-border/70 bg-background/60 px-4 py-4 text-sm text-muted-foreground transition hover:text-foreground"
             >
-              Uporządkuj kategorię i kolejność
+              Uporządkuj kategorie i kolejność katalogu
             </Link>
             <Link
-              href="/admin/content"
+              href="/admin/zamowienia"
               className="rounded-[1.2rem] border border-border/70 bg-background/60 px-4 py-4 text-sm text-muted-foreground transition hover:text-foreground"
             >
-              Edytuj hero, FAQ, testimonials i legal
-            </Link>
-            <Link
-              href="/admin/admini"
-              className="rounded-[1.2rem] border border-border/70 bg-background/60 px-4 py-4 text-sm text-muted-foreground transition hover:text-foreground"
-            >
-              Zarządzaj allowlistą adminów
+              Sprawdź zamówienia i fulfillment
             </Link>
           </div>
         </section>
@@ -80,10 +85,10 @@ export default async function AdminDashboardPage() {
         <section className="surface-panel space-y-4 p-6">
           <h2 className="text-2xl text-foreground">Stan operacyjny</h2>
           <ul className="space-y-3 text-sm text-muted-foreground">
-            <li>Storefront korzysta z light editorial premium jako trybu domyślnego.</li>
-            <li>Theme toggle działa w `light`, `dark` i `system` bez zmiany istniejącej architektury auth/Stripe.</li>
-            <li>Legal pages, FAQ i testimonials są trzymane w Supabase i mogą być edytowane z panelu.</li>
-            <li>Allowlista adminów nadaje rolę `admin` automatycznie po logowaniu lub rejestracji.</li>
+            <li>Import łączy realne pliki robocze z produktami w sklepie.</li>
+            <li>Pipeline rozdziela pracę redakcyjną od statusu publikacji na storefront.</li>
+            <li>Produkty publikowane dalej korzystają z istniejącego auth, storage i Stripe.</li>
+            <li>Allowlista adminów i RLS nadal chronią mutacje po stronie panelu.</li>
           </ul>
         </section>
       </div>

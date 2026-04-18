@@ -6,6 +6,7 @@ import {
   type ContentPage,
   type Product,
   type ProductBadge,
+  type ProductPipelineStatus,
   type ProductStatus,
   type SiteSectionContent,
 } from "@/types/store";
@@ -36,6 +37,13 @@ type ProductRow = Tables<"products"> & {
 
 type ProductPreviewRow = Tables<"product_previews">;
 
+type ProductSourceRow = Tables<"product_sources"> & {
+  products: Pick<
+    Tables<"products">,
+    "id" | "name" | "slug" | "status" | "pipeline_status"
+  > | null;
+};
+
 type LibraryRow = Tables<"library_items"> & {
   products: Pick<
     Tables<"products">,
@@ -54,6 +62,76 @@ type AccountOrderRow = Pick<
   Tables<"orders">,
   "id" | "status" | "total" | "created_at"
 >;
+
+type AdminProductSourceStatus = "unattached" | "draft" | "published";
+
+type AdminProductSourceSummary = {
+  id: string;
+  title: string;
+};
+
+type AdminProductSnapshot = {
+  id: string;
+  slug: string;
+  name: string;
+  shortDescription: string;
+  description: string;
+  price: number;
+  compareAtPrice: number | null;
+  category: string;
+  categoryId: string;
+  format: string;
+  pages: number;
+  tags: string[];
+  rating: number;
+  salesLabel: string;
+  accent: string;
+  coverGradient: string;
+  includes: string[];
+  heroNote: string;
+  badge: ProductBadge | null;
+  status: ProductStatus;
+  pipelineStatus: ProductPipelineStatus;
+  bestseller: boolean;
+  featured: boolean;
+  sortOrder: number;
+  featuredOrder: number;
+  isActive: boolean;
+  coverPath: string | null;
+  coverImageUrl: string | null;
+  filePath: string | null;
+  hasCover: boolean;
+  hasFile: boolean;
+  isVisibleOnStorefront: boolean;
+  linkedSource: AdminProductSourceSummary | null;
+  previews: Array<{
+    id: string;
+    storagePath: string;
+    altText: string;
+    sortOrder: number;
+    imageUrl: string | null;
+  }>;
+};
+
+type AdminProductSourceSnapshot = {
+  id: string;
+  driveFileId: string;
+  title: string;
+  mimeType: string;
+  driveUrl: string;
+  sourceStage: string;
+  modifiedAt: string | null;
+  status: AdminProductSourceStatus;
+  linkedProduct:
+    | {
+        id: string;
+        name: string;
+        slug: string;
+        status: ProductStatus;
+        pipelineStatus: ProductPipelineStatus;
+      }
+    | null;
+};
 
 const SECTION_ORDER = [
   "hero",
@@ -166,6 +244,36 @@ async function getProductPreviewsMap(productIds: string[]) {
     map.set(preview.product_id, existing);
     return map;
   }, new Map<string, ProductPreviewRow[]>());
+}
+
+async function getProductSourceByProductIdMap(productIds: string[]) {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase || productIds.length === 0) {
+    return new Map<string, AdminProductSourceSummary>();
+  }
+
+  const { data, error } = await supabase
+    .from("product_sources")
+    .select("id, title, product_id")
+    .in("product_id", productIds);
+
+  if (error || !data) {
+    return new Map<string, AdminProductSourceSummary>();
+  }
+
+  return data.reduce((map, source) => {
+    if (!source.product_id || map.has(source.product_id)) {
+      return map;
+    }
+
+    map.set(source.product_id, {
+      id: source.id,
+      title: source.title,
+    });
+
+    return map;
+  }, new Map<string, AdminProductSourceSummary>());
 }
 
 export async function getCategoryFilterOptions() {
@@ -424,7 +532,10 @@ export async function getAdminDashboardSnapshot() {
   if (!supabase) {
     return {
       productCount: 0,
+      draftCount: 0,
+      readyToPublishCount: 0,
       publishedCount: 0,
+      unattachedSourceCount: 0,
       orderCount: 0,
       revenue: formatCurrency(0),
       contentCount: 0,
@@ -434,7 +545,10 @@ export async function getAdminDashboardSnapshot() {
 
   const [
     { count: productCount },
+    { count: draftCount },
+    { count: readyToPublishCount },
     { count: publishedCount },
+    { count: unattachedSourceCount },
     { count: orderCount },
     { data: totals },
     { count: contentCount },
@@ -444,7 +558,19 @@ export async function getAdminDashboardSnapshot() {
     supabase
       .from("products")
       .select("*", { count: "exact", head: true })
+      .eq("status", "draft"),
+    supabase
+      .from("products")
+      .select("*", { count: "exact", head: true })
+      .eq("pipeline_status", "ready"),
+    supabase
+      .from("products")
+      .select("*", { count: "exact", head: true })
       .eq("status", "published"),
+    supabase
+      .from("product_sources")
+      .select("*", { count: "exact", head: true })
+      .is("product_id", null),
     supabase.from("orders").select("*", { count: "exact", head: true }),
     supabase.from("orders").select("total"),
     supabase.from("content_pages").select("*", { count: "exact", head: true }),
@@ -461,7 +587,10 @@ export async function getAdminDashboardSnapshot() {
 
   return {
     productCount: productCount ?? 0,
+    draftCount: draftCount ?? 0,
+    readyToPublishCount: readyToPublishCount ?? 0,
     publishedCount: publishedCount ?? 0,
+    unattachedSourceCount: unattachedSourceCount ?? 0,
     orderCount: orderCount ?? 0,
     revenue: formatCurrency(revenueTotal),
     contentCount: contentCount ?? 0,
@@ -469,12 +598,20 @@ export async function getAdminDashboardSnapshot() {
   };
 }
 
-export async function getAdminProductsSnapshot() {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getAdminProductsSnapshotLegacy() {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
     return {
-      products: [],
+      products: [] as AdminProductSnapshot[],
+      summary: {
+        total: 0,
+        draftCount: 0,
+        readyCount: 0,
+        publishedCount: 0,
+        missingSourceCount: 0,
+      },
       error: "Brak konfiguracji Supabase.",
     };
   }
@@ -482,14 +619,14 @@ export async function getAdminProductsSnapshot() {
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id, slug, name, short_description, description, price, compare_at_price, format, pages, tags, rating, sales_label, accent, cover_gradient, includes, hero_note, badge, status, bestseller, featured, sort_order, featured_order, is_active, cover_path, file_path, categories(id, name, slug)",
+      "id, slug, name, short_description, description, price, compare_at_price, format, pages, tags, rating, sales_label, accent, cover_gradient, includes, hero_note, badge, status, pipeline_status, bestseller, featured, sort_order, featured_order, is_active, cover_path, file_path, categories(id, name, slug)",
     )
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
 
   if (error || !data) {
     return {
-      products: [],
+      products: [] as AdminProductSnapshot[],
       error: error?.message ?? "Nie udało się pobrać produktów.",
     };
   }
@@ -543,6 +680,204 @@ export async function getAdminProductsSnapshot() {
         };
       }),
     ),
+    error: null,
+  };
+}
+
+export async function getAdminProductsSnapshot(filters?: {
+  status?: string;
+  pipelineStatus?: string;
+  categoryId?: string;
+}) {
+  const supabase = await createSupabaseServerClient();
+
+  const emptySummary = {
+    total: 0,
+    draftCount: 0,
+    readyCount: 0,
+    publishedCount: 0,
+    missingSourceCount: 0,
+  };
+
+  if (!supabase) {
+    return {
+      products: [] as AdminProductSnapshot[],
+      summary: emptySummary,
+      error: "Brak konfiguracji Supabase.",
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("products")
+    .select(
+      "id, slug, name, short_description, description, price, compare_at_price, format, pages, tags, rating, sales_label, accent, cover_gradient, includes, hero_note, badge, status, pipeline_status, bestseller, featured, sort_order, featured_order, is_active, cover_path, file_path, categories(id, name, slug)",
+    )
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    return {
+      products: [] as AdminProductSnapshot[],
+      summary: emptySummary,
+      error: error?.message ?? "Nie udało się pobrać produktów.",
+    };
+  }
+
+  const productIds = data.map((product) => product.id);
+  const [previewsMap, sourceByProductId] = await Promise.all([
+    getProductPreviewsMap(productIds),
+    getProductSourceByProductIdMap(productIds),
+  ]);
+
+  const products = await Promise.all(
+    data.map(async (product) => {
+      const previews = previewsMap.get(product.id) ?? [];
+      const linkedSource = sourceByProductId.get(product.id) ?? null;
+
+      return {
+        id: product.id,
+        slug: product.slug,
+        name: product.name,
+        shortDescription: product.short_description,
+        description: product.description,
+        price: product.price,
+        compareAtPrice: product.compare_at_price,
+        category: normalizeCategory(product.categories?.name),
+        categoryId: product.categories?.id ?? "",
+        format: product.format,
+        pages: product.pages,
+        tags: product.tags ?? [],
+        rating: Number(product.rating),
+        salesLabel: product.sales_label,
+        accent: product.accent,
+        coverGradient: product.cover_gradient,
+        includes: product.includes ?? [],
+        heroNote: product.hero_note,
+        badge: (product.badge as ProductBadge | null) ?? null,
+        status: product.status as ProductStatus,
+        pipelineStatus: product.pipeline_status as ProductPipelineStatus,
+        bestseller: product.bestseller,
+        featured: product.featured,
+        sortOrder: product.sort_order,
+        featuredOrder: product.featured_order,
+        isActive: product.is_active,
+        coverPath: product.cover_path,
+        coverImageUrl: product.cover_path
+          ? await createProductCoverSignedUrl(product.cover_path)
+          : null,
+        filePath: product.file_path,
+        hasCover: Boolean(product.cover_path),
+        hasFile: Boolean(product.file_path),
+        isVisibleOnStorefront: product.status === "published" && product.is_active,
+        linkedSource,
+        previews: await Promise.all(
+          previews.map(async (preview) => ({
+            id: preview.id,
+            storagePath: preview.storage_path,
+            altText: preview.alt_text,
+            sortOrder: preview.sort_order,
+            imageUrl: await createProductCoverSignedUrl(preview.storage_path),
+          })),
+        ),
+      };
+    }),
+  );
+
+  const summary = {
+    total: products.length,
+    draftCount: products.filter((product) => product.status === "draft").length,
+    readyCount: products.filter((product) => product.pipelineStatus === "ready").length,
+    publishedCount: products.filter((product) => product.status === "published").length,
+    missingSourceCount: products.filter((product) => !product.linkedSource).length,
+  };
+
+  const filteredProducts = products.filter((product) => {
+    if (filters?.status && filters.status !== "all" && product.status !== filters.status) {
+      return false;
+    }
+
+    if (
+      filters?.pipelineStatus &&
+      filters.pipelineStatus !== "all" &&
+      product.pipelineStatus !== filters.pipelineStatus
+    ) {
+      return false;
+    }
+
+    if (
+      filters?.categoryId &&
+      filters.categoryId !== "all" &&
+      product.categoryId !== filters.categoryId
+    ) {
+      return false;
+    }
+
+    return true;
+  });
+
+  return {
+    products: filteredProducts,
+    summary,
+    error: null,
+  };
+}
+
+export async function getAdminProductSourcesSnapshot() {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return {
+      sources: [] as AdminProductSourceSnapshot[],
+      error: "Brak konfiguracji Supabase.",
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("product_sources")
+    .select(
+      "id, drive_file_id, title, mime_type, drive_url, source_stage, modified_at, product_id, products(id, name, slug, status, pipeline_status)",
+    )
+    .order("modified_at", { ascending: false, nullsFirst: false })
+    .order("title", { ascending: true });
+
+  if (error || !data) {
+    return {
+      sources: [] as AdminProductSourceSnapshot[],
+      error: error?.message ?? "Nie udało się pobrać plików źródłowych.",
+    };
+  }
+
+  return {
+    sources: (data as ProductSourceRow[]).map((source) => {
+      let status: AdminProductSourceStatus = "unattached";
+
+      if (source.products?.status === "published") {
+        status = "published";
+      } else if (source.products) {
+        status = "draft";
+      }
+
+      return {
+        id: source.id,
+        driveFileId: source.drive_file_id,
+        title: source.title,
+        mimeType: source.mime_type,
+        driveUrl: source.drive_url,
+        sourceStage: source.source_stage,
+        modifiedAt: source.modified_at,
+        status,
+        linkedProduct: source.products
+          ? {
+              id: source.products.id,
+              name: source.products.name,
+              slug: source.products.slug,
+              status: source.products.status as ProductStatus,
+              pipelineStatus:
+                source.products.pipeline_status as ProductPipelineStatus,
+            }
+          : null,
+      };
+    }),
     error: null,
   };
 }

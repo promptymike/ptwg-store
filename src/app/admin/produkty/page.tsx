@@ -10,17 +10,26 @@ type AdminProductsPageProps = {
   searchParams: Promise<{
     type?: string;
     message?: string;
+    status?: string;
+    pipelineStatus?: string;
+    categoryId?: string;
   }>;
 };
 
 export default async function AdminProductsPage({
   searchParams,
 }: AdminProductsPageProps) {
-  const [{ products, error: productsError }, { categories, error: categoriesError }, status] =
+  const status = await searchParams;
+  const filters = {
+    status: status.status,
+    pipelineStatus: status.pipelineStatus,
+    categoryId: status.categoryId,
+  };
+
+  const [{ products, summary, error: productsError }, { categories, error: categoriesError }] =
     await Promise.all([
-      getAdminProductsSnapshot(),
+      getAdminProductsSnapshot(filters),
       getAdminCategoriesSnapshot(),
-      searchParams,
     ]);
 
   const noticeMessage = [status.message, productsError, categoriesError]
@@ -34,14 +43,19 @@ export default async function AdminProductsPage({
         message={noticeMessage || undefined}
       />
 
-      {!products.length && !categories.length && productsError && categoriesError ? (
+      {!categories.length && categoriesError ? (
         <EmptyState
           badge="Admin produkty"
           title="Nie udało się pobrać danych produktowych"
           description="Sprawdź konfigurację Supabase, role administratora i polityki RLS."
         />
       ) : (
-        <AdminProductManager categories={categories} products={products} />
+        <AdminProductManager
+          categories={categories}
+          products={products}
+          summary={summary}
+          filters={filters}
+        />
       )}
     </div>
   );
