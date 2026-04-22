@@ -69,15 +69,17 @@ export function ProductCard({
             </div>
 
             <div className="space-y-3">
-              <h3 className="max-w-xs text-3xl text-foreground">{product.name}</h3>
+              <h3 className="line-clamp-3 max-w-xs break-words text-3xl text-foreground">
+                {product.name}
+              </h3>
             </div>
           </div>
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col gap-5 p-6">
+      <div className="flex min-w-0 flex-1 flex-col gap-5 p-6">
         <Link href={productHref} className="block space-y-3">
-          <p className="text-sm leading-7 text-muted-foreground transition group-hover:text-foreground/80">
+          <p className="line-clamp-3 break-words text-sm leading-7 text-muted-foreground transition group-hover:text-foreground/80">
             {product.shortDescription}
           </p>
         </Link>

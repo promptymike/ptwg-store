@@ -268,11 +268,13 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
                 key={line.id}
                 className="flex items-center justify-between gap-4 rounded-[1.2rem] border border-border/60 bg-background/70 px-4 py-3 text-sm"
               >
-                <div>
-                  <p className="font-medium text-foreground">{line.name}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-2 break-words font-medium text-foreground">
+                    {line.name}
+                  </p>
                   <p className="text-muted-foreground">Ilość: {line.quantity}</p>
                 </div>
-                <span className="text-foreground">
+                <span className="shrink-0 text-foreground">
                   {formatCurrency(line.price * line.quantity)}
                 </span>
               </div>

@@ -76,8 +76,8 @@ export function CatalogSection({ content, categories }: CatalogSectionProps) {
                 </div>
 
                 <div className="space-y-3">
-                  <h3 className="text-2xl text-foreground">{category.title}</h3>
-                  <p className="max-w-md text-sm leading-7 text-muted-foreground">
+                  <h3 className="break-words text-2xl text-foreground">{category.title}</h3>
+                  <p className="line-clamp-3 max-w-md break-words text-sm leading-7 text-muted-foreground">
                     {category.description}
                   </p>
                 </div>

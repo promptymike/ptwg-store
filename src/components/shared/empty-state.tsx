@@ -22,9 +22,9 @@ export function EmptyState({
   return (
     <div className="surface-panel gold-frame flex flex-col items-start gap-5 p-8">
       {badge ? <span className="eyebrow">{badge}</span> : null}
-      <div className="space-y-3">
-        <h2 className="text-3xl text-white sm:text-4xl">{title}</h2>
-        <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
+      <div className="w-full space-y-3">
+        <h2 className="break-words text-3xl text-white sm:text-4xl">{title}</h2>
+        <p className="max-w-2xl break-words text-sm text-muted-foreground sm:text-base">
           {description}
         </p>
       </div>

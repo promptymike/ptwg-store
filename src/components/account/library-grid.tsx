@@ -53,7 +53,9 @@ export function LibraryGrid({ items }: LibraryGridProps) {
                   <p className="text-xs uppercase tracking-[0.24em] text-foreground/65">
                     {item.format}
                   </p>
-                  <p className="max-w-[11rem] text-2xl text-foreground">{item.name}</p>
+                  <p className="line-clamp-3 max-w-[11rem] break-words text-2xl text-foreground">
+                    {item.name}
+                  </p>
                 </div>
               </div>
             </Link>
@@ -69,15 +71,15 @@ export function LibraryGrid({ items }: LibraryGridProps) {
                       zakup {formatAdminDate(item.createdAt)}
                     </span>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <Link
                       href={`/produkty/${item.slug}`}
-                      className="inline-flex items-center gap-2 text-2xl text-foreground transition hover:text-primary"
+                      className="flex items-start gap-2 text-2xl text-foreground transition hover:text-primary"
                     >
-                      {item.name}
-                      <ArrowUpRight className="size-4" />
+                      <span className="line-clamp-2 min-w-0 break-words">{item.name}</span>
+                      <ArrowUpRight className="size-4 shrink-0 translate-y-1.5" />
                     </Link>
-                    <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">
+                    <p className="mt-3 line-clamp-3 max-w-3xl break-words text-sm leading-7 text-muted-foreground">
                       {item.shortDescription}
                     </p>
                   </div>

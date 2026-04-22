@@ -47,12 +47,12 @@ export function BundlesSection({ recommendedBundle }: BundlesSectionProps) {
                     <div
                       className={`h-36 rounded-[1.8rem] border border-border/70 bg-gradient-to-br ${bundle.accent}`}
                     />
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs uppercase tracking-[0.24em] text-primary/75">
                         {isRecommended ? "Polecany pakiet" : "Pakiet premium"}
                       </p>
-                      <h3 className="mt-2 text-4xl text-foreground">{bundle.name}</h3>
-                      <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                      <h3 className="mt-2 break-words text-4xl text-foreground">{bundle.name}</h3>
+                      <p className="mt-3 break-words text-sm leading-7 text-muted-foreground">
                         {bundle.description}
                       </p>
                     </div>
@@ -94,7 +94,9 @@ export function BundlesSection({ recommendedBundle }: BundlesSectionProps) {
                             key={productId}
                             className="rounded-[1.2rem] border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground"
                           >
-                            <span className="block text-foreground">{product.name}</span>
+                            <span className="block break-words text-foreground">
+                              {product.name}
+                            </span>
                             <span className="mt-0.5 block text-xs uppercase tracking-[0.18em] text-primary/75">
                               {product.category}
                             </span>

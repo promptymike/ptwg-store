@@ -45,7 +45,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistMono.variable} ${manrope.variable} ${cormorant.variable} h-full`}
     >
-      <body className="min-h-full bg-background text-foreground">
+      <body className="min-h-full overflow-x-clip bg-background text-foreground">
         <ThemeScript />
         <ThemeProvider>
           <AnalyticsProvider>

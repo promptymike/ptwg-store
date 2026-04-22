@@ -76,21 +76,21 @@ export function CartView() {
               key={item.productId}
               className="surface-panel flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between"
             >
-              <div className="flex items-start gap-4">
+              <div className="flex min-w-0 flex-1 items-start gap-4">
                 <div
-                  className={`h-28 w-24 rounded-[1.4rem] border border-border/70 bg-gradient-to-br ${product.coverGradient}`}
+                  className={`h-28 w-24 shrink-0 rounded-[1.4rem] border border-border/70 bg-gradient-to-br ${product.coverGradient}`}
                 />
-                <div className="space-y-2">
+                <div className="min-w-0 flex-1 space-y-2">
                   <p className="text-xs uppercase tracking-[0.22em] text-primary/75">
                     {product.category}
                   </p>
                   <Link
                     href={`/produkty/${product.slug}`}
-                    className="text-2xl text-foreground transition hover:text-primary"
+                    className="block text-2xl text-foreground transition hover:text-primary line-clamp-2 break-words"
                   >
                     {product.name}
                   </Link>
-                  <p className="max-w-xl text-sm text-muted-foreground">
+                  <p className="line-clamp-2 break-words text-sm text-muted-foreground">
                     {product.shortDescription}
                   </p>
                   <p className="text-lg font-semibold text-foreground">
@@ -99,7 +99,7 @@ export function CartView() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex shrink-0 flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-2 py-1">
                   <Button
                     variant="ghost"

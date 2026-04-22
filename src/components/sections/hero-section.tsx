@@ -38,10 +38,10 @@ export function HeroSection({ content, stats }: HeroSectionProps) {
           <div className="space-y-7">
             <span className="eyebrow">{content.eyebrow}</span>
             <div className="space-y-5">
-              <h1 className="max-w-4xl text-balance text-5xl leading-[1.05] text-foreground sm:text-6xl lg:text-7xl">
+              <h1 className="max-w-4xl text-balance break-words text-5xl leading-[1.05] text-foreground sm:text-6xl lg:text-7xl">
                 {content.title}
               </h1>
-              <p className="max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
+              <p className="max-w-2xl break-words text-base leading-8 text-muted-foreground sm:text-lg">
                 {content.description}
               </p>
             </div>
