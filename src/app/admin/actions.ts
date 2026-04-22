@@ -95,6 +95,10 @@ function getOptionalNumberString(
   return getOptionalString(formData, key, options);
 }
 
+function parseStorefrontVisibility(value: string | undefined) {
+  return value !== "hidden";
+}
+
 function parseJsonStringArray(value: string | undefined) {
   if (!value) {
     return [];
@@ -466,6 +470,7 @@ export async function createProductAction(formData: FormData) {
     const preuploadedPreviewPaths = parseJsonStringArray(
       getOptionalString(formData, "uploadedPreviewPaths", { trim: false }),
     );
+    const storefrontVisibility = getOptionalString(formData, "storefrontVisibility");
     const normalizedPayload = {
       sourceId: getOptionalString(formData, "sourceId"),
       name: getRequiredString(formData, "name"),
@@ -490,7 +495,8 @@ export async function createProductAction(formData: FormData) {
       includes: getOptionalString(formData, "includes", { trim: false }),
       bestseller: parseCheckbox(formData.get("bestseller")),
       featured: parseCheckbox(formData.get("featured")),
-      isActive: parseCheckbox(formData.get("isActive")),
+      isActive: parseStorefrontVisibility(storefrontVisibility),
+      storefrontVisibility: storefrontVisibility ?? "visible",
       uploadedCoverPath: preuploadedCoverPath,
       uploadedProductFilePath: preuploadedFilePath,
       uploadedPreviewPathsCount: preuploadedPreviewPaths.length,
@@ -685,6 +691,7 @@ export async function updateProductAction(formData: FormData) {
     const preuploadedPreviewPaths = parseJsonStringArray(
       getOptionalString(formData, "uploadedPreviewPaths", { trim: false }),
     );
+    const storefrontVisibility = getOptionalString(formData, "storefrontVisibility");
     const normalizedPayload = {
       productId: getOptionalString(formData, "productId"),
       sourceId: getOptionalString(formData, "sourceId"),
@@ -710,7 +717,8 @@ export async function updateProductAction(formData: FormData) {
       includes: getOptionalString(formData, "includes", { trim: false }),
       bestseller: parseCheckbox(formData.get("bestseller")),
       featured: parseCheckbox(formData.get("featured")),
-      isActive: parseCheckbox(formData.get("isActive")),
+      isActive: parseStorefrontVisibility(storefrontVisibility),
+      storefrontVisibility: storefrontVisibility ?? "visible",
       uploadedCoverPath: preuploadedCoverPath,
       uploadedProductFilePath: preuploadedFilePath,
       uploadedPreviewPathsCount: preuploadedPreviewPaths.length,
@@ -880,6 +888,61 @@ export async function updateProductAction(formData: FormData) {
     redirectType = "error";
     redirectMessage =
       error instanceof Error ? error.message : "Nie udało się zaktualizować produktu.";
+  }
+
+  redirectWithMessage(returnPath, redirectType, redirectMessage);
+}
+
+export async function publishProductAction(formData: FormData) {
+  let redirectType: "success" | "error" = "success";
+  let redirectMessage = "Produkt został opublikowany i jest widoczny na storefront.";
+  const returnPathValue = formData.get("returnPath");
+  const returnPath =
+    typeof returnPathValue === "string" && returnPathValue.startsWith("/admin")
+      ? returnPathValue
+      : "/admin/produkty";
+
+  try {
+    const { supabase } = await ensureAdmin();
+    const productId = getOptionalString(formData, "productId");
+
+    if (!productId) {
+      throw new Error("Brak identyfikatora produktu.");
+    }
+
+    const { data: existingProduct, error: existingError } = await supabase
+      .from("products")
+      .select("id, slug")
+      .eq("id", productId)
+      .maybeSingle();
+
+    if (existingError || !existingProduct) {
+      throw existingError ?? new Error("Nie znaleziono produktu.");
+    }
+
+    const { error } = await supabase
+      .from("products")
+      .update({
+        status: "published",
+        pipeline_status: "published",
+        is_active: true,
+      })
+      .eq("id", productId);
+
+    if (error) {
+      throw error;
+    }
+
+    revalidatePath("/admin/produkty");
+    revalidatePath(returnPath);
+    revalidateStorefront(existingProduct.slug);
+  } catch (error) {
+    logAdminActionError("publish-product", error, {
+      returnPath,
+    });
+    redirectType = "error";
+    redirectMessage =
+      error instanceof Error ? error.message : "Nie udało się opublikować produktu.";
   }
 
   redirectWithMessage(returnPath, redirectType, redirectMessage);

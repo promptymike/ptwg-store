@@ -1,25 +1,37 @@
 import Link from "next/link";
+import {
+  CheckCircle2,
+  CircleDashed,
+  ExternalLink,
+  FileText,
+  FolderTree,
+  ImageIcon,
+  Store,
+  type LucideIcon,
+} from "lucide-react";
 
+import { AdminDetailsToggleButton } from "@/components/admin/admin-details-toggle-button";
 import {
   createProductAction,
   createProductPreviewAction,
   deleteProductAction,
   deleteProductPreviewAction,
+  publishProductAction,
   updateProductAction,
   updateProductPreviewAction,
 } from "@/app/admin/actions";
+import { AdminCopyLinkButton } from "@/components/admin/admin-copy-link-button";
+import { AdminProductEditorFields } from "@/components/admin/admin-product-editor-fields";
 import { AdminProductForm } from "@/components/admin/admin-product-form";
 import { AdminSubmitButton } from "@/components/admin/admin-submit-button";
 import { FileDropzone } from "@/components/admin/file-dropzone";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   formatCurrency,
   formatProductPipelineStatus,
   formatProductStatus,
 } from "@/lib/format";
 import {
-  PRODUCT_BADGES,
   PRODUCT_PIPELINE_STATUSES,
   PRODUCT_STATUSES,
 } from "@/types/store";
@@ -103,67 +115,26 @@ function safeNumber(value: number | null | undefined, fallback = 0) {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
-function safeStringArray(value: string[] | null | undefined) {
-  return Array.isArray(value) ? value : [];
-}
-
-function safeBoolean(value: boolean | null | undefined) {
-  return value === true;
-}
-
 function safePreviews(value: ProductPreviewRecord[] | null | undefined) {
   return Array.isArray(value) ? value : [];
 }
 
-function CategorySelect({
-  categories,
-  defaultValue,
-}: {
-  categories: CategoryOption[];
-  defaultValue?: string | null;
-}) {
+function isPositive(value: boolean | null | undefined) {
+  return value === true;
+}
+
+function isStorefrontReady(product: ProductRecord) {
   return (
-    <select
-      name="categoryId"
-      className="flex h-12 w-full rounded-2xl border border-border bg-input px-4 text-sm text-foreground"
-      defaultValue={defaultValue ?? categories[0]?.id ?? ""}
-    >
-      {categories.map((category) => (
-        <option key={category.id} value={category.id}>
-          {category.name}
-        </option>
-      ))}
-    </select>
+    product.status === "published" &&
+    isPositive(product.isVisibleOnStorefront) &&
+    Boolean(product.slug)
   );
 }
 
-function SelectField({
-  name,
-  label,
-  options,
-  defaultValue,
-}: {
-  name: string;
-  label: string;
-  options: Array<{ value: string; label: string }>;
-  defaultValue?: string | null;
-}) {
-  return (
-    <label className="space-y-2">
-      <span className="text-sm text-foreground">{label}</span>
-      <select
-        name={name}
-        defaultValue={defaultValue ?? options[0]?.value ?? ""}
-        className="flex h-12 w-full rounded-2xl border border-border bg-input px-4 text-sm text-foreground"
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
+function getVisibilityMessage(product: ProductRecord) {
+  return isStorefrontReady(product)
+    ? "Produkt jest widoczny na storefront."
+    : "Ten produkt nie jest jeszcze widoczny na storefront.";
 }
 
 function SummaryCard({
@@ -231,260 +202,35 @@ function Chip({
   );
 }
 
-function ProductFormFields({
-  categories,
-  product,
+function ProductSignal({
+  icon: Icon,
+  label,
+  ready,
+  detail,
 }: {
-  categories: CategoryOption[];
-  product?: ProductRecord;
+  icon: LucideIcon;
+  label: string;
+  ready: boolean;
+  detail: string;
 }) {
-  const linkedSource = product?.linkedSource ?? null;
-
   return (
-    <div className="grid gap-4 xl:grid-cols-2">
-      {linkedSource?.id ? (
-        <div className="rounded-[1.2rem] border border-primary/20 bg-primary/10 px-4 py-4 text-sm text-muted-foreground xl:col-span-2">
-          <input type="hidden" name="sourceId" value={linkedSource.id} />
-          Powiązane źródło:{" "}
-          <span className="text-foreground">
-            {safeText(linkedSource.title, "Bez nazwy źródła")}
-          </span>
-        </div>
-      ) : null}
-
-      <label className="space-y-2">
-        <span className="text-sm text-foreground">Nazwa</span>
-        <Input
-          name="name"
-          defaultValue={safeText(product?.name)}
-          placeholder="Founder OS Template"
-        />
-      </label>
-
-      <label className="space-y-2">
-        <span className="text-sm text-foreground">Slug</span>
-        <Input
-          name="slug"
-          defaultValue={safeText(product?.slug)}
-          placeholder="founder-os-template"
-        />
-      </label>
-
-      <label className="space-y-2">
-        <span className="text-sm text-foreground">Kategoria</span>
-        <CategorySelect categories={categories} defaultValue={product?.categoryId} />
-      </label>
-
-      <label className="space-y-2">
-        <span className="text-sm text-foreground">Format</span>
-        <Input
-          name="format"
-          defaultValue={safeText(product?.format, "PDF")}
-          placeholder="PDF + Notion"
-        />
-      </label>
-
-      <label className="space-y-2">
-        <span className="text-sm text-foreground">Cena</span>
-        <Input name="price" type="number" defaultValue={safeNumber(product?.price, 99)} />
-      </label>
-
-      <label className="space-y-2">
-        <span className="text-sm text-foreground">Cena porównawcza</span>
-        <Input
-          name="compareAtPrice"
-          type="number"
-          defaultValue={product?.compareAtPrice ?? undefined}
-          placeholder="opcjonalnie"
-        />
-      </label>
-
-      <SelectField
-        name="status"
-        label="Status sklepu"
-        defaultValue={product?.status ?? "draft"}
-        options={PRODUCT_STATUSES.map((status) => ({
-          value: status,
-          label: formatProductStatus(status),
-        }))}
-      />
-
-      <SelectField
-        name="pipelineStatus"
-        label="Pipeline publikacji"
-        defaultValue={product?.pipelineStatus ?? "working"}
-        options={PRODUCT_PIPELINE_STATUSES.map((status) => ({
-          value: status,
-          label: formatProductPipelineStatus(status),
-        }))}
-      />
-
-      <SelectField
-        name="badge"
-        label="Badge"
-        defaultValue={product?.badge ?? ""}
-        options={[
-          { value: "", label: "Brak" },
-          ...PRODUCT_BADGES.map((badge) => ({
-            value: badge,
-            label: badge,
-          })),
-        ]}
-      />
-
-      <label className="space-y-2">
-        <span className="text-sm text-foreground">Liczba stron</span>
-        <Input name="pages" type="number" defaultValue={safeNumber(product?.pages)} />
-      </label>
-
-      <label className="space-y-2">
-        <span className="text-sm text-foreground">Sort order</span>
-        <Input name="sortOrder" type="number" defaultValue={safeNumber(product?.sortOrder)} />
-      </label>
-
-      <label className="space-y-2">
-        <span className="text-sm text-foreground">Featured order</span>
-        <Input
-          name="featuredOrder"
-          type="number"
-          defaultValue={safeNumber(product?.featuredOrder)}
-        />
-      </label>
-
-      <label className="space-y-2">
-        <span className="text-sm text-foreground">Etykieta sprzedażowa</span>
-        <Input
-          name="salesLabel"
-          defaultValue={safeText(product?.salesLabel)}
-          placeholder="Szablon dla małych zespołów"
-        />
-      </label>
-
-      <label className="space-y-2 xl:col-span-2">
-        <span className="text-sm text-foreground">Krótki opis</span>
-        <Textarea
-          name="shortDescription"
-          defaultValue={safeText(product?.shortDescription)}
-          className="min-h-24"
-          placeholder="Jedno zdanie o efekcie, jaki daje produkt."
-        />
-      </label>
-
-      <label className="space-y-2 xl:col-span-2">
-        <span className="text-sm text-foreground">Pełny opis</span>
-        <Textarea
-          name="description"
-          defaultValue={safeText(product?.description)}
-          className="min-h-32"
-          placeholder="Opisz use case, rezultat i zawartość produktu."
-        />
-      </label>
-
-      <label className="space-y-2">
-        <span className="text-sm text-foreground">Hero note</span>
-        <Input
-          name="heroNote"
-          defaultValue={safeText(product?.heroNote)}
-          placeholder="Sprzedaj rezultat, nie sam plik."
-        />
-      </label>
-
-      <label className="space-y-2">
-        <span className="text-sm text-foreground">Tagi</span>
-        <Input
-          name="tags"
-          defaultValue={safeStringArray(product?.tags).join(", ")}
-          placeholder="biznes, finanse, oferta"
-        />
-      </label>
-
-      <label className="space-y-2">
-        <span className="text-sm text-foreground">Gradient accent</span>
-        <Input name="accent" defaultValue={safeText(product?.accent)} placeholder="from-stone-900 ..." />
-      </label>
-
-      <label className="space-y-2">
-        <span className="text-sm text-foreground">Gradient cover</span>
-        <Input
-          name="coverGradient"
-          defaultValue={safeText(product?.coverGradient)}
-          placeholder="from-[#f7f0e7] ..."
-        />
-      </label>
-
-      <label className="space-y-2 xl:col-span-2">
-        <span className="text-sm text-foreground">Sekcja „co zawiera”</span>
-        <Textarea
-          name="includes"
-          defaultValue={safeStringArray(product?.includes).join("\n")}
-          className="min-h-24"
-          placeholder="Jedna pozycja na linię albo po przecinku."
-        />
-      </label>
-
-      <div className="space-y-2">
-        <span className="text-sm text-foreground">Okładka produktu</span>
-        <FileDropzone
-          name="coverFile"
-          accept="image/png,image/jpeg,image/webp"
-          label="Upuść okładkę"
-          hint="PNG, JPG lub WEBP, do 8 MB"
-          maxSizeMb={8}
-        />
+    <div className="min-w-0 rounded-[1rem] border border-border/70 bg-background/60 px-3 py-3 text-sm">
+      <div className="flex items-start justify-between gap-3">
+        <span className="inline-flex min-w-0 items-center gap-2 text-muted-foreground">
+          <Icon className="size-4 shrink-0 text-primary" />
+          <span className="truncate">{label}</span>
+        </span>
+        <span
+          className={
+            ready
+              ? "inline-flex shrink-0 items-center gap-2 text-emerald-200"
+              : "inline-flex shrink-0 items-center gap-2 text-muted-foreground"
+          }
+        >
+          {ready ? <CheckCircle2 className="size-4" /> : <CircleDashed className="size-4" />}
+        </span>
       </div>
-
-      <div className="space-y-2">
-        <span className="text-sm text-foreground">Plik cyfrowy</span>
-        <FileDropzone
-          name="productFile"
-          accept=".pdf,.zip,application/pdf,application/zip,application/x-zip-compressed"
-          label="Upuść plik produktu"
-          hint="PDF lub ZIP, do 50 MB"
-          maxSizeMb={50}
-        />
-      </div>
-
-      <div className="space-y-2 xl:col-span-2">
-        <span className="text-sm text-foreground">Preview images</span>
-        <FileDropzone
-          name="previewFiles"
-          accept="image/png,image/jpeg,image/webp"
-          multiple
-          label="Upuść preview"
-          hint="Możesz wrzucić kilka plików na raz."
-          maxSizeMb={8}
-        />
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-3 xl:col-span-2">
-        <label className="flex items-center gap-3 rounded-[1.2rem] border border-border/70 bg-background/60 px-4 py-3 text-sm text-foreground">
-          <input
-            name="bestseller"
-            type="checkbox"
-            defaultChecked={safeBoolean(product?.bestseller)}
-            className="size-4 accent-[var(--color-primary)]"
-          />
-          Bestseller
-        </label>
-        <label className="flex items-center gap-3 rounded-[1.2rem] border border-border/70 bg-background/60 px-4 py-3 text-sm text-foreground">
-          <input
-            name="featured"
-            type="checkbox"
-            defaultChecked={safeBoolean(product?.featured)}
-            className="size-4 accent-[var(--color-primary)]"
-          />
-          Featured
-        </label>
-        <label className="flex items-center gap-3 rounded-[1.2rem] border border-border/70 bg-background/60 px-4 py-3 text-sm text-foreground">
-          <input
-            name="isActive"
-            type="checkbox"
-            defaultChecked={product?.isActive !== false}
-            className="size-4 accent-[var(--color-primary)]"
-          />
-          Widoczny
-        </label>
-      </div>
+      <p className="mt-2 break-words text-xs leading-5 text-muted-foreground">{detail}</p>
     </div>
   );
 }
@@ -498,11 +244,11 @@ function PreviewManager({ product }: { product: ProductRecord }) {
         <div>
           <p className="text-sm font-medium text-foreground">Preview images</p>
           <p className="text-xs text-muted-foreground">
-            Dodatkowe zrzuty pokazujące wnętrze i jakość produktu.
+            Dodatkowe zrzuty pokazujace wnetrze i jakosc produktu.
           </p>
         </div>
         <span className="text-xs uppercase tracking-[0.22em] text-primary/75">
-          {previews.length} plików
+          {previews.length} plikow
         </span>
       </div>
 
@@ -515,9 +261,11 @@ function PreviewManager({ product }: { product: ProductRecord }) {
         <FileDropzone
           name="previewFile"
           accept="image/png,image/jpeg,image/webp"
-          label="Upuść zrzut preview"
+          label="Upusc zrzut preview"
           hint="Jeden obraz PNG, JPG lub WEBP, do 8 MB"
           maxSizeMb={8}
+          statusLabel="Opcjonalne"
+          emptyState="Dodaj pojedynczy zrzut, jesli chcesz pokazac wnetrze produktu."
         />
         <AdminSubmitButton idleLabel="Dodaj preview" pendingLabel="Dodawanie..." />
       </form>
@@ -538,7 +286,7 @@ function PreviewManager({ product }: { product: ProductRecord }) {
                   {safeText(preview.altText, "Preview image")}
                 </p>
                 <p className="break-all text-xs text-muted-foreground">
-                  {safeText(preview.storagePath, "Brak ścieżki")}
+                  {safeText(preview.storagePath, "Brak sciezki")}
                 </p>
               </div>
 
@@ -560,7 +308,7 @@ function PreviewManager({ product }: { product: ProductRecord }) {
               <form action={deleteProductPreviewAction} className="self-start">
                 <input type="hidden" name="previewId" value={preview.id} />
                 <AdminSubmitButton
-                  idleLabel="Usuń"
+                  idleLabel="Usun"
                   pendingLabel="Usuwanie..."
                   variant="destructive"
                 />
@@ -586,9 +334,9 @@ export function AdminProductManager({
       <section className="surface-panel space-y-5 p-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="space-y-2">
-            <h2 className="text-2xl text-foreground">Operacyjny katalog produktów</h2>
+            <h2 className="text-2xl text-foreground">Operacyjny katalog produktow</h2>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Filtruj pipeline publikacji, sprawdzaj kompletność assetów i szybko przechodź do
+              Filtruj pipeline publikacji, sprawdzaj kompletnosc assetow i szybko przechodz do
               edycji lub publikacji produktu.
             </p>
           </div>
@@ -596,16 +344,16 @@ export function AdminProductManager({
             href="/admin/import"
             className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm text-foreground transition hover:border-primary/30"
           >
-            Import / Źródła produktów
+            Import / Zrodla produktow
           </Link>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <SummaryCard label="Wszystkie" value={String(summary.total ?? 0)} detail="produkty w systemie" />
-          <SummaryCard label="Draft" value={String(summary.draftCount ?? 0)} detail="niewidoczne jeszcze w sklepie" />
-          <SummaryCard label="Gotowe" value={String(summary.readyCount ?? 0)} detail="pipeline ready to publish" />
-          <SummaryCard label="Opublikowane" value={String(summary.publishedCount ?? 0)} detail="aktywne na storefront" />
-          <SummaryCard label="Bez źródła" value={String(summary.missingSourceCount ?? 0)} detail="produkty bez podpiętego pliku roboczego" />
+          <SummaryCard label="Draft" value={String(summary.draftCount ?? 0)} detail="zapisane, ale jeszcze niepublikowane" />
+          <SummaryCard label="Gotowe" value={String(summary.readyCount ?? 0)} detail="pipeline gotowy do publikacji" />
+          <SummaryCard label="Opublikowane" value={String(summary.publishedCount ?? 0)} detail="produkty ze statusem sklepu published" />
+          <SummaryCard label="Bez zrodla" value={String(summary.missingSourceCount ?? 0)} detail="produkty bez podpietego materialu roboczego" />
         </div>
 
         <form className="grid gap-3 rounded-[1.3rem] border border-border/70 bg-background/70 p-4 lg:grid-cols-[1fr_1fr_1fr_auto_auto]">
@@ -624,7 +372,7 @@ export function AdminProductManager({
             name="pipelineStatus"
             defaultValue={filters.pipelineStatus}
             options={[
-              { value: "all", label: "Cały pipeline" },
+              { value: "all", label: "Caly pipeline" },
               ...PRODUCT_PIPELINE_STATUSES.map((status) => ({
                 value: status,
                 label: formatProductPipelineStatus(status),
@@ -652,7 +400,7 @@ export function AdminProductManager({
             href="/admin/produkty"
             className="rounded-2xl border border-border/70 px-4 py-2 text-center text-sm text-muted-foreground transition hover:text-foreground"
           >
-            Wyczyść
+            Wyczysc
           </Link>
         </form>
       </section>
@@ -661,20 +409,20 @@ export function AdminProductManager({
         <div className="space-y-2">
           <h2 className="text-2xl text-foreground">Nowy produkt</h2>
           <p className="text-sm text-muted-foreground">
-            Ręczne dodanie produktu do Supabase. Jeśli masz już gotowy plik roboczy, wygodniej
-            zacząć od sekcji importu źródeł.
+            Formularz prowadzi krok po kroku: pokazuje wymagane pola, sugerowana dlugosc copy,
+            gotowosc do publikacji i podglad karty produktu na storefront.
           </p>
         </div>
 
         {categories.length === 0 ? (
           <p className="rounded-[1.2rem] border border-border/70 bg-background/70 px-4 py-4 text-sm text-muted-foreground">
-            Najpierw dodaj co najmniej jedną kategorię w sekcji kategorii.
+            Najpierw dodaj co najmniej jedna kategorie w sekcji kategorii.
           </p>
         ) : (
           <AdminProductForm action={createProductAction} className="space-y-4">
-            <ProductFormFields categories={categories} />
+            <AdminProductEditorFields categories={categories} />
             <AdminSubmitButton
-              idleLabel="Utwórz produkt"
+              idleLabel="Utworz produkt"
               pendingLabel="Tworzenie produktu..."
               className="w-full"
             />
@@ -684,112 +432,178 @@ export function AdminProductManager({
 
       <section className="surface-panel space-y-5 p-6">
         <div className="space-y-2">
-          <h2 className="text-2xl text-foreground">Lista produktów</h2>
+          <h2 className="text-2xl text-foreground">Lista produktow</h2>
           <p className="text-sm text-muted-foreground">
-            Szybki podgląd gotowości: status, pipeline, okładka, plik produktu, widoczność i
-            powiązane źródło.
+            Operacyjny widok statusu produktu: sklep, pipeline, zrodlo, assety i widocznosc na
+            storefront.
           </p>
         </div>
 
         {safeProducts.length === 0 ? (
           <p className="rounded-[1.2rem] border border-dashed border-border/70 px-4 py-5 text-sm text-muted-foreground">
-            Brak produktów dla wybranych filtrów. Zmień filtry albo dodaj pierwszy produkt.
+            Brak produktow dla wybranych filtrow. Zmien filtry albo dodaj pierwszy produkt.
           </p>
         ) : (
           <div className="grid gap-4">
-            {safeProducts.map((product) => (
-              <article
-                key={product.id}
-                className="rounded-[1.5rem] border border-border/70 bg-background/60 p-5"
-              >
-                <div className="flex flex-col gap-5">
-                  <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-lg text-foreground">
-                          {safeText(product.name, "Bez nazwy produktu")}
+            {safeProducts.map((product) => {
+              const storefrontHref = product.slug ? `/produkty/${product.slug}` : null;
+              const storefrontReady = isStorefrontReady(product);
+              const visibilityMessage = getVisibilityMessage(product);
+
+              return (
+                <article
+                  key={product.id}
+                  className="rounded-[1.5rem] border border-border/70 bg-background/60 p-5"
+                >
+                  <div className="flex flex-col gap-5">
+                    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+                      <div className="min-w-0 space-y-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="max-w-full truncate text-lg text-foreground">
+                            {safeText(product.name, "Bez nazwy produktu")}
+                          </p>
+                          <Chip label={`Sklep: ${formatProductStatus(product.status)}`} />
+                          <Chip
+                            label={`Pipeline: ${formatProductPipelineStatus(product.pipelineStatus)}`}
+                            tone={
+                              product.pipelineStatus === "ready" ||
+                              product.pipelineStatus === "published"
+                                ? "positive"
+                                : "default"
+                            }
+                          />
+                          <Chip
+                            label={
+                              storefrontReady
+                                ? "Storefront: widoczny"
+                                : "Storefront: ukryty"
+                            }
+                            tone={storefrontReady ? "positive" : "default"}
+                          />
+                          {product.badge ? <Chip label={product.badge} tone="warning" /> : null}
+                        </div>
+
+                        <p className="truncate text-sm text-muted-foreground">
+                          {safeText(product.category, "Brak kategorii")} •{" "}
+                          {safeText(product.format, "Brak formatu")} • {formatCurrency(product.price)}
                         </p>
-                        <Chip label={formatProductStatus(product.status)} />
-                        <Chip
-                          label={formatProductPipelineStatus(product.pipelineStatus)}
-                          tone={product.pipelineStatus === "ready" ? "positive" : "default"}
-                        />
-                        {product.badge ? <Chip label={product.badge} tone="warning" /> : null}
+
+                        <p className="max-w-3xl overflow-hidden text-sm leading-6 text-muted-foreground [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]">
+                          {safeText(product.shortDescription, "Brak krotkiego opisu.")}
+                        </p>
+
+                        <p
+                          className={
+                            storefrontReady
+                              ? "text-sm text-emerald-200"
+                              : "text-sm text-muted-foreground"
+                          }
+                        >
+                          {visibilityMessage}
+                        </p>
+
+                        <div className="flex flex-wrap gap-2">
+                          <AdminDetailsToggleButton targetId={`product-edit-${product.id}`} />
+
+                          {!storefrontReady ? (
+                            <form action={publishProductAction}>
+                              <input type="hidden" name="productId" value={product.id} />
+                              <input type="hidden" name="returnPath" value="/admin/produkty" />
+                              <AdminSubmitButton
+                                idleLabel="Opublikuj i pokaz na storefront"
+                                pendingLabel="Publikowanie..."
+                              />
+                            </form>
+                          ) : (
+                            <Link
+                              href={storefrontHref ?? "#"}
+                              target="_blank"
+                              className="inline-flex items-center gap-2 rounded-full border border-border/70 px-4 py-2 text-sm text-foreground transition hover:border-primary/30"
+                            >
+                              <ExternalLink className="size-4" />
+                              Otworz na storefront
+                            </Link>
+                          )}
+
+                          <AdminCopyLinkButton href={storefrontHref} disabled={!storefrontReady} />
+                        </div>
                       </div>
 
-                      <p className="text-sm text-muted-foreground">
-                        {safeText(product.category, "Brak kategorii")} •{" "}
-                        {safeText(product.format, "Brak formatu")} •{" "}
-                        {formatCurrency(product.price)}
-                      </p>
-
-                      <p className="max-w-3xl text-sm text-muted-foreground">
-                        {safeText(product.shortDescription, "Brak krótkiego opisu.")}
-                      </p>
+                      <div className="grid gap-3 sm:grid-cols-2 xl:max-w-[340px]">
+                        <ProductSignal
+                          icon={FileText}
+                          label="Plik produktu"
+                          ready={isPositive(product.hasFile)}
+                          detail={
+                            isPositive(product.hasFile)
+                              ? "Finalny plik jest podpiety i gotowy do biblioteki klienta."
+                              : "Brakuje finalnego pliku produktu."
+                          }
+                        />
+                        <ProductSignal
+                          icon={ImageIcon}
+                          label="Cover"
+                          ready={isPositive(product.hasCover)}
+                          detail={
+                            isPositive(product.hasCover)
+                              ? "Produkt ma okladke do karty i strony produktu."
+                              : "Brakuje okladki produktu."
+                          }
+                        />
+                        <ProductSignal
+                          icon={FolderTree}
+                          label="Zrodlo"
+                          ready={Boolean(product.linkedSource?.title)}
+                          detail={
+                            product.linkedSource?.title
+                              ? product.linkedSource.title
+                              : "Brak podpietego materialu zrodlowego."
+                          }
+                        />
+                        <ProductSignal
+                          icon={Store}
+                          label="Widocznosc"
+                          ready={isPositive(product.isVisibleOnStorefront)}
+                          detail={visibilityMessage}
+                        />
+                      </div>
                     </div>
 
-                    <div className="grid gap-2 sm:grid-cols-2 xl:min-w-[340px]">
-                      <Chip
-                        label={safeBoolean(product.hasFile) ? "Plik dodany" : "Brak pliku"}
-                        tone={safeBoolean(product.hasFile) ? "positive" : "default"}
-                      />
-                      <Chip
-                        label={safeBoolean(product.hasCover) ? "Cover dodany" : "Brak coveru"}
-                        tone={safeBoolean(product.hasCover) ? "positive" : "default"}
-                      />
-                      <Chip
-                        label={
-                          safeBoolean(product.isVisibleOnStorefront)
-                            ? "Widoczny na storefront"
-                            : "Niewidoczny w sklepie"
-                        }
-                        tone={safeBoolean(product.isVisibleOnStorefront) ? "positive" : "default"}
-                      />
-                      <Chip
-                        label={
-                          product.linkedSource?.title
-                            ? `Źródło: ${product.linkedSource.title}`
-                            : "Brak źródła"
-                        }
-                        tone={product.linkedSource?.title ? "positive" : "default"}
-                      />
-                    </div>
+                    <details
+                      id={`product-edit-${product.id}`}
+                      className="rounded-[1.3rem] border border-border/70 bg-background/80 p-4"
+                    >
+                      <summary className="cursor-pointer list-none text-sm text-foreground">
+                        Edytuj produkt
+                      </summary>
+
+                      <div className="mt-4 space-y-4">
+                        <AdminProductForm action={updateProductAction} className="space-y-4">
+                          <input type="hidden" name="productId" value={product.id} />
+                          <input type="hidden" name="returnPath" value="/admin/produkty" />
+                          <AdminProductEditorFields categories={categories} product={product} />
+                          <AdminSubmitButton
+                            idleLabel="Zapisz zmiany"
+                            pendingLabel="Zapisywanie..."
+                          />
+                        </AdminProductForm>
+
+                        <PreviewManager product={product} />
+
+                        <form action={deleteProductAction}>
+                          <input type="hidden" name="productId" value={product.id} />
+                          <AdminSubmitButton
+                            idleLabel="Usun produkt"
+                            pendingLabel="Usuwanie..."
+                            variant="destructive"
+                          />
+                        </form>
+                      </div>
+                    </details>
                   </div>
-
-                  <details className="rounded-[1.3rem] border border-border/70 bg-background/80 p-4">
-                    <summary className="cursor-pointer list-none text-sm text-foreground">
-                      Edytuj produkt
-                    </summary>
-
-                    <div className="mt-4 space-y-4">
-                      <AdminProductForm
-                        action={updateProductAction}
-                        className="space-y-4"
-                      >
-                        <input type="hidden" name="productId" value={product.id} />
-                        <input type="hidden" name="returnPath" value="/admin/produkty" />
-                        <ProductFormFields categories={categories} product={product} />
-                        <AdminSubmitButton
-                          idleLabel="Zapisz zmiany"
-                          pendingLabel="Zapisywanie..."
-                        />
-                      </AdminProductForm>
-
-                      <PreviewManager product={product} />
-
-                      <form action={deleteProductAction}>
-                        <input type="hidden" name="productId" value={product.id} />
-                        <AdminSubmitButton
-                          idleLabel="Usuń produkt"
-                          pendingLabel="Usuwanie..."
-                          variant="destructive"
-                        />
-                      </form>
-                    </div>
-                  </details>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         )}
       </section>

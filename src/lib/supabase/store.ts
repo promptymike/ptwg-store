@@ -215,6 +215,18 @@ function normalizeBoolean(value: unknown) {
   return value === true;
 }
 
+function isPublicStorefrontProduct(input: {
+  status: unknown;
+  isActive: unknown;
+  slug?: unknown;
+}) {
+  return (
+    normalizeProductStatus(input.status) === "published" &&
+    normalizeBoolean(input.isActive) &&
+    normalizeText(input.slug).length > 0
+  );
+}
+
 function normalizeProductStatus(value: unknown): ProductStatus {
   return typeof value === "string" &&
     (PRODUCT_STATUSES as readonly string[]).includes(value)
@@ -477,7 +489,8 @@ export async function getStoreProductBySlug(slug: string) {
     .from("products")
     .select("*, categories(id, name, slug)")
     .eq("slug", slug)
-    .neq("status", "archived")
+    .eq("status", "published")
+    .eq("is_active", true)
     .maybeSingle();
 
   if (error || !data) {
@@ -889,7 +902,11 @@ async function getAdminProductsSnapshotUnsafe(filters?: {
         filePath: product.file_path,
         hasCover: Boolean(product.cover_path),
         hasFile: Boolean(product.file_path),
-        isVisibleOnStorefront: product.status === "published" && product.is_active,
+        isVisibleOnStorefront: isPublicStorefrontProduct({
+          status: product.status,
+          isActive: product.is_active,
+          slug: product.slug,
+        }),
         linkedSource,
         previews: await Promise.all(
           previews.map(async (preview) => ({
@@ -1013,9 +1030,11 @@ export async function getAdminProductsSnapshot(filters?: {
           filePath,
           hasCover: Boolean(coverPath),
           hasFile: Boolean(filePath),
-          isVisibleOnStorefront:
-            normalizeProductStatus(product.status) === "published" &&
-            normalizeBoolean(product.isActive),
+          isVisibleOnStorefront: isPublicStorefrontProduct({
+            status: product.status,
+            isActive: product.isActive,
+            slug: product.slug,
+          }),
           linkedSource: product.linkedSource
             ? {
                 id: normalizeText(product.linkedSource.id),

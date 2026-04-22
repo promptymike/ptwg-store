@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
-import { FileUp, Image as ImageIcon, File as FileIcon, X } from "lucide-react";
+import { File as FileIcon, FileUp, Image as ImageIcon, X } from "lucide-react";
 
 type FileDropzoneProps = {
   name: string;
@@ -10,6 +10,11 @@ type FileDropzoneProps = {
   label?: string;
   hint?: string;
   maxSizeMb?: number;
+  statusLabel?: string;
+  emptyState?: string;
+  currentValueLabel?: string;
+  currentValueDetail?: string;
+  onFilesChange?: (files: File[]) => void;
 };
 
 function formatBytes(bytes: number) {
@@ -29,6 +34,11 @@ export function FileDropzone({
   label = "Upuść plik tutaj",
   hint,
   maxSizeMb,
+  statusLabel,
+  emptyState,
+  currentValueLabel,
+  currentValueDetail,
+  onFilesChange,
 }: FileDropzoneProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -39,6 +49,7 @@ export function FileDropzone({
   function applyFiles(incoming: FileList | null) {
     if (!incoming || incoming.length === 0) {
       setFiles([]);
+      onFilesChange?.([]);
       setPreviews((current) => {
         current.forEach((url) => URL.revokeObjectURL(url));
         return [];
@@ -52,12 +63,14 @@ export function FileDropzone({
       const tooBig = list.find((file) => file.size > maxSizeMb * 1024 * 1024);
       if (tooBig) {
         setError(`Plik "${tooBig.name}" przekracza limit ${maxSizeMb} MB.`);
+        onFilesChange?.([]);
         return;
       }
     }
 
     setError(null);
     setFiles(list);
+    onFilesChange?.(list);
     setPreviews((current) => {
       current.forEach((url) => URL.revokeObjectURL(url));
       return list.filter(isImageFile).map((file) => URL.createObjectURL(file));
@@ -119,6 +132,11 @@ export function FileDropzone({
           <span className="font-medium">{label}</span>
           <span className="text-muted-foreground">lub kliknij</span>
         </div>
+        {statusLabel ? (
+          <span className="rounded-full border border-border/70 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+            {statusLabel}
+          </span>
+        ) : null}
         {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
       </label>
 
@@ -166,14 +184,33 @@ export function FileDropzone({
                   )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-foreground">{file.name}</p>
-                    <p className="text-xs text-muted-foreground">{formatBytes(file.size)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatBytes(file.size)} • gotowe do uploadu
+                    </p>
                   </div>
                 </div>
               );
             })}
           </div>
         </div>
-      ) : null}
+      ) : currentValueLabel ? (
+        <div className="rounded-2xl border border-border/70 bg-background/50 p-3">
+          <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+            <span>Aktualnie dodane</span>
+            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-emerald-200">
+              Gotowe
+            </span>
+          </div>
+          <p className="mt-3 text-sm font-medium text-foreground">{currentValueLabel}</p>
+          {currentValueDetail ? (
+            <p className="mt-1 break-all text-xs text-muted-foreground">{currentValueDetail}</p>
+          ) : null}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-border/70 bg-background/40 px-4 py-4 text-sm text-muted-foreground">
+          {emptyState ?? "Brak wybranego pliku."}
+        </div>
+      )}
     </div>
   );
 }
