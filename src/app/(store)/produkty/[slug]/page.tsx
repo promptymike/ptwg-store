@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
 import { getCurrentUser } from "@/lib/session";
+import { getCoverImageOverlayOpacity } from "@/lib/product";
 import { getCanonicalUrl } from "@/lib/seo";
 import {
   getFaqSnapshot,
@@ -146,13 +147,15 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           <div className="hero-orb right-10 top-8 size-28 bg-white/35" />
           <div className="hero-orb bottom-8 left-10 size-24 bg-primary/24" />
 
-          {product.coverImageUrl ? (
+          {product.coverImageUrl && getCoverImageOverlayOpacity(product) > 0 ? (
             <div
-              className="absolute inset-0 opacity-20"
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
               style={{
                 backgroundImage: `url(${product.coverImageUrl})`,
                 backgroundPosition: "center",
                 backgroundSize: "cover",
+                opacity: getCoverImageOverlayOpacity(product),
               }}
             />
           ) : null}

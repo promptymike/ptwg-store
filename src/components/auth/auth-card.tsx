@@ -125,32 +125,46 @@ export function AuthCard({
 
       <div className="space-y-4">
         {mode === "register" ? (
-          <label className="space-y-2">
+          <label className="space-y-2" htmlFor="auth-full-name">
             <span className="text-sm font-medium text-white">Imię i nazwisko</span>
             <Input
+              id="auth-full-name"
+              name="fullName"
               value={fullName}
               onChange={(event) => setFullName(event.target.value)}
-              placeholder="Paweł Tokarski"
+              placeholder="np. Anna Kowalska"
+              autoComplete="name"
+              autoCapitalize="words"
+              spellCheck={false}
             />
           </label>
         ) : null}
 
-        <label className="space-y-2">
+        <label className="space-y-2" htmlFor="auth-email">
           <span className="text-sm font-medium text-white">Adres e-mail</span>
           <Input
+            id="auth-email"
+            name="email"
             value={email}
             type="email"
             onChange={(event) => setEmail(event.target.value)}
+            placeholder="twoj@adres.pl"
+            autoComplete={mode === "login" ? "email" : "email"}
+            inputMode="email"
+            spellCheck={false}
           />
         </label>
 
-        <label className="space-y-2">
+        <label className="space-y-2" htmlFor="auth-password">
           <span className="text-sm font-medium text-white">Hasło</span>
           <Input
+            id="auth-password"
+            name="password"
             value={password}
             type="password"
             onChange={(event) => setPassword(event.target.value)}
             placeholder="Minimum 8 znaków"
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
           />
         </label>
       </div>

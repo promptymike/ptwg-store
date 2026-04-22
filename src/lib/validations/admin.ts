@@ -60,6 +60,22 @@ export const productFormSchema = z.object({
   heroNote: z.string().min(4, "Dodaj krotka notatke hero."),
   accent: z.string().min(5, "Podaj klase gradientu accent."),
   coverGradient: z.string().min(5, "Podaj klase gradientu okladki."),
+  coverImageOpacity: z.preprocess(
+    (value) => {
+      if (typeof value !== "string") {
+        return value;
+      }
+
+      const normalized = value.trim();
+      return normalized.length > 0 ? normalized : undefined;
+    },
+    z.coerce
+      .number()
+      .int("Podaj calkowita wartosc 0-100.")
+      .min(0, "Przeswit okladki musi byc w zakresie 0-100.")
+      .max(100, "Przeswit okladki musi byc w zakresie 0-100.")
+      .optional(),
+  ),
   badge: z.preprocess(
     normalizeOptionalBadge,
     z.enum(PRODUCT_BADGES).nullable().optional(),

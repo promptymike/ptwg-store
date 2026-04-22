@@ -371,6 +371,7 @@ export type Database = {
           category_id: string
           compare_at_price: number | null
           cover_gradient: string
+          cover_image_opacity: number
           cover_path: string | null
           created_at: string
           description: string
@@ -402,6 +403,7 @@ export type Database = {
           category_id: string
           compare_at_price?: number | null
           cover_gradient?: string
+          cover_image_opacity?: number
           cover_path?: string | null
           created_at?: string
           description: string
@@ -433,6 +435,7 @@ export type Database = {
           category_id?: string
           compare_at_price?: number | null
           cover_gradient?: string
+          cover_image_opacity?: number
           cover_path?: string | null
           created_at?: string
           description?: string

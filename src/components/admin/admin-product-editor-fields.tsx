@@ -15,6 +15,12 @@ import { FileDropzone } from "@/components/admin/file-dropzone";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  DEFAULT_COVER_IMAGE_OPACITY,
+  MAX_COVER_IMAGE_OPACITY,
+  MIN_COVER_IMAGE_OPACITY,
+  normalizeCoverImageOpacity,
+} from "@/lib/product";
 import { cn } from "@/lib/utils";
 import { type ProductBadge, type ProductPipelineStatus, type ProductStatus } from "@/types/store";
 
@@ -40,6 +46,8 @@ type ProductRecord = {
   salesLabel?: string | null;
   accent?: string | null;
   coverGradient?: string | null;
+  coverImageOpacity?: number | null;
+  coverImageUrl?: string | null;
   includes?: string[] | null;
   heroNote?: string | null;
   badge?: string | null;
@@ -87,6 +95,7 @@ type ProductFormState = {
   featuredOrder: string;
   accent: string;
   coverGradient: string;
+  coverImageOpacity: number;
   bestseller: boolean;
   featured: boolean;
   isActive: boolean;
@@ -249,6 +258,10 @@ function getInitialFormState(
     coverGradient:
       matchedPreset?.coverGradient ??
       safeText(product?.coverGradient, GRADIENT_PRESETS[0].coverGradient),
+    coverImageOpacity:
+      typeof product?.coverImageOpacity === "number"
+        ? normalizeCoverImageOpacity(product.coverImageOpacity)
+        : DEFAULT_COVER_IMAGE_OPACITY,
     bestseller: product?.bestseller === true,
     featured: product?.featured === true,
     isActive: product?.isActive !== false,
@@ -852,6 +865,40 @@ export function AdminProductEditorFields({
                 <input type="hidden" name="coverGradient" value={formState.coverGradient} />
               </>
             )}
+
+            <div className="space-y-2 rounded-[1.35rem] border border-border/70 bg-background/70 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <FieldLabel label="Przesiąkanie okładki przez gradient" />
+                <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs text-foreground">
+                  {formState.coverImageOpacity}%
+                </span>
+              </div>
+              <input
+                type="range"
+                name="coverImageOpacity"
+                min={MIN_COVER_IMAGE_OPACITY}
+                max={MAX_COVER_IMAGE_OPACITY}
+                step={5}
+                value={formState.coverImageOpacity}
+                onChange={(event) =>
+                  updateField(
+                    "coverImageOpacity",
+                    normalizeCoverImageOpacity(event.target.value),
+                  )
+                }
+                className="h-2 w-full cursor-pointer appearance-none rounded-full bg-muted accent-[var(--color-primary)]"
+                aria-label="Przesiąkanie okładki przez gradient"
+              />
+              <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                <span>0% — sam gradient</span>
+                <span>100% — sama okładka</span>
+              </div>
+              <HelperText>
+                Sterujesz tym, ile okładki pokazuje się na tle gradientu na karcie
+                produktu, hero i w bibliotece klienta. Domyślnie {DEFAULT_COVER_IMAGE_OPACITY}% —
+                okładka jest widoczna, ale gradient wciąż nadaje ton produktu.
+              </HelperText>
+            </div>
           </div>
         </FormSection>
 
@@ -1056,9 +1103,22 @@ export function AdminProductEditorFields({
           </div>
 
           <div className="mt-4 overflow-hidden rounded-[1.6rem] border border-border/70 bg-card/70 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.45)]">
-            <div className={cn("relative min-h-52 bg-gradient-to-br p-5", formState.coverGradient)}>
+            <div className={cn("relative min-h-52 overflow-hidden bg-gradient-to-br p-5", formState.coverGradient)}>
               <div className="hero-orb right-5 top-5 size-16 bg-white/35" />
               <div className="hero-orb bottom-5 left-5 size-14 bg-primary/18" />
+
+              {product?.coverImageUrl && formState.coverImageOpacity > 0 ? (
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    backgroundImage: `url(${product.coverImageUrl})`,
+                    backgroundPosition: "center",
+                    backgroundSize: "cover",
+                    opacity: formState.coverImageOpacity / 100,
+                  }}
+                />
+              ) : null}
 
               <div className="relative flex h-full flex-col justify-between gap-6">
                 <div className="flex items-center justify-between gap-3">

@@ -4,6 +4,7 @@ import { ArrowUpRight, Download, PackageOpen, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatAdminDate } from "@/lib/format";
+import { getCoverImageOverlayOpacity } from "@/lib/product";
 import type { LibraryItemSnapshot } from "@/lib/supabase/store";
 
 type LibraryGridProps = {
@@ -13,7 +14,10 @@ type LibraryGridProps = {
 export function LibraryGrid({ items }: LibraryGridProps) {
   return (
     <div className="grid gap-5">
-      {items.map((item) => (
+      {items.map((item) => {
+        const coverOverlayOpacity = getCoverImageOverlayOpacity(item);
+
+        return (
         <article
           key={item.id}
           className="surface-panel overflow-hidden border-border/70 bg-background/70"
@@ -26,13 +30,15 @@ export function LibraryGrid({ items }: LibraryGridProps) {
               <div className="hero-orb right-4 top-4 size-16 bg-white/35" />
               <div className="hero-orb bottom-4 left-4 size-14 bg-primary/18" />
 
-              {item.coverImageUrl ? (
+              {item.coverImageUrl && coverOverlayOpacity > 0 ? (
                 <div
-                  className="absolute inset-0 opacity-25"
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0"
                   style={{
                     backgroundImage: `url(${item.coverImageUrl})`,
                     backgroundPosition: "center",
                     backgroundSize: "cover",
+                    opacity: coverOverlayOpacity,
                   }}
                 />
               ) : null}
@@ -135,7 +141,8 @@ export function LibraryGrid({ items }: LibraryGridProps) {
             </div>
           </div>
         </article>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -56,6 +56,15 @@ export type Product = {
   salesLabel: string;
   accent: string;
   coverGradient: string;
+  /**
+   * 0-100 value controlling how much of the cover image shows through on top
+   * of the gradient on product cards, the product hero and the library tile.
+   * 0 = gradient-only (cover hidden), 100 = cover fully opaque over the
+   * gradient. Undefined means "use the default blend" (currently 40).
+   * Consumers should go through `getProductCoverOpacity` in `@/lib/product`
+   * to apply the fallback consistently.
+   */
+  coverImageOpacity?: number;
   includes: string[];
   heroNote: string;
   badge?: ProductBadge | null;

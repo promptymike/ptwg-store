@@ -6,6 +6,7 @@ import { CatalogSection } from "@/components/sections/catalog-section";
 import { CtaSection } from "@/components/sections/cta-section";
 import { FaqSection } from "@/components/sections/faq-section";
 import { HeroSection } from "@/components/sections/hero-section";
+import { NewArrivalsSection } from "@/components/sections/new-arrivals-section";
 import { categoryHighlights, storeStats } from "@/data/mock-store";
 import { buildCanonicalMetadata } from "@/lib/seo";
 import { getStorefrontSnapshot } from "@/lib/supabase/store";
@@ -25,8 +26,14 @@ export const metadata: Metadata = buildCanonicalMetadata({
 });
 
 export default async function HomePage() {
-  const { sections, featuredProducts, bestsellerProducts, recommendedBundle, faqs } =
-    await getStorefrontSnapshot();
+  const {
+    sections,
+    featuredProducts,
+    bestsellerProducts,
+    newArrivalProducts,
+    recommendedBundle,
+    faqs,
+  } = await getStorefrontSnapshot();
 
   return (
     <>
@@ -35,6 +42,7 @@ export default async function HomePage() {
         content={getSectionOrFallback(sections, "featured")}
         products={bestsellerProducts.length > 0 ? bestsellerProducts : featuredProducts}
       />
+      <NewArrivalsSection products={newArrivalProducts} />
       <CatalogSection
         content={getSectionOrFallback(sections, "use-cases")}
         categories={categoryHighlights}

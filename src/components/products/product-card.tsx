@@ -4,6 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/format";
+import { getCoverImageOverlayOpacity } from "@/lib/product";
 import { type Product } from "@/types/store";
 
 type ProductCardProps = {
@@ -38,6 +39,7 @@ export function ProductCard({
       : null;
 
   const productHref = `/produkty/${product.slug}`;
+  const coverOverlayOpacity = getCoverImageOverlayOpacity(product);
 
   return (
     <article className="surface-panel group flex h-full flex-col overflow-hidden transition hover:border-primary/30">
@@ -47,6 +49,19 @@ export function ProductCard({
         >
           <div className="hero-orb right-5 top-5 size-20 bg-white/35" />
           <div className="hero-orb bottom-6 left-6 size-16 bg-primary/18" />
+
+          {product.coverImageUrl && coverOverlayOpacity > 0 ? (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 transition group-hover:scale-[1.02]"
+              style={{
+                backgroundImage: `url(${product.coverImageUrl})`,
+                backgroundPosition: "center",
+                backgroundSize: "cover",
+                opacity: coverOverlayOpacity,
+              }}
+            />
+          ) : null}
 
           {discountPercent ? (
             <span className="absolute left-1/2 top-0 z-10 inline-flex -translate-x-1/2 translate-y-3 items-center gap-1 rounded-full bg-destructive px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-white shadow-[0_10px_30px_-10px_rgba(185,76,66,0.65)]">

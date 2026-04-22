@@ -27,6 +27,7 @@ import {
 } from "@/data/mock-store";
 import { hasSupabaseEnv } from "@/lib/env";
 import { formatCurrency } from "@/lib/format";
+import { normalizeCoverImageOpacity } from "@/lib/product";
 import {
   createSupabaseAdminClient,
   createSupabaseServerClient,
@@ -60,6 +61,7 @@ type LibraryRow = Tables<"library_items"> & {
     | "file_path"
     | "cover_path"
     | "cover_gradient"
+    | "cover_image_opacity"
     | "updated_at"
   > & {
     categories: Pick<Tables<"categories">, "name" | "slug"> | null;
@@ -110,6 +112,7 @@ type AdminProductSnapshot = {
   salesLabel: string;
   accent: string;
   coverGradient: string;
+  coverImageOpacity: number;
   includes: string[];
   heroNote: string;
   badge: ProductBadge | null;
@@ -170,6 +173,7 @@ export type LibraryItemSnapshot = {
   filePath: string | null;
   coverImageUrl: string | null;
   coverGradient: string;
+  coverImageOpacity: number;
   updateLabel: "Nowość" | "Zaktualizowano" | null;
 };
 
@@ -370,6 +374,11 @@ async function mapProductRow(
     salesLabel: polishOverride?.salesLabel ?? normalizeText(row.sales_label),
     accent: normalizeText(row.accent),
     coverGradient: normalizeText(row.cover_gradient),
+    // `normalizeCoverImageOpacity` guards against `undefined` at runtime so we
+    // stay compatible with older environments where migration
+    // 20260422130000 hasn't been applied yet and the column is missing from
+    // the PostgREST response.
+    coverImageOpacity: normalizeCoverImageOpacity(row.cover_image_opacity),
     includes: polishOverride?.includes ?? normalizeStringList(row.includes),
     heroNote: polishOverride?.heroNote ?? normalizeText(row.hero_note),
     badge: (row.badge as ProductBadge | null) ?? null,
@@ -556,6 +565,31 @@ export async function getFeaturedStoreProducts(limit = 4) {
 export async function getBestsellerStoreProducts(limit = 3) {
   const products = await getStoreProducts();
   return products.filter((product) => product.bestseller).slice(0, limit);
+}
+
+export async function getNewArrivalStoreProducts(limit = 3) {
+  const products = await getStoreProducts();
+  const withNewBadge = products.filter((product) => product.badge === "new");
+
+  if (withNewBadge.length > 0) {
+    return withNewBadge.slice(0, limit);
+  }
+
+  // Fallback: if nothing is explicitly marked as new, surface featured
+  // products that aren't bestsellers so the section doesn't collapse. The
+  // homepage layout always reserves space for this block, so returning an
+  // empty array would leave a visible hole instead of a useful lineup.
+  return products
+    .filter((product) => product.featured && !product.bestseller)
+    .slice(0, limit);
+}
+
+export async function getStoreProductsByCategory(
+  category: string,
+  limit = 3,
+) {
+  const products = await getStoreProducts(category);
+  return products.slice(0, limit);
 }
 
 export async function getStoreProductBySlug(slug: string) {
@@ -751,7 +785,7 @@ export async function getLibrarySnapshot(userId: string): Promise<LibrarySnapsho
   const { data, error } = await supabase
     .from("library_items")
     .select(
-      "id, created_at, download_count, last_downloaded_at, products!inner(id, slug, name, short_description, format, file_path, cover_path, cover_gradient, updated_at, categories(name, slug))",
+      "id, created_at, download_count, last_downloaded_at, products!inner(id, slug, name, short_description, format, file_path, cover_path, cover_gradient, cover_image_opacity, updated_at, categories(name, slug))",
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
@@ -792,6 +826,9 @@ export async function getLibrarySnapshot(userId: string): Promise<LibrarySnapsho
         coverGradient: normalizeText(
           item.products.cover_gradient,
           "from-[#fbf5ea] via-[#f4ead9] to-[#e4c58d]",
+        ),
+        coverImageOpacity: normalizeCoverImageOpacity(
+          item.products.cover_image_opacity,
         ),
         updateLabel: getLibraryActivityBadge(
           item.created_at,
@@ -960,7 +997,7 @@ async function getAdminProductsSnapshotLegacy() {
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id, slug, name, short_description, description, price, compare_at_price, format, pages, tags, rating, sales_label, accent, cover_gradient, includes, hero_note, badge, status, pipeline_status, bestseller, featured, sort_order, featured_order, is_active, cover_path, file_path, categories(id, name, slug)",
+      "id, slug, name, short_description, description, price, compare_at_price, format, pages, tags, rating, sales_label, accent, cover_gradient, cover_image_opacity, includes, hero_note, badge, status, pipeline_status, bestseller, featured, sort_order, featured_order, is_active, cover_path, file_path, categories(id, name, slug)",
     )
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
@@ -1051,7 +1088,7 @@ async function getAdminProductsSnapshotUnsafe(filters?: {
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id, slug, name, short_description, description, price, compare_at_price, format, pages, tags, rating, sales_label, accent, cover_gradient, includes, hero_note, badge, status, pipeline_status, bestseller, featured, sort_order, featured_order, is_active, cover_path, file_path, categories(id, name, slug)",
+      "id, slug, name, short_description, description, price, compare_at_price, format, pages, tags, rating, sales_label, accent, cover_gradient, cover_image_opacity, includes, hero_note, badge, status, pipeline_status, bestseller, featured, sort_order, featured_order, is_active, cover_path, file_path, categories(id, name, slug)",
     )
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
@@ -1092,6 +1129,7 @@ async function getAdminProductsSnapshotUnsafe(filters?: {
         salesLabel: product.sales_label,
         accent: product.accent,
         coverGradient: product.cover_gradient,
+        coverImageOpacity: normalizeCoverImageOpacity(product.cover_image_opacity),
         includes: product.includes ?? [],
         heroNote: product.hero_note,
         badge: (product.badge as ProductBadge | null) ?? null,
@@ -1220,6 +1258,7 @@ export async function getAdminProductsSnapshot(filters?: {
           salesLabel: normalizeText(product.salesLabel),
           accent: normalizeText(product.accent),
           coverGradient: normalizeText(product.coverGradient),
+          coverImageOpacity: normalizeCoverImageOpacity(product.coverImageOpacity),
           includes: normalizeStringList(product.includes),
           heroNote: normalizeText(product.heroNote),
           badge: product.badge ?? null,
@@ -1650,15 +1689,33 @@ export async function getSiteSettingsSnapshot() {
 }
 
 export async function getStorefrontSnapshot() {
-  const [sections, settings, featuredProducts, bestsellerProducts, faqs, testimonials] =
-    await Promise.all([
-      getSiteSectionsSnapshot(),
-      getSiteSettingsSnapshot(),
-      getFeaturedStoreProducts(),
-      getBestsellerStoreProducts(),
-      getFaqSnapshot(),
-      getTestimonialsSnapshot(),
-    ]);
+  const [
+    sections,
+    settings,
+    featuredProducts,
+    bestsellerProducts,
+    newArrivalProducts,
+    faqs,
+    testimonials,
+  ] = await Promise.all([
+    getSiteSectionsSnapshot(),
+    getSiteSettingsSnapshot(),
+    getFeaturedStoreProducts(),
+    getBestsellerStoreProducts(),
+    getNewArrivalStoreProducts(),
+    getFaqSnapshot(),
+    getTestimonialsSnapshot(),
+  ]);
+
+  // De-duplicate the "new arrivals" strip against the bestseller strip. If the
+  // database has no products explicitly tagged "new", the fallback in
+  // getNewArrivalStoreProducts promotes featured-but-not-bestseller items,
+  // which can still accidentally overlap when admins haven't separated those
+  // flags. Filtering by id keeps the two lanes visually distinct.
+  const bestsellerIds = new Set(bestsellerProducts.map((product) => product.id));
+  const deduplicatedNewArrivals = newArrivalProducts.filter(
+    (product) => !bestsellerIds.has(product.id),
+  );
 
   return {
     sections,
@@ -1669,6 +1726,7 @@ export async function getStorefrontSnapshot() {
       ),
     bestsellerProducts:
       bestsellerProducts.length > 0 ? bestsellerProducts : mockBestsellers,
+    newArrivalProducts: deduplicatedNewArrivals,
     recommendedBundle:
       getBundleById(settings.recommendedBundleId) ?? bundles[0] ?? null,
     faqs,

@@ -486,6 +486,7 @@ export async function createProductAction(formData: FormData) {
       heroNote: getRequiredString(formData, "heroNote"),
       accent: getRequiredString(formData, "accent"),
       coverGradient: getRequiredString(formData, "coverGradient"),
+      coverImageOpacity: getOptionalString(formData, "coverImageOpacity"),
       badge: getOptionalString(formData, "badge"),
       status: getOptionalString(formData, "status") ?? "draft",
       pipelineStatus: getOptionalString(formData, "pipelineStatus") ?? "working",
@@ -526,6 +527,9 @@ export async function createProductAction(formData: FormData) {
         hero_note: parsed.data.heroNote,
         accent: parsed.data.accent,
         cover_gradient: parsed.data.coverGradient,
+        ...(parsed.data.coverImageOpacity !== undefined
+          ? { cover_image_opacity: parsed.data.coverImageOpacity }
+          : {}),
         badge: parsed.data.badge ?? null,
         status: parsed.data.status,
         pipeline_status: parsed.data.pipelineStatus,
@@ -708,6 +712,7 @@ export async function updateProductAction(formData: FormData) {
       heroNote: getRequiredString(formData, "heroNote"),
       accent: getRequiredString(formData, "accent"),
       coverGradient: getRequiredString(formData, "coverGradient"),
+      coverImageOpacity: getOptionalString(formData, "coverImageOpacity"),
       badge: getOptionalString(formData, "badge"),
       status: getOptionalString(formData, "status") ?? "draft",
       pipelineStatus: getOptionalString(formData, "pipelineStatus") ?? "working",
@@ -775,6 +780,9 @@ export async function updateProductAction(formData: FormData) {
         hero_note: parsed.data.heroNote,
         accent: parsed.data.accent,
         cover_gradient: parsed.data.coverGradient,
+        ...(parsed.data.coverImageOpacity !== undefined
+          ? { cover_image_opacity: parsed.data.coverImageOpacity }
+          : {}),
         badge: parsed.data.badge ?? null,
         status: parsed.data.status,
         pipeline_status: parsed.data.pipelineStatus,
