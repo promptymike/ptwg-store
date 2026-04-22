@@ -34,14 +34,14 @@ export default async function AdminImportPage({
         message={noticeMessage || undefined}
       />
 
-      {!sources.length && sourcesError ? (
+      {!sources?.length && sourcesError ? (
         <EmptyState
           badge="Admin import"
           title="Nie udało się pobrać źródeł produktów"
           description="Sprawdź konfigurację Supabase i to, czy migracja z tabelą `product_sources` została uruchomiona."
         />
       ) : (
-        <AdminProductSourcesManager categories={categories} sources={sources} />
+        <AdminProductSourcesManager categories={categories ?? []} sources={sources ?? []} />
       )}
     </div>
   );

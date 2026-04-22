@@ -22,20 +22,20 @@ type CategoryOption = {
 };
 
 type ProductSourceRecord = {
-  id: string;
-  driveFileId: string;
-  title: string;
-  mimeType: string;
-  driveUrl: string;
-  sourceStage: string;
-  modifiedAt: string | null;
-  status: "unattached" | "draft" | "published";
-  linkedProduct: {
-    id: string;
-    name: string;
-    slug: string;
-    status: string;
-    pipelineStatus: string;
+  id?: string | null;
+  driveFileId?: string | null;
+  title?: string | null;
+  mimeType?: string | null;
+  driveUrl?: string | null;
+  sourceStage?: string | null;
+  modifiedAt?: string | null;
+  status?: string | null;
+  linkedProduct?: {
+    id?: string | null;
+    name?: string | null;
+    slug?: string | null;
+    status?: string | null;
+    pipelineStatus?: string | null;
   } | null;
 };
 
@@ -46,6 +46,14 @@ type AdminProductSourcesManagerProps = {
 
 const DEFAULT_ACCENT = "from-stone-950 via-stone-800 to-amber-500";
 const DEFAULT_COVER_GRADIENT = "from-[#f8f2ea] via-[#efe0c8] to-[#d8c09a]";
+
+function safeText(value: string | null | undefined, fallback = "") {
+  return typeof value === "string" && value.trim().length > 0 ? value : fallback;
+}
+
+function safeNumber(value: number | null | undefined, fallback = 0) {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
 
 function slugify(value: string) {
   return value
@@ -74,23 +82,33 @@ function prettifyTitle(filename: string) {
 function inferCategoryId(title: string, categories: CategoryOption[]) {
   const normalized = title.toLowerCase();
 
-  const match =
-    (normalized.includes("finans") || normalized.includes("budzet")) &&
-    categories.find((category) => category.slug.includes("finanse"))
-      ? categories.find((category) => category.slug.includes("finanse"))
-      : (normalized.includes("firma") ||
-            normalized.includes("ofert") ||
-            normalized.includes("sprzed")) &&
-          categories.find((category) => category.slug.includes("sprzed"))
-        ? categories.find((category) => category.slug.includes("sprzed"))
-        : (normalized.includes("notion") ||
-              normalized.includes("plan") ||
-              normalized.includes("system")) &&
-            categories.find((category) => category.slug.includes("plan"))
-          ? categories.find((category) => category.slug.includes("plan"))
-          : categories[0];
+  const financeCategory = categories.find((category) => category.slug.includes("finanse"));
+  const salesCategory = categories.find((category) => category.slug.includes("sprzed"));
+  const planningCategory = categories.find((category) => category.slug.includes("plan"));
 
-  return match?.id ?? categories[0]?.id ?? "";
+  if ((normalized.includes("finans") || normalized.includes("budzet")) && financeCategory) {
+    return financeCategory.id;
+  }
+
+  if (
+    (normalized.includes("firma") ||
+      normalized.includes("ofert") ||
+      normalized.includes("sprzed")) &&
+    salesCategory
+  ) {
+    return salesCategory.id;
+  }
+
+  if (
+    (normalized.includes("notion") ||
+      normalized.includes("plan") ||
+      normalized.includes("system")) &&
+    planningCategory
+  ) {
+    return planningCategory.id;
+  }
+
+  return categories[0]?.id ?? "";
 }
 
 function inferFormat(source: ProductSourceRecord) {
@@ -111,20 +129,21 @@ function inferPrice(source: ProductSourceRecord) {
 }
 
 function inferShortDescription(source: ProductSourceRecord) {
-  const title = prettifyTitle(source.title);
+  const title = prettifyTitle(safeText(source.title, "Nowy produkt"));
   return `${title} pomaga przełożyć materiał roboczy na gotowy produkt cyfrowy z jasnym efektem dla klienta.`;
 }
 
 function inferDescription(source: ProductSourceRecord) {
-  const title = prettifyTitle(source.title);
+  const title = prettifyTitle(safeText(source.title, "Nowy produkt"));
   return `${title} to materiał bazowy gotowy do opracowania jako produkt premium w Templify. Uzupełnij okładkę, finalny plik i dopracuj komunikat wartości przed publikacją.`;
 }
 
-function SourceStatusBadge({ status }: { status: ProductSourceRecord["status"] }) {
+function SourceStatusBadge({ status }: { status?: ProductSourceRecord["status"] }) {
+  const normalizedStatus = status ?? "unattached";
   const toneClass =
-    status === "published"
+    normalizedStatus === "published"
       ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-200"
-      : status === "draft"
+      : normalizedStatus === "draft"
         ? "border-amber-500/20 bg-amber-500/10 text-amber-100"
         : "border-border/70 bg-background/60 text-muted-foreground";
 
@@ -132,7 +151,7 @@ function SourceStatusBadge({ status }: { status: ProductSourceRecord["status"] }
     <span
       className={`inline-flex rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.18em] ${toneClass}`}
     >
-      {formatProductSourceLinkStatus(status)}
+      {formatProductSourceLinkStatus(normalizedStatus)}
     </span>
   );
 }
@@ -141,9 +160,10 @@ export function AdminProductSourcesManager({
   categories,
   sources,
 }: AdminProductSourcesManagerProps) {
-  const unattachedCount = sources.filter((source) => source.status === "unattached").length;
-  const draftCount = sources.filter((source) => source.status === "draft").length;
-  const publishedCount = sources.filter((source) => source.status === "published").length;
+  const safeSources = Array.isArray(sources) ? sources : [];
+  const unattachedCount = safeSources.filter((source) => source.status === "unattached").length;
+  const draftCount = safeSources.filter((source) => source.status === "draft").length;
+  const publishedCount = safeSources.filter((source) => source.status === "published").length;
 
   return (
     <div className="space-y-6">
@@ -161,25 +181,25 @@ export function AdminProductSourcesManager({
             <p className="text-[11px] uppercase tracking-[0.22em] text-primary/75">
               Niepodpięte
             </p>
-            <p className="mt-3 text-3xl text-foreground">{unattachedCount}</p>
+            <p className="mt-3 text-3xl text-foreground">{safeNumber(unattachedCount)}</p>
             <p className="mt-1 text-sm text-muted-foreground">gotowe do utworzenia produktu</p>
           </article>
           <article className="rounded-[1.3rem] border border-border/70 bg-background/70 p-4">
             <p className="text-[11px] uppercase tracking-[0.22em] text-primary/75">Draft</p>
-            <p className="mt-3 text-3xl text-foreground">{draftCount}</p>
+            <p className="mt-3 text-3xl text-foreground">{safeNumber(draftCount)}</p>
             <p className="mt-1 text-sm text-muted-foreground">materiały podpięte do draftów</p>
           </article>
           <article className="rounded-[1.3rem] border border-border/70 bg-background/70 p-4">
             <p className="text-[11px] uppercase tracking-[0.22em] text-primary/75">
               Opublikowane
             </p>
-            <p className="mt-3 text-3xl text-foreground">{publishedCount}</p>
+            <p className="mt-3 text-3xl text-foreground">{safeNumber(publishedCount)}</p>
             <p className="mt-1 text-sm text-muted-foreground">powiązane z aktywnymi produktami</p>
           </article>
         </div>
       </section>
 
-      {sources.length === 0 ? (
+      {safeSources.length === 0 ? (
         <section className="surface-panel p-6">
           <p className="rounded-[1.2rem] border border-dashed border-border/70 px-4 py-5 text-sm text-muted-foreground">
             Nie znaleziono jeszcze żadnych źródeł produktów do importu.
@@ -195,27 +215,29 @@ export function AdminProductSourcesManager({
           </div>
 
           <div className="grid gap-4">
-            {sources.map((source) => {
-              const defaultName = prettifyTitle(source.title);
-              const defaultSlug = slugify(defaultName);
-              const defaultCategoryId = inferCategoryId(source.title, categories);
+            {safeSources.map((source, index) => {
+              const safeTitle = safeText(source.title, "Bez nazwy pliku");
+              const defaultName = prettifyTitle(safeTitle);
+              const defaultSlug = slugify(defaultName || `produkt-${index + 1}`);
+              const defaultCategoryId = inferCategoryId(safeTitle, categories);
               const defaultPrice = inferPrice(source);
               const defaultShortDescription = inferShortDescription(source);
               const defaultDescription = inferDescription(source);
               const defaultStatus = source.status === "published" ? "published" : "draft";
               const defaultPipelineStatus =
                 source.status === "published" ? "published" : "working";
+              const linkedProduct = source.linkedProduct ?? null;
 
               return (
                 <article
-                  key={source.id}
+                  key={safeText(source.id, `${safeTitle}-${index}`)}
                   className="rounded-[1.5rem] border border-border/70 bg-background/60 p-5"
                 >
                   <div className="flex flex-col gap-5">
                     <div className="grid gap-4 xl:grid-cols-[1.3fr_0.9fr]">
                       <div className="space-y-3">
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-lg text-foreground">{source.title}</p>
+                          <p className="text-lg text-foreground">{safeTitle}</p>
                           <SourceStatusBadge status={source.status} />
                           <span className="inline-flex rounded-full border border-border/70 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
                             {formatProductSourceStage(source.sourceStage)}
@@ -227,24 +249,27 @@ export function AdminProductSourcesManager({
 
                         <div className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
                           <p>Data modyfikacji: {formatAdminDate(source.modifiedAt)}</p>
-                          <p>ID pliku: {source.driveFileId}</p>
+                          <p>ID pliku: {safeText(source.driveFileId, "Brak danych")}</p>
                         </div>
 
                         <div className="flex flex-wrap gap-3">
-                          <Link
-                            href={source.driveUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="rounded-full border border-border/70 px-4 py-2 text-sm text-foreground transition hover:border-primary/30"
-                          >
-                            Otwórz plik źródłowy
-                          </Link>
-                          {source.linkedProduct ? (
+                          {safeText(source.driveUrl) ? (
+                            <Link
+                              href={safeText(source.driveUrl)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="rounded-full border border-border/70 px-4 py-2 text-sm text-foreground transition hover:border-primary/30"
+                            >
+                              Otwórz plik źródłowy
+                            </Link>
+                          ) : null}
+
+                          {linkedProduct ? (
                             <Link
                               href="/admin/produkty"
                               className="rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm text-foreground transition hover:border-primary/30"
                             >
-                              Zobacz produkt: {source.linkedProduct.name}
+                              Zobacz produkt: {safeText(linkedProduct.name, "Brak nazwy")}
                             </Link>
                           ) : null}
                         </div>
@@ -254,18 +279,17 @@ export function AdminProductSourcesManager({
                         <p className="text-[11px] uppercase tracking-[0.22em] text-primary/75">
                           Powiązany produkt
                         </p>
-                        {source.linkedProduct ? (
+                        {linkedProduct ? (
                           <div className="mt-3 space-y-2">
-                            <p className="text-base text-foreground">{source.linkedProduct.name}</p>
-                            <p>Status sklepu: {formatProductStatus(source.linkedProduct.status)}</p>
+                            <p className="text-base text-foreground">
+                              {safeText(linkedProduct.name, "Bez nazwy produktu")}
+                            </p>
+                            <p>Status sklepu: {formatProductStatus(linkedProduct.status)}</p>
                             <p>
-                              Pipeline:{" "}
-                              {formatProductPipelineStatus(
-                                source.linkedProduct.pipelineStatus,
-                              )}
+                              Pipeline: {formatProductPipelineStatus(linkedProduct.pipelineStatus)}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Slug: {source.linkedProduct.slug}
+                              Slug: {safeText(linkedProduct.slug, "brak")}
                             </p>
                           </div>
                         ) : (
@@ -274,7 +298,7 @@ export function AdminProductSourcesManager({
                       </div>
                     </div>
 
-                    {!source.linkedProduct ? (
+                    {!linkedProduct ? (
                       categories.length === 0 ? (
                         <p className="rounded-[1.2rem] border border-border/70 bg-background/70 px-4 py-4 text-sm text-muted-foreground">
                           Najpierw dodaj kategorię w panelu kategorii, a potem wróć do importu.
@@ -290,7 +314,7 @@ export function AdminProductSourcesManager({
                             className="mt-4 space-y-4"
                             encType="multipart/form-data"
                           >
-                            <input type="hidden" name="sourceId" value={source.id} />
+                            <input type="hidden" name="sourceId" value={safeText(source.id)} />
                             <input type="hidden" name="returnPath" value="/admin/import" />
                             <input type="hidden" name="compareAtPrice" value="" />
                             <input type="hidden" name="format" value={inferFormat(source)} />

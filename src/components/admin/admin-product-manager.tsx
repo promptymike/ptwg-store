@@ -31,61 +31,61 @@ type CategoryOption = {
 
 type ProductPreviewRecord = {
   id: string;
-  storagePath: string;
-  altText: string;
-  sortOrder: number;
-  imageUrl: string | null;
+  storagePath?: string | null;
+  altText?: string | null;
+  sortOrder?: number | null;
+  imageUrl?: string | null;
 };
 
 type ProductRecord = {
   id: string;
-  slug: string;
-  name: string;
-  shortDescription: string;
-  description: string;
-  price: number;
-  compareAtPrice: number | null;
-  category: string;
-  categoryId: string;
-  format: string;
-  pages: number;
-  tags: string[];
-  rating: number;
-  salesLabel: string;
-  accent: string;
-  coverGradient: string;
-  includes: string[];
-  heroNote: string;
-  badge: string | null;
-  status: string;
-  pipelineStatus: string;
-  bestseller: boolean;
-  featured: boolean;
-  sortOrder: number;
-  featuredOrder: number;
-  isActive: boolean;
-  coverPath: string | null;
-  coverImageUrl: string | null;
-  filePath: string | null;
-  hasCover: boolean;
-  hasFile: boolean;
-  isVisibleOnStorefront: boolean;
-  linkedSource: {
-    id: string;
-    title: string;
+  slug?: string | null;
+  name?: string | null;
+  shortDescription?: string | null;
+  description?: string | null;
+  price?: number | null;
+  compareAtPrice?: number | null;
+  category?: string | null;
+  categoryId?: string | null;
+  format?: string | null;
+  pages?: number | null;
+  tags?: string[] | null;
+  rating?: number | null;
+  salesLabel?: string | null;
+  accent?: string | null;
+  coverGradient?: string | null;
+  includes?: string[] | null;
+  heroNote?: string | null;
+  badge?: string | null;
+  status?: string | null;
+  pipelineStatus?: string | null;
+  bestseller?: boolean | null;
+  featured?: boolean | null;
+  sortOrder?: number | null;
+  featuredOrder?: number | null;
+  isActive?: boolean | null;
+  coverPath?: string | null;
+  coverImageUrl?: string | null;
+  filePath?: string | null;
+  hasCover?: boolean | null;
+  hasFile?: boolean | null;
+  isVisibleOnStorefront?: boolean | null;
+  linkedSource?: {
+    id?: string | null;
+    title?: string | null;
   } | null;
-  previews: ProductPreviewRecord[];
+  previews?: ProductPreviewRecord[] | null;
 };
 
 type AdminProductManagerProps = {
   categories: CategoryOption[];
   products: ProductRecord[];
   summary: {
-    total: number;
-    draftCount: number;
-    readyCount: number;
-    publishedCount: number;
-    missingSourceCount: number;
+    total?: number;
+    draftCount?: number;
+    readyCount?: number;
+    publishedCount?: number;
+    missingSourceCount?: number;
   };
   filters: {
     status?: string;
@@ -94,18 +94,38 @@ type AdminProductManagerProps = {
   };
 };
 
+function safeText(value: string | null | undefined, fallback = "") {
+  return typeof value === "string" && value.trim().length > 0 ? value : fallback;
+}
+
+function safeNumber(value: number | null | undefined, fallback = 0) {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function safeStringArray(value: string[] | null | undefined) {
+  return Array.isArray(value) ? value : [];
+}
+
+function safeBoolean(value: boolean | null | undefined) {
+  return value === true;
+}
+
+function safePreviews(value: ProductPreviewRecord[] | null | undefined) {
+  return Array.isArray(value) ? value : [];
+}
+
 function CategorySelect({
   categories,
   defaultValue,
 }: {
   categories: CategoryOption[];
-  defaultValue?: string;
+  defaultValue?: string | null;
 }) {
   return (
     <select
       name="categoryId"
       className="flex h-12 w-full rounded-2xl border border-border bg-input px-4 text-sm text-foreground"
-      defaultValue={defaultValue ?? categories[0]?.id}
+      defaultValue={defaultValue ?? categories[0]?.id ?? ""}
     >
       {categories.map((category) => (
         <option key={category.id} value={category.id}>
@@ -125,14 +145,14 @@ function SelectField({
   name: string;
   label: string;
   options: Array<{ value: string; label: string }>;
-  defaultValue?: string;
+  defaultValue?: string | null;
 }) {
   return (
     <label className="space-y-2">
       <span className="text-sm text-foreground">{label}</span>
       <select
         name={name}
-        defaultValue={defaultValue}
+        defaultValue={defaultValue ?? options[0]?.value ?? ""}
         className="flex h-12 w-full rounded-2xl border border-border bg-input px-4 text-sm text-foreground"
       >
         {options.map((option) => (
@@ -217,23 +237,36 @@ function ProductFormFields({
   categories: CategoryOption[];
   product?: ProductRecord;
 }) {
+  const linkedSource = product?.linkedSource ?? null;
+
   return (
     <div className="grid gap-4 xl:grid-cols-2">
-      {product?.linkedSource ? (
+      {linkedSource?.id ? (
         <div className="rounded-[1.2rem] border border-primary/20 bg-primary/10 px-4 py-4 text-sm text-muted-foreground xl:col-span-2">
-          <input type="hidden" name="sourceId" value={product.linkedSource.id} />
-          Powiązane źródło: <span className="text-foreground">{product.linkedSource.title}</span>
+          <input type="hidden" name="sourceId" value={linkedSource.id} />
+          Powiązane źródło:{" "}
+          <span className="text-foreground">
+            {safeText(linkedSource.title, "Bez nazwy źródła")}
+          </span>
         </div>
       ) : null}
 
       <label className="space-y-2">
         <span className="text-sm text-foreground">Nazwa</span>
-        <Input name="name" defaultValue={product?.name} placeholder="Founder OS Template" />
+        <Input
+          name="name"
+          defaultValue={safeText(product?.name)}
+          placeholder="Founder OS Template"
+        />
       </label>
 
       <label className="space-y-2">
         <span className="text-sm text-foreground">Slug</span>
-        <Input name="slug" defaultValue={product?.slug} placeholder="founder-os-template" />
+        <Input
+          name="slug"
+          defaultValue={safeText(product?.slug)}
+          placeholder="founder-os-template"
+        />
       </label>
 
       <label className="space-y-2">
@@ -243,12 +276,16 @@ function ProductFormFields({
 
       <label className="space-y-2">
         <span className="text-sm text-foreground">Format</span>
-        <Input name="format" defaultValue={product?.format ?? "PDF"} placeholder="PDF + Notion" />
+        <Input
+          name="format"
+          defaultValue={safeText(product?.format, "PDF")}
+          placeholder="PDF + Notion"
+        />
       </label>
 
       <label className="space-y-2">
         <span className="text-sm text-foreground">Cena</span>
-        <Input name="price" type="number" defaultValue={product?.price ?? 99} />
+        <Input name="price" type="number" defaultValue={safeNumber(product?.price, 99)} />
       </label>
 
       <label className="space-y-2">
@@ -296,12 +333,12 @@ function ProductFormFields({
 
       <label className="space-y-2">
         <span className="text-sm text-foreground">Liczba stron</span>
-        <Input name="pages" type="number" defaultValue={product?.pages ?? 0} />
+        <Input name="pages" type="number" defaultValue={safeNumber(product?.pages)} />
       </label>
 
       <label className="space-y-2">
         <span className="text-sm text-foreground">Sort order</span>
-        <Input name="sortOrder" type="number" defaultValue={product?.sortOrder ?? 0} />
+        <Input name="sortOrder" type="number" defaultValue={safeNumber(product?.sortOrder)} />
       </label>
 
       <label className="space-y-2">
@@ -309,7 +346,7 @@ function ProductFormFields({
         <Input
           name="featuredOrder"
           type="number"
-          defaultValue={product?.featuredOrder ?? 0}
+          defaultValue={safeNumber(product?.featuredOrder)}
         />
       </label>
 
@@ -317,7 +354,7 @@ function ProductFormFields({
         <span className="text-sm text-foreground">Etykieta sprzedażowa</span>
         <Input
           name="salesLabel"
-          defaultValue={product?.salesLabel}
+          defaultValue={safeText(product?.salesLabel)}
           placeholder="Szablon dla małych zespołów"
         />
       </label>
@@ -326,7 +363,7 @@ function ProductFormFields({
         <span className="text-sm text-foreground">Krótki opis</span>
         <Textarea
           name="shortDescription"
-          defaultValue={product?.shortDescription}
+          defaultValue={safeText(product?.shortDescription)}
           className="min-h-24"
           placeholder="Jedno zdanie o efekcie, jaki daje produkt."
         />
@@ -336,7 +373,7 @@ function ProductFormFields({
         <span className="text-sm text-foreground">Pełny opis</span>
         <Textarea
           name="description"
-          defaultValue={product?.description}
+          defaultValue={safeText(product?.description)}
           className="min-h-32"
           placeholder="Opisz use case, rezultat i zawartość produktu."
         />
@@ -346,7 +383,7 @@ function ProductFormFields({
         <span className="text-sm text-foreground">Hero note</span>
         <Input
           name="heroNote"
-          defaultValue={product?.heroNote}
+          defaultValue={safeText(product?.heroNote)}
           placeholder="Sprzedaj rezultat, nie sam plik."
         />
       </label>
@@ -355,21 +392,21 @@ function ProductFormFields({
         <span className="text-sm text-foreground">Tagi</span>
         <Input
           name="tags"
-          defaultValue={product?.tags.join(", ")}
+          defaultValue={safeStringArray(product?.tags).join(", ")}
           placeholder="biznes, finanse, oferta"
         />
       </label>
 
       <label className="space-y-2">
         <span className="text-sm text-foreground">Gradient accent</span>
-        <Input name="accent" defaultValue={product?.accent} placeholder="from-stone-900 ..." />
+        <Input name="accent" defaultValue={safeText(product?.accent)} placeholder="from-stone-900 ..." />
       </label>
 
       <label className="space-y-2">
         <span className="text-sm text-foreground">Gradient cover</span>
         <Input
           name="coverGradient"
-          defaultValue={product?.coverGradient}
+          defaultValue={safeText(product?.coverGradient)}
           placeholder="from-[#f7f0e7] ..."
         />
       </label>
@@ -378,7 +415,7 @@ function ProductFormFields({
         <span className="text-sm text-foreground">Sekcja „co zawiera”</span>
         <Textarea
           name="includes"
-          defaultValue={product?.includes.join("\n")}
+          defaultValue={safeStringArray(product?.includes).join("\n")}
           className="min-h-24"
           placeholder="Jedna pozycja na linię albo po przecinku."
         />
@@ -423,7 +460,7 @@ function ProductFormFields({
           <input
             name="bestseller"
             type="checkbox"
-            defaultChecked={product?.bestseller}
+            defaultChecked={safeBoolean(product?.bestseller)}
             className="size-4 accent-[var(--color-primary)]"
           />
           Bestseller
@@ -432,7 +469,7 @@ function ProductFormFields({
           <input
             name="featured"
             type="checkbox"
-            defaultChecked={product?.featured}
+            defaultChecked={safeBoolean(product?.featured)}
             className="size-4 accent-[var(--color-primary)]"
           />
           Featured
@@ -441,7 +478,7 @@ function ProductFormFields({
           <input
             name="isActive"
             type="checkbox"
-            defaultChecked={product?.isActive ?? true}
+            defaultChecked={product?.isActive !== false}
             className="size-4 accent-[var(--color-primary)]"
           />
           Widoczny
@@ -452,6 +489,8 @@ function ProductFormFields({
 }
 
 function PreviewManager({ product }: { product: ProductRecord }) {
+  const previews = safePreviews(product.previews);
+
   return (
     <div className="space-y-4 rounded-[1.4rem] border border-border/70 bg-background/40 p-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -462,7 +501,7 @@ function PreviewManager({ product }: { product: ProductRecord }) {
           </p>
         </div>
         <span className="text-xs uppercase tracking-[0.22em] text-primary/75">
-          {product.previews.length} plików
+          {previews.length} plików
         </span>
       </div>
 
@@ -474,7 +513,7 @@ function PreviewManager({ product }: { product: ProductRecord }) {
         <input type="hidden" name="productId" value={product.id} />
         <div className="grid gap-3 lg:grid-cols-[1fr_160px]">
           <Input name="altText" placeholder="Alt tekst preview" />
-          <Input name="sortOrder" type="number" defaultValue={product.previews.length} />
+          <Input name="sortOrder" type="number" defaultValue={previews.length} />
         </div>
         <FileDropzone
           name="previewFile"
@@ -486,26 +525,38 @@ function PreviewManager({ product }: { product: ProductRecord }) {
         <AdminSubmitButton idleLabel="Dodaj preview" pendingLabel="Dodawanie..." />
       </form>
 
-      {product.previews.length === 0 ? (
+      {previews.length === 0 ? (
         <p className="rounded-[1.2rem] border border-dashed border-border/70 px-4 py-4 text-sm text-muted-foreground">
           Ten produkt nie ma jeszcze dodatkowych preview images.
         </p>
       ) : (
         <div className="grid gap-3">
-          {product.previews.map((preview) => (
+          {previews.map((preview) => (
             <div
               key={preview.id}
               className="grid gap-3 rounded-[1.2rem] border border-border/70 bg-background/80 p-4 xl:grid-cols-[1fr_1fr_auto]"
             >
               <div className="space-y-2">
-                <p className="text-sm text-foreground">{preview.altText || "Preview image"}</p>
-                <p className="break-all text-xs text-muted-foreground">{preview.storagePath}</p>
+                <p className="text-sm text-foreground">
+                  {safeText(preview.altText, "Preview image")}
+                </p>
+                <p className="break-all text-xs text-muted-foreground">
+                  {safeText(preview.storagePath, "Brak ścieżki")}
+                </p>
               </div>
 
               <form action={updateProductPreviewAction} className="grid gap-3 sm:grid-cols-2">
                 <input type="hidden" name="previewId" value={preview.id} />
-                <Input name="altText" defaultValue={preview.altText} placeholder="Alt tekst" />
-                <Input name="sortOrder" type="number" defaultValue={preview.sortOrder} />
+                <Input
+                  name="altText"
+                  defaultValue={safeText(preview.altText)}
+                  placeholder="Alt tekst"
+                />
+                <Input
+                  name="sortOrder"
+                  type="number"
+                  defaultValue={safeNumber(preview.sortOrder)}
+                />
                 <AdminSubmitButton idleLabel="Zapisz preview" pendingLabel="Zapisywanie..." />
               </form>
 
@@ -531,6 +582,8 @@ export function AdminProductManager({
   summary,
   filters,
 }: AdminProductManagerProps) {
+  const safeProducts = Array.isArray(products) ? products : [];
+
   return (
     <div className="space-y-6">
       <section className="surface-panel space-y-5 p-6">
@@ -551,31 +604,11 @@ export function AdminProductManager({
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          <SummaryCard
-            label="Wszystkie"
-            value={String(summary.total)}
-            detail="produkty w systemie"
-          />
-          <SummaryCard
-            label="Draft"
-            value={String(summary.draftCount)}
-            detail="niewidoczne jeszcze w sklepie"
-          />
-          <SummaryCard
-            label="Gotowe"
-            value={String(summary.readyCount)}
-            detail="pipeline ready to publish"
-          />
-          <SummaryCard
-            label="Opublikowane"
-            value={String(summary.publishedCount)}
-            detail="aktywne na storefront"
-          />
-          <SummaryCard
-            label="Bez źródła"
-            value={String(summary.missingSourceCount)}
-            detail="produkty bez podpiętego pliku roboczego"
-          />
+          <SummaryCard label="Wszystkie" value={String(summary.total ?? 0)} detail="produkty w systemie" />
+          <SummaryCard label="Draft" value={String(summary.draftCount ?? 0)} detail="niewidoczne jeszcze w sklepie" />
+          <SummaryCard label="Gotowe" value={String(summary.readyCount ?? 0)} detail="pipeline ready to publish" />
+          <SummaryCard label="Opublikowane" value={String(summary.publishedCount ?? 0)} detail="aktywne na storefront" />
+          <SummaryCard label="Bez źródła" value={String(summary.missingSourceCount ?? 0)} detail="produkty bez podpiętego pliku roboczego" />
         </div>
 
         <form className="grid gap-3 rounded-[1.3rem] border border-border/70 bg-background/70 p-4 lg:grid-cols-[1fr_1fr_1fr_auto_auto]">
@@ -665,13 +698,13 @@ export function AdminProductManager({
           </p>
         </div>
 
-        {products.length === 0 ? (
+        {safeProducts.length === 0 ? (
           <p className="rounded-[1.2rem] border border-dashed border-border/70 px-4 py-5 text-sm text-muted-foreground">
             Brak produktów dla wybranych filtrów. Zmień filtry albo dodaj pierwszy produkt.
           </p>
         ) : (
           <div className="grid gap-4">
-            {products.map((product) => (
+            {safeProducts.map((product) => (
               <article
                 key={product.id}
                 className="rounded-[1.5rem] border border-border/70 bg-background/60 p-5"
@@ -680,7 +713,9 @@ export function AdminProductManager({
                   <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                     <div className="space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-lg text-foreground">{product.name}</p>
+                        <p className="text-lg text-foreground">
+                          {safeText(product.name, "Bez nazwy produktu")}
+                        </p>
                         <Chip label={formatProductStatus(product.status)} />
                         <Chip
                           label={formatProductPipelineStatus(product.pipelineStatus)}
@@ -690,38 +725,40 @@ export function AdminProductManager({
                       </div>
 
                       <p className="text-sm text-muted-foreground">
-                        {product.category} • {product.format} • {formatCurrency(product.price)}
+                        {safeText(product.category, "Brak kategorii")} •{" "}
+                        {safeText(product.format, "Brak formatu")} •{" "}
+                        {formatCurrency(product.price)}
                       </p>
 
                       <p className="max-w-3xl text-sm text-muted-foreground">
-                        {product.shortDescription}
+                        {safeText(product.shortDescription, "Brak krótkiego opisu.")}
                       </p>
                     </div>
 
                     <div className="grid gap-2 sm:grid-cols-2 xl:min-w-[340px]">
                       <Chip
-                        label={product.hasFile ? "Plik dodany" : "Brak pliku"}
-                        tone={product.hasFile ? "positive" : "default"}
+                        label={safeBoolean(product.hasFile) ? "Plik dodany" : "Brak pliku"}
+                        tone={safeBoolean(product.hasFile) ? "positive" : "default"}
                       />
                       <Chip
-                        label={product.hasCover ? "Cover dodany" : "Brak coveru"}
-                        tone={product.hasCover ? "positive" : "default"}
+                        label={safeBoolean(product.hasCover) ? "Cover dodany" : "Brak coveru"}
+                        tone={safeBoolean(product.hasCover) ? "positive" : "default"}
                       />
                       <Chip
                         label={
-                          product.isVisibleOnStorefront
+                          safeBoolean(product.isVisibleOnStorefront)
                             ? "Widoczny na storefront"
                             : "Niewidoczny w sklepie"
                         }
-                        tone={product.isVisibleOnStorefront ? "positive" : "default"}
+                        tone={safeBoolean(product.isVisibleOnStorefront) ? "positive" : "default"}
                       />
                       <Chip
                         label={
-                          product.linkedSource
+                          product.linkedSource?.title
                             ? `Źródło: ${product.linkedSource.title}`
                             : "Brak źródła"
                         }
-                        tone={product.linkedSource ? "positive" : "default"}
+                        tone={product.linkedSource?.title ? "positive" : "default"}
                       />
                     </div>
                   </div>

@@ -75,6 +75,18 @@ async function ensureAdmin() {
   return { profile, supabase };
 }
 
+function logAdminActionError(
+  scope: string,
+  error: unknown,
+  context?: Record<string, unknown>,
+) {
+  console.error(`[admin-action:${scope}]`, {
+    message: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+    ...context,
+  });
+}
+
 function redirectWithMessage(
   path: string,
   type: "success" | "error",
@@ -484,6 +496,14 @@ export async function createProductAction(formData: FormData) {
     revalidatePath(returnPath);
     revalidateStorefront(product.slug);
   } catch (error) {
+    logAdminActionError("create-product", error, {
+      createdProductId,
+      returnPath,
+      uploadedCoverPath: Boolean(uploadedCoverPath),
+      uploadedFilePath: Boolean(uploadedFilePath),
+      uploadedPreviewCount: uploadedPreviewPaths.length,
+    });
+
     if (createdProductId) {
       const supabase = createSupabaseAdminClient();
 
@@ -672,6 +692,14 @@ export async function updateProductAction(formData: FormData) {
     revalidateStorefront(existingProduct.slug);
     revalidateStorefront(parsed.data.slug);
   } catch (error) {
+    logAdminActionError("update-product", error, {
+      returnPath,
+      replacedCoverPath: Boolean(replacedCoverPath),
+      replacedFilePath: Boolean(replacedFilePath),
+      uploadedPreviewCount: uploadedPreviewPaths.length,
+      productUpdated,
+    });
+
     if ((!productUpdated && (replacedCoverPath || replacedFilePath)) || uploadedPreviewPaths.length > 0) {
       await cleanupProductFiles({
         coverPath: productUpdated ? null : replacedCoverPath,
@@ -733,6 +761,7 @@ export async function deleteProductAction(formData: FormData) {
     revalidatePath("/admin/import");
     revalidateStorefront(existingProduct.slug);
   } catch (error) {
+    logAdminActionError("delete-product", error);
     redirectType = "error";
     redirectMessage =
       error instanceof Error

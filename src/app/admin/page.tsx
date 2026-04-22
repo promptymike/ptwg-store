@@ -7,32 +7,32 @@ export default async function AdminDashboardPage() {
   const cards = [
     {
       label: "Draft",
-      value: String(snapshot.draftCount),
+      value: String(snapshot?.draftCount ?? 0),
       detail: "produkty niewidoczne jeszcze w sklepie",
     },
     {
       label: "Gotowe do publikacji",
-      value: String(snapshot.readyToPublishCount),
+      value: String(snapshot?.readyToPublishCount ?? 0),
       detail: "pipeline ustawiony na ready",
     },
     {
       label: "Opublikowane",
-      value: String(snapshot.publishedCount),
+      value: String(snapshot?.publishedCount ?? 0),
       detail: "produkty aktywne na storefront",
     },
     {
       label: "Niepodpięte pliki",
-      value: String(snapshot.unattachedSourceCount),
+      value: String(snapshot?.unattachedSourceCount ?? 0),
       detail: "materiały czekające w imporcie",
     },
     {
       label: "Zamówienia",
-      value: String(snapshot.orderCount),
+      value: String(snapshot?.orderCount ?? 0),
       detail: "realne rekordy po Stripe Checkout",
     },
     {
       label: "Przychód",
-      value: snapshot.revenue,
+      value: snapshot?.revenue ?? "Brak danych",
       detail: "suma z tabeli orders",
     },
   ];

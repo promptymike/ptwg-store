@@ -43,7 +43,7 @@ export default async function AdminProductsPage({
         message={noticeMessage || undefined}
       />
 
-      {!categories.length && categoriesError ? (
+      {!categories?.length && categoriesError ? (
         <EmptyState
           badge="Admin produkty"
           title="Nie udało się pobrać danych produktowych"
@@ -51,9 +51,17 @@ export default async function AdminProductsPage({
         />
       ) : (
         <AdminProductManager
-          categories={categories}
-          products={products}
-          summary={summary}
+          categories={categories ?? []}
+          products={products ?? []}
+          summary={
+            summary ?? {
+              total: 0,
+              draftCount: 0,
+              readyCount: 0,
+              publishedCount: 0,
+              missingSourceCount: 0,
+            }
+          }
           filters={filters}
         />
       )}

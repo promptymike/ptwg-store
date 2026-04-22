@@ -2,6 +2,8 @@ import "server-only";
 
 import {
   CATEGORY_OPTIONS,
+  PRODUCT_PIPELINE_STATUSES,
+  PRODUCT_STATUSES,
   type Category,
   type ContentPage,
   type Product,
@@ -151,19 +153,100 @@ function normalizeCategory(value: string | null | undefined): Category {
   return normalizedValue || CATEGORY_OPTIONS[0];
 }
 
+function logAdminStoreError(
+  scope: string,
+  error: unknown,
+  context?: Record<string, unknown>,
+) {
+  if (
+    error instanceof Error &&
+    error.message.includes("Dynamic server usage")
+  ) {
+    return;
+  }
+
+  console.error(`[admin-store:${scope}]`, {
+    message: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+    ...context,
+  });
+}
+
+function getSingleRelation<T>(value: T | T[] | null | undefined) {
+  if (Array.isArray(value)) {
+    return value[0] ?? null;
+  }
+
+  return value ?? null;
+}
+
+function normalizeText(value: unknown, fallback = "") {
+  return typeof value === "string" && value.trim().length > 0 ? value : fallback;
+}
+
+function normalizeNullableText(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0 ? value : null;
+}
+
+function normalizeStringList(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter((item): item is string => typeof item === "string" && item.length > 0);
+}
+
+function normalizeNumber(value: unknown, fallback = 0) {
+  const normalizedValue =
+    typeof value === "number"
+      ? value
+      : typeof value === "string"
+        ? Number(value)
+        : Number.NaN;
+
+  return Number.isFinite(normalizedValue) ? normalizedValue : fallback;
+}
+
+function normalizeInteger(value: unknown, fallback = 0) {
+  return Math.max(0, Math.trunc(normalizeNumber(value, fallback)));
+}
+
+function normalizeBoolean(value: unknown) {
+  return value === true;
+}
+
+function normalizeProductStatus(value: unknown): ProductStatus {
+  return typeof value === "string" &&
+    (PRODUCT_STATUSES as readonly string[]).includes(value)
+    ? (value as ProductStatus)
+    : "draft";
+}
+
+function normalizePipelineStatus(value: unknown): ProductPipelineStatus {
+  return typeof value === "string" &&
+    (PRODUCT_PIPELINE_STATUSES as readonly string[]).includes(value)
+    ? (value as ProductPipelineStatus)
+    : "working";
+}
+
 async function mapProductRow(
   row: ProductRow,
   previews: ProductPreviewRow[] = [],
   includeAssets = false,
 ): Promise<Product> {
+  const category = getSingleRelation(row.categories);
   const [coverImageUrl, mappedPreviews] = includeAssets
     ? await Promise.all([
-        row.cover_path ? createProductCoverSignedUrl(row.cover_path) : null,
+        normalizeText(row.cover_path)
+          ? createProductCoverSignedUrl(normalizeText(row.cover_path))
+          : null,
         Promise.all(
           previews.map(async (preview) => ({
             id: preview.id,
-            imageUrl: await createProductCoverSignedUrl(preview.storage_path),
-            altText: preview.alt_text,
+            imageUrl: normalizeText(preview.storage_path)
+              ? await createProductCoverSignedUrl(normalizeText(preview.storage_path))
+              : null,
+            altText: normalizeText(preview.alt_text),
           })),
         ),
       ])
@@ -173,26 +256,30 @@ async function mapProductRow(
 
   return {
     id: row.id,
-    slug: row.slug,
-    name: polishOverride?.name ?? row.name,
-    category: normalizeCategory(row.categories?.name),
-    shortDescription: polishOverride?.shortDescription ?? row.short_description,
-    description: polishOverride?.description ?? row.description,
-    price: row.price,
-    compareAtPrice: row.compare_at_price ?? undefined,
-    format: polishOverride?.format ?? row.format,
-    pages: row.pages,
-    tags: polishOverride?.tags ?? row.tags ?? [],
-    rating: Number(row.rating),
-    salesLabel: polishOverride?.salesLabel ?? row.sales_label,
-    accent: row.accent,
-    coverGradient: row.cover_gradient,
-    includes: polishOverride?.includes ?? row.includes ?? [],
-    heroNote: polishOverride?.heroNote ?? row.hero_note,
+    slug: normalizeText(row.slug, row.id),
+    name: polishOverride?.name ?? normalizeText(row.name, "Bez nazwy produktu"),
+    category: normalizeCategory(category?.name),
+    shortDescription:
+      polishOverride?.shortDescription ??
+      normalizeText(row.short_description, "Brak krótkiego opisu."),
+    description: polishOverride?.description ?? normalizeText(row.description),
+    price: normalizeNumber(row.price),
+    compareAtPrice: normalizeNullableText(String(row.compare_at_price ?? "")) === null
+      ? undefined
+      : normalizeNumber(row.compare_at_price),
+    format: polishOverride?.format ?? normalizeText(row.format, "Brak formatu"),
+    pages: normalizeInteger(row.pages),
+    tags: polishOverride?.tags ?? normalizeStringList(row.tags),
+    rating: normalizeNumber(row.rating),
+    salesLabel: polishOverride?.salesLabel ?? normalizeText(row.sales_label),
+    accent: normalizeText(row.accent),
+    coverGradient: normalizeText(row.cover_gradient),
+    includes: polishOverride?.includes ?? normalizeStringList(row.includes),
+    heroNote: polishOverride?.heroNote ?? normalizeText(row.hero_note),
     badge: (row.badge as ProductBadge | null) ?? null,
-    status: row.status as ProductStatus,
-    bestseller: row.bestseller,
-    featured: row.featured,
+    status: normalizeProductStatus(row.status),
+    bestseller: normalizeBoolean(row.bestseller),
+    featured: normalizeBoolean(row.featured),
     coverImageUrl,
     previews: mappedPreviews,
   };
@@ -253,27 +340,42 @@ async function getProductSourceByProductIdMap(productIds: string[]) {
     return new Map<string, AdminProductSourceSummary>();
   }
 
-  const { data, error } = await supabase
-    .from("product_sources")
-    .select("id, title, product_id")
-    .in("product_id", productIds);
+  try {
+    const { data, error } = await supabase
+      .from("product_sources")
+      .select("id, title, product_id")
+      .in("product_id", productIds);
 
-  if (error || !data) {
-    return new Map<string, AdminProductSourceSummary>();
-  }
+    if (error || !data) {
+      if (error) {
+        logAdminStoreError("product-sources-map-query", error, {
+          productIdsCount: productIds.length,
+        });
+      }
 
-  return data.reduce((map, source) => {
-    if (!source.product_id || map.has(source.product_id)) {
-      return map;
+      return new Map<string, AdminProductSourceSummary>();
     }
 
-    map.set(source.product_id, {
-      id: source.id,
-      title: source.title,
-    });
+    return data.reduce((map, source) => {
+      const productId = normalizeNullableText(source.product_id);
 
-    return map;
-  }, new Map<string, AdminProductSourceSummary>());
+      if (!productId || map.has(productId)) {
+        return map;
+      }
+
+      map.set(productId, {
+        id: source.id,
+        title: normalizeText(source.title, "Bez nazwy źródła"),
+      });
+
+      return map;
+    }, new Map<string, AdminProductSourceSummary>());
+  } catch (error) {
+    logAdminStoreError("product-sources-map", error, {
+      productIdsCount: productIds.length,
+    });
+    return new Map<string, AdminProductSourceSummary>();
+  }
 }
 
 export async function getCategoryFilterOptions() {
@@ -543,59 +645,78 @@ export async function getAdminDashboardSnapshot() {
     };
   }
 
-  const [
-    { count: productCount },
-    { count: draftCount },
-    { count: readyToPublishCount },
-    { count: publishedCount },
-    { count: unattachedSourceCount },
-    { count: orderCount },
-    { data: totals },
-    { count: contentCount },
-    { count: adminCount },
-  ] = await Promise.all([
-    supabase.from("products").select("*", { count: "exact", head: true }),
-    supabase
-      .from("products")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "draft"),
-    supabase
-      .from("products")
-      .select("*", { count: "exact", head: true })
-      .eq("pipeline_status", "ready"),
-    supabase
-      .from("products")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "published"),
-    supabase
-      .from("product_sources")
-      .select("*", { count: "exact", head: true })
-      .is("product_id", null),
-    supabase.from("orders").select("*", { count: "exact", head: true }),
-    supabase.from("orders").select("total"),
-    supabase.from("content_pages").select("*", { count: "exact", head: true }),
-    supabase
-      .from("admin_allowlist")
-      .select("*", { count: "exact", head: true })
-      .eq("is_active", true),
-  ]);
+  try {
+    const [
+      { count: productCount },
+      { count: draftCount },
+      { count: readyToPublishCount },
+      { count: publishedCount },
+      { count: unattachedSourceCount },
+      { count: orderCount },
+      { data: totals, error: totalsError },
+      { count: contentCount },
+      { count: adminCount },
+    ] = await Promise.all([
+      supabase.from("products").select("*", { count: "exact", head: true }),
+      supabase
+        .from("products")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "draft"),
+      supabase
+        .from("products")
+        .select("*", { count: "exact", head: true })
+        .eq("pipeline_status", "ready"),
+      supabase
+        .from("products")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "published"),
+      supabase
+        .from("product_sources")
+        .select("*", { count: "exact", head: true })
+        .is("product_id", null),
+      supabase.from("orders").select("*", { count: "exact", head: true }),
+      supabase.from("orders").select("total"),
+      supabase.from("content_pages").select("*", { count: "exact", head: true }),
+      supabase
+        .from("admin_allowlist")
+        .select("*", { count: "exact", head: true })
+        .eq("is_active", true),
+    ]);
 
-  const revenueTotal = (totals ?? []).reduce(
-    (sum, order) => sum + order.total,
-    0,
-  );
+    if (totalsError) {
+      logAdminStoreError("admin-dashboard-totals", totalsError);
+    }
 
-  return {
-    productCount: productCount ?? 0,
-    draftCount: draftCount ?? 0,
-    readyToPublishCount: readyToPublishCount ?? 0,
-    publishedCount: publishedCount ?? 0,
-    unattachedSourceCount: unattachedSourceCount ?? 0,
-    orderCount: orderCount ?? 0,
-    revenue: formatCurrency(revenueTotal),
-    contentCount: contentCount ?? 0,
-    adminCount: adminCount ?? 0,
-  };
+    const revenueTotal = Array.isArray(totals)
+      ? totals.reduce((sum, order) => sum + normalizeNumber(order.total), 0)
+      : 0;
+
+    return {
+      productCount: normalizeInteger(productCount),
+      draftCount: normalizeInteger(draftCount),
+      readyToPublishCount: normalizeInteger(readyToPublishCount),
+      publishedCount: normalizeInteger(publishedCount),
+      unattachedSourceCount: normalizeInteger(unattachedSourceCount),
+      orderCount: normalizeInteger(orderCount),
+      revenue: formatCurrency(revenueTotal),
+      contentCount: normalizeInteger(contentCount),
+      adminCount: normalizeInteger(adminCount),
+    };
+  } catch (error) {
+    logAdminStoreError("admin-dashboard", error);
+
+    return {
+      productCount: 0,
+      draftCount: 0,
+      readyToPublishCount: 0,
+      publishedCount: 0,
+      unattachedSourceCount: 0,
+      orderCount: 0,
+      revenue: formatCurrency(null),
+      contentCount: 0,
+      adminCount: 0,
+    };
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -684,7 +805,7 @@ async function getAdminProductsSnapshotLegacy() {
   };
 }
 
-export async function getAdminProductsSnapshot(filters?: {
+async function getAdminProductsSnapshotUnsafe(filters?: {
   status?: string;
   pipelineStatus?: string;
   categoryId?: string;
@@ -822,7 +943,127 @@ export async function getAdminProductsSnapshot(filters?: {
   };
 }
 
-export async function getAdminProductSourcesSnapshot() {
+export async function getAdminProductsSnapshot(filters?: {
+  status?: string;
+  pipelineStatus?: string;
+  categoryId?: string;
+}) {
+  const emptySummary = {
+    total: 0,
+    draftCount: 0,
+    readyCount: 0,
+    publishedCount: 0,
+    missingSourceCount: 0,
+  };
+
+  try {
+    const snapshot = await getAdminProductsSnapshotUnsafe(filters);
+
+    if (!snapshot || !Array.isArray(snapshot.products)) {
+      return {
+        products: [] as AdminProductSnapshot[],
+        summary: emptySummary,
+        error: "Nie udało się wczytać panelu produktów.",
+      };
+    }
+
+    const safeProducts = await Promise.all(
+      snapshot.products.map(async (product) => {
+        const coverPath = normalizeNullableText(product.coverPath);
+        const filePath = normalizeNullableText(product.filePath);
+        const safePreviews = Array.isArray(product.previews) ? product.previews : [];
+
+        return {
+          id: normalizeText(product.id),
+          slug: normalizeText(product.slug, normalizeText(product.id)),
+          name: normalizeText(product.name, "Bez nazwy produktu"),
+          shortDescription: normalizeText(
+            product.shortDescription,
+            "Brak krótkiego opisu.",
+          ),
+          description: normalizeText(product.description),
+          price: normalizeNumber(product.price),
+          compareAtPrice:
+            product.compareAtPrice === null || product.compareAtPrice === undefined
+              ? null
+              : normalizeNumber(product.compareAtPrice),
+          category: normalizeCategory(product.category),
+          categoryId: normalizeText(product.categoryId),
+          format: normalizeText(product.format, "Brak formatu"),
+          pages: normalizeInteger(product.pages),
+          tags: normalizeStringList(product.tags),
+          rating: normalizeNumber(product.rating),
+          salesLabel: normalizeText(product.salesLabel),
+          accent: normalizeText(product.accent),
+          coverGradient: normalizeText(product.coverGradient),
+          includes: normalizeStringList(product.includes),
+          heroNote: normalizeText(product.heroNote),
+          badge: product.badge ?? null,
+          status: normalizeProductStatus(product.status),
+          pipelineStatus: normalizePipelineStatus(product.pipelineStatus),
+          bestseller: normalizeBoolean(product.bestseller),
+          featured: normalizeBoolean(product.featured),
+          sortOrder: normalizeInteger(product.sortOrder),
+          featuredOrder: normalizeInteger(product.featuredOrder),
+          isActive: normalizeBoolean(product.isActive),
+          coverPath,
+          coverImageUrl:
+            product.coverImageUrl ??
+            (coverPath ? await createProductCoverSignedUrl(coverPath) : null),
+          filePath,
+          hasCover: Boolean(coverPath),
+          hasFile: Boolean(filePath),
+          isVisibleOnStorefront:
+            normalizeProductStatus(product.status) === "published" &&
+            normalizeBoolean(product.isActive),
+          linkedSource: product.linkedSource
+            ? {
+                id: normalizeText(product.linkedSource.id),
+                title: normalizeText(product.linkedSource.title, "Bez nazwy źródła"),
+              }
+            : null,
+          previews: await Promise.all(
+            safePreviews.map(async (preview) => {
+              const previewPath = normalizeNullableText(preview.storagePath);
+
+              return {
+                id: normalizeText(preview.id),
+                storagePath: previewPath ?? "",
+                altText: normalizeText(preview.altText),
+                sortOrder: normalizeInteger(preview.sortOrder),
+                imageUrl:
+                  preview.imageUrl ??
+                  (previewPath ? await createProductCoverSignedUrl(previewPath) : null),
+              };
+            }),
+          ),
+        };
+      }),
+    );
+
+    return {
+      products: safeProducts,
+      summary: {
+        total: normalizeInteger(snapshot.summary?.total),
+        draftCount: normalizeInteger(snapshot.summary?.draftCount),
+        readyCount: normalizeInteger(snapshot.summary?.readyCount),
+        publishedCount: normalizeInteger(snapshot.summary?.publishedCount),
+        missingSourceCount: normalizeInteger(snapshot.summary?.missingSourceCount),
+      },
+      error: snapshot.error ?? null,
+    };
+  } catch (error) {
+    logAdminStoreError("admin-products", error, { filters });
+
+    return {
+      products: [] as AdminProductSnapshot[],
+      summary: emptySummary,
+      error: "Nie udało się wczytać panelu produktów.",
+    };
+  }
+}
+
+async function getAdminProductSourcesSnapshotUnsafe() {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
@@ -880,6 +1121,54 @@ export async function getAdminProductSourcesSnapshot() {
     }),
     error: null,
   };
+}
+
+export async function getAdminProductSourcesSnapshot() {
+  try {
+    const snapshot = await getAdminProductSourcesSnapshotUnsafe();
+
+    if (!snapshot || !Array.isArray(snapshot.sources)) {
+      return {
+        sources: [] as AdminProductSourceSnapshot[],
+        error: "Nie udało się wczytać źródeł produktów.",
+      };
+    }
+
+    return {
+      sources: snapshot.sources.map((source) => ({
+        id: normalizeText(source.id),
+        driveFileId: normalizeText(source.driveFileId),
+        title: normalizeText(source.title, "Bez nazwy pliku"),
+        mimeType: normalizeText(source.mimeType),
+        driveUrl: normalizeText(source.driveUrl),
+        sourceStage: normalizeText(source.sourceStage, "planning"),
+        modifiedAt: normalizeNullableText(source.modifiedAt),
+        status:
+          source.status === "draft" || source.status === "published"
+            ? source.status
+            : "unattached",
+        linkedProduct: source.linkedProduct
+          ? {
+              id: normalizeText(source.linkedProduct.id),
+              name: normalizeText(source.linkedProduct.name, "Bez nazwy produktu"),
+              slug: normalizeText(source.linkedProduct.slug),
+              status: normalizeProductStatus(source.linkedProduct.status),
+              pipelineStatus: normalizePipelineStatus(
+                source.linkedProduct.pipelineStatus,
+              ),
+            }
+          : null,
+      })),
+      error: snapshot.error ?? null,
+    };
+  } catch (error) {
+    logAdminStoreError("admin-product-sources", error);
+
+    return {
+      sources: [] as AdminProductSourceSnapshot[],
+      error: "Nie udało się wczytać źródeł produktów.",
+    };
+  }
 }
 
 export async function getAdminCategoriesSnapshot() {
