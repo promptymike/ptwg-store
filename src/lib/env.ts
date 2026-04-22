@@ -41,6 +41,14 @@ export function getMissingSupabaseEnv() {
   ].filter(Boolean);
 }
 
+/**
+ * Returns the list of env vars missing to run the Stripe checkout flow
+ * server-side. Must NOT be called from client code — `STRIPE_SECRET_KEY`
+ * is not prefixed with `NEXT_PUBLIC_`, so it is always `undefined` in the
+ * browser bundle, which would produce a false positive and trigger the
+ * "Płatności chwilowo niedostępne" fallback even when the server is
+ * properly configured.
+ */
 export function getMissingStripeCheckoutEnv() {
   return [
     !env.siteUrl ? "NEXT_PUBLIC_SITE_URL" : null,
@@ -55,4 +63,19 @@ export function getMissingStripeWebhookEnv() {
     !env.stripeSecretKey ? "STRIPE_SECRET_KEY" : null,
     !env.stripeWebhookSecret ? "STRIPE_WEBHOOK_SECRET" : null,
   ].filter(Boolean);
+}
+
+/**
+ * Client-safe helper: returns whether the publishable key is present and
+ * whether we are running against Stripe test mode. Only reads
+ * `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, so it is safe to call from the
+ * browser.
+ */
+export function getClientStripeStatus() {
+  const publishable = env.stripePublishableKey ?? "";
+  return {
+    hasPublishableKey: publishable.length > 0,
+    testMode: publishable.startsWith("pk_test_"),
+    liveMode: publishable.startsWith("pk_live_"),
+  };
 }

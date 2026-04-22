@@ -45,6 +45,12 @@ export default async function CheckoutSuccessPage({
   try {
     result = await fulfillCheckoutSession(sessionId);
   } catch (error) {
+    console.error("[checkout-success] fulfillment-failed", {
+      sessionId,
+      userId: user.id,
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     errorMessage =
       error instanceof Error
         ? error.message

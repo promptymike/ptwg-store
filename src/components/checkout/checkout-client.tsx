@@ -2,20 +2,31 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Check, Lock, ShieldCheck, Tag, Zap } from "lucide-react";
+import { AlertTriangle, Check, FlaskConical, Lock, ShieldCheck, Tag, Zap } from "lucide-react";
 
 import { useAnalytics } from "@/components/analytics/analytics-provider";
 import { useCart } from "@/components/cart/cart-provider";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getMissingStripeCheckoutEnv } from "@/lib/env";
+import { getClientStripeStatus } from "@/lib/env";
 import { formatCurrency } from "@/lib/format";
 import { findPromoRule, type PromoRule } from "@/lib/promo";
 
 type CheckoutResponse = {
   url?: string;
   message?: string;
+  code?: string;
+  missing?: string[];
+};
+
+type CheckoutHealth = {
+  ready: boolean;
+  testMode: boolean;
+  liveMode: boolean;
+  siteUrl: string | null;
+  missing?: string[];
+  webhookConfigured: boolean;
 };
 
 type CheckoutClientProps = {
@@ -31,7 +42,9 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
   const [promoInput, setPromoInput] = useState("");
   const [promoRule, setPromoRule] = useState<PromoRule | null>(null);
   const [promoMessage, setPromoMessage] = useState<string | null>(null);
+  const [health, setHealth] = useState<CheckoutHealth | null>(null);
   const trackedCheckoutRef = useRef(false);
+  const clientStripeStatus = useMemo(() => getClientStripeStatus(), []);
 
   const discountAmount = promoRule ? Math.round(subtotal * (promoRule.percentOff / 100)) : 0;
   const totalAfterPromo = Math.max(subtotal - discountAmount, 0);
@@ -92,19 +105,32 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
     trackedCheckoutRef.current = true;
   }, [isReady, lines, subtotal, track]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchHealth() {
+      try {
+        const response = await fetch("/api/checkout/health", { cache: "no-store" });
+        if (!response.ok) return;
+        const data = (await response.json()) as CheckoutHealth;
+        if (!cancelled) {
+          setHealth(data);
+        }
+      } catch {
+        // Silent — the server route remains the source of truth for blocking.
+      }
+    }
+
+    fetchHealth();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   async function handleCheckout() {
     setIsSubmitting(true);
     setErrorMessage(null);
-
-    const missingEnv = getMissingStripeCheckoutEnv();
-
-    if (missingEnv.length > 0) {
-      setErrorMessage(
-        "Płatności są chwilowo niedostępne. Napisz do nas na kontakt@templify.store — pomożemy dokończyć zamówienie.",
-      );
-      setIsSubmitting(false);
-      return;
-    }
 
     try {
       const response = await fetch("/api/checkout", {
@@ -125,6 +151,13 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
       const data = (await response.json()) as CheckoutResponse;
 
       if (!response.ok || !data.url) {
+        if (data.code === "stripe_env_missing" && data.missing && data.missing.length > 0) {
+          // Dev/admin response — surface the missing vars so QA can fix .env.
+          throw new Error(
+            `Stripe nie jest skonfigurowany: brakuje ${data.missing.join(", ")}.`,
+          );
+        }
+
         throw new Error(
           data.message ?? "Nie udało się rozpocząć płatności. Spróbuj ponownie za chwilę.",
         );
@@ -168,6 +201,9 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
               płatności. Dostęp do plików otrzymasz natychmiast po zakupie.
             </p>
           </div>
+          {clientStripeStatus.testMode || (health && !health.ready) ? (
+            <CheckoutDevBanner health={health} testMode={clientStripeStatus.testMode} />
+          ) : null}
         </div>
 
         <label className="space-y-2">
@@ -310,4 +346,69 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
       </aside>
     </div>
   );
+}
+
+type CheckoutDevBannerProps = {
+  health: CheckoutHealth | null;
+  testMode: boolean;
+};
+
+function CheckoutDevBanner({ health, testMode }: CheckoutDevBannerProps) {
+  const blocked = health ? !health.ready : false;
+  const missing = health?.missing ?? [];
+
+  if (blocked) {
+    return (
+      <div className="flex items-start gap-3 rounded-[1.3rem] border border-amber-400/40 bg-amber-500/10 p-4 text-xs text-amber-100">
+        <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-300" aria-hidden />
+        <div className="space-y-1">
+          <p className="font-semibold uppercase tracking-[0.18em] text-amber-200">
+            Checkout zablokowany przez konfigurację
+          </p>
+          {missing.length > 0 ? (
+            <p className="leading-5">
+              Uzupełnij w <code className="rounded bg-black/20 px-1">.env.local</code>:{" "}
+              {missing.map((key, index) => (
+                <span key={key}>
+                  <code className="rounded bg-black/20 px-1">{key}</code>
+                  {index < missing.length - 1 ? ", " : ""}
+                </span>
+              ))}{" "}
+              i zrestartuj serwer. Komunikat widzą tylko dev/admin.
+            </p>
+          ) : (
+            <p className="leading-5">
+              Serwer zgłasza brak konfiguracji Stripe. Sprawdź <code className="rounded bg-black/20 px-1">.env.local</code> i restart.
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (testMode) {
+    return (
+      <div className="flex items-start gap-3 rounded-[1.3rem] border border-primary/25 bg-primary/10 p-4 text-xs text-muted-foreground">
+        <FlaskConical className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+        <div className="space-y-1">
+          <p className="font-semibold uppercase tracking-[0.18em] text-primary">
+            Stripe test mode
+          </p>
+          <p className="leading-5">
+            Użyj karty testowej <code className="rounded bg-black/20 px-1">4242 4242 4242 4242</code>, dowolnej
+            przyszłej daty i <code className="rounded bg-black/20 px-1">CVC 123</code>. Po zakupie sprawdź{" "}
+            <Link className="text-primary underline" href="/biblioteka">
+              bibliotekę
+            </Link>
+            {health?.webhookConfigured === false
+              ? " (webhook nieustawiony — success page sam zapisze order)"
+              : ""}
+            .
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }
