@@ -235,35 +235,44 @@ export async function fulfillCheckoutSession(
     stripe_customer_id: customerId,
   };
 
-  const { data: order, error: orderError } = await supabase
+  // We already called getExistingFulfillmentResult above and know no order
+  // exists for this session, so a plain insert is both safe and avoids
+  // depending on the ON CONFLICT arbiter for orders.stripe_checkout_session_id.
+  // Migration 20260417120000 only created a **partial** unique index there,
+  // which Postgres refuses to infer as an arbiter without the matching WHERE
+  // clause — Supabase JS doesn't emit that clause, so the upsert used to
+  // blow up with 42P10 on every successful payment. Plain insert + a
+  // race-safe re-read below is the portable fix that works whether or not
+  // migration 20260422120000 (which upgrades the partial index to a full
+  // UNIQUE constraint) has been applied against this environment.
+  const orderInsert = await supabase
     .from("orders")
-    .upsert(orderPayload, {
-      onConflict: "stripe_checkout_session_id",
-      ignoreDuplicates: false,
-    })
+    .insert(orderPayload)
     .select("id")
     .single();
 
+  const order = orderInsert.data;
+  const orderError = orderInsert.error;
+
   if (orderError || !order) {
-    // Postgres 42P10 = "there is no unique or exclusion constraint matching
-    // the ON CONFLICT specification". Usually means the Supabase DB is
-    // missing the unique constraint on orders.stripe_checkout_session_id —
-    // i.e. migration 20260422120000_fix_orders_upsert_conflict_target.sql
-    // was never applied against this environment. Surface that hint so
-    // whoever reads the checkout-success page (or server log) can fix it
-    // instead of guessing.
-    const baseMessage =
-      orderError?.message ?? "Nie udało się zapisać zamówienia.";
-    const needsMigrationHint =
-      typeof orderError?.code === "string" && orderError.code === "42P10";
-    throw new Error(
-      needsMigrationHint
-        ? `${baseMessage} (Postgres 42P10 — zaaplikuj migracj\u0119 20260422120000_fix_orders_upsert_conflict_target.sql przeciwko bazie Supabase.)`
-        : baseMessage,
-    );
+    // Concurrent fulfillment (e.g. webhook retry firing while the success
+    // page is also being loaded) might have inserted the same session a
+    // split second earlier. Re-read and return that existing fulfillment
+    // instead of bubbling a duplicate-key error up to the UI.
+    const raced = await getExistingFulfillmentResult(supabase, sessionId);
+
+    if (raced) {
+      await recordWebhookEvent(supabase, options.eventId, options.eventType, sessionId);
+      return raced;
+    }
+
+    throw new Error(orderError?.message ?? "Nie udało się zapisać zamówienia.");
   }
 
-  const { error: orderItemsError } = await supabase.from("order_items").upsert(
+  // Likewise plain insert here — order was just created above so there are no
+  // existing rows in order_items for this order_id, and we don't need the
+  // ON CONFLICT arbiter that the old upsert required.
+  const { error: orderItemsError } = await supabase.from("order_items").insert(
     items.map((item) => ({
       order_id: order.id,
       product_id: item.productId,
@@ -271,16 +280,18 @@ export async function fulfillCheckoutSession(
       unit_price: item.unitPrice,
       quantity: item.quantity,
     })),
-    {
-      onConflict: "order_id,product_id",
-      ignoreDuplicates: false,
-    },
   );
 
   if (orderItemsError) {
     throw new Error(orderItemsError.message);
   }
 
+  // Library items may genuinely pre-exist if the user bought the same
+  // product earlier — keep the upsert so a repeat purchase just refreshes
+  // the existing row's order_id. library_items has an inline
+  //   unique (user_id, product_id)
+  // constraint declared in CREATE TABLE (migration 20260417223000), so the
+  // ON CONFLICT arbiter is valid without any follow-up migration.
   const { error: libraryError } = await supabase.from("library_items").upsert(
     items.map((item) => ({
       user_id: userId,
