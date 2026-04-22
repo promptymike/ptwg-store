@@ -59,6 +59,34 @@ function parseNullableString(value: FormDataEntryValue | null) {
   return normalized.length > 0 ? normalized : undefined;
 }
 
+function getRequiredString(
+  formData: FormData,
+  key: string,
+  options?: { trim?: boolean },
+) {
+  const value = formData.get(key);
+
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  return options?.trim === false ? value : value.trim();
+}
+
+function getOptionalString(
+  formData: FormData,
+  key: string,
+  options?: { trim?: boolean },
+) {
+  const value = getRequiredString(formData, key, options);
+
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  return value.length > 0 ? value : undefined;
+}
+
 async function ensureAdmin() {
   const profile = await getCurrentProfile();
 
@@ -353,27 +381,27 @@ export async function createProductAction(formData: FormData) {
     const { supabase } = await ensureAdmin();
 
     const parsed = productFormSchema.safeParse({
-      sourceId: formData.get("sourceId"),
-      name: formData.get("name"),
-      slug: formData.get("slug"),
-      categoryId: formData.get("categoryId"),
-      price: formData.get("price"),
-      compareAtPrice: parseNullableString(formData.get("compareAtPrice")),
-      shortDescription: formData.get("shortDescription"),
-      description: formData.get("description"),
-      format: formData.get("format"),
-      pages: formData.get("pages"),
-      salesLabel: formData.get("salesLabel"),
-      heroNote: formData.get("heroNote"),
-      accent: formData.get("accent"),
-      coverGradient: formData.get("coverGradient"),
-      badge: parseNullableString(formData.get("badge")) ?? null,
-      status: formData.get("status"),
-      pipelineStatus: formData.get("pipelineStatus") ?? "working",
-      sortOrder: formData.get("sortOrder"),
-      featuredOrder: formData.get("featuredOrder"),
-      tags: formData.get("tags"),
-      includes: formData.get("includes"),
+      sourceId: getOptionalString(formData, "sourceId"),
+      name: getRequiredString(formData, "name"),
+      slug: getRequiredString(formData, "slug"),
+      categoryId: getRequiredString(formData, "categoryId"),
+      price: getRequiredString(formData, "price"),
+      compareAtPrice: getOptionalString(formData, "compareAtPrice"),
+      shortDescription: getRequiredString(formData, "shortDescription"),
+      description: getRequiredString(formData, "description", { trim: false }),
+      format: getRequiredString(formData, "format"),
+      pages: getRequiredString(formData, "pages"),
+      salesLabel: getRequiredString(formData, "salesLabel"),
+      heroNote: getRequiredString(formData, "heroNote"),
+      accent: getRequiredString(formData, "accent"),
+      coverGradient: getRequiredString(formData, "coverGradient"),
+      badge: getOptionalString(formData, "badge"),
+      status: getOptionalString(formData, "status") ?? "draft",
+      pipelineStatus: getOptionalString(formData, "pipelineStatus") ?? "working",
+      sortOrder: getRequiredString(formData, "sortOrder"),
+      featuredOrder: getRequiredString(formData, "featuredOrder"),
+      tags: getOptionalString(formData, "tags", { trim: false }),
+      includes: getOptionalString(formData, "includes", { trim: false }),
       bestseller: parseCheckbox(formData.get("bestseller")),
       featured: parseCheckbox(formData.get("featured")),
       isActive: parseCheckbox(formData.get("isActive")),
@@ -545,28 +573,28 @@ export async function updateProductAction(formData: FormData) {
     const { supabase } = await ensureAdmin();
 
     const parsed = productFormSchema.safeParse({
-      productId: formData.get("productId"),
-      sourceId: formData.get("sourceId"),
-      name: formData.get("name"),
-      slug: formData.get("slug"),
-      categoryId: formData.get("categoryId"),
-      price: formData.get("price"),
-      compareAtPrice: parseNullableString(formData.get("compareAtPrice")),
-      shortDescription: formData.get("shortDescription"),
-      description: formData.get("description"),
-      format: formData.get("format"),
-      pages: formData.get("pages"),
-      salesLabel: formData.get("salesLabel"),
-      heroNote: formData.get("heroNote"),
-      accent: formData.get("accent"),
-      coverGradient: formData.get("coverGradient"),
-      badge: parseNullableString(formData.get("badge")) ?? null,
-      status: formData.get("status"),
-      pipelineStatus: formData.get("pipelineStatus") ?? "working",
-      sortOrder: formData.get("sortOrder"),
-      featuredOrder: formData.get("featuredOrder"),
-      tags: formData.get("tags"),
-      includes: formData.get("includes"),
+      productId: getOptionalString(formData, "productId"),
+      sourceId: getOptionalString(formData, "sourceId"),
+      name: getRequiredString(formData, "name"),
+      slug: getRequiredString(formData, "slug"),
+      categoryId: getRequiredString(formData, "categoryId"),
+      price: getRequiredString(formData, "price"),
+      compareAtPrice: getOptionalString(formData, "compareAtPrice"),
+      shortDescription: getRequiredString(formData, "shortDescription"),
+      description: getRequiredString(formData, "description", { trim: false }),
+      format: getRequiredString(formData, "format"),
+      pages: getRequiredString(formData, "pages"),
+      salesLabel: getRequiredString(formData, "salesLabel"),
+      heroNote: getRequiredString(formData, "heroNote"),
+      accent: getRequiredString(formData, "accent"),
+      coverGradient: getRequiredString(formData, "coverGradient"),
+      badge: getOptionalString(formData, "badge"),
+      status: getOptionalString(formData, "status") ?? "draft",
+      pipelineStatus: getOptionalString(formData, "pipelineStatus") ?? "working",
+      sortOrder: getRequiredString(formData, "sortOrder"),
+      featuredOrder: getRequiredString(formData, "featuredOrder"),
+      tags: getOptionalString(formData, "tags", { trim: false }),
+      includes: getOptionalString(formData, "includes", { trim: false }),
       bestseller: parseCheckbox(formData.get("bestseller")),
       featured: parseCheckbox(formData.get("featured")),
       isActive: parseCheckbox(formData.get("isActive")),
