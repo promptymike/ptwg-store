@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
+import { AccountQuickLinks } from "@/components/account/account-quick-links";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { formatCurrency, formatOrderStatus } from "@/lib/format";
@@ -41,7 +42,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         <EmptyState
           badge="Konto użytkownika"
           title="Nie udało się pobrać profilu"
-          description="Nie udało się wczytać Twojego profilu. Odśwież stronę lub zaloguj się ponownie — jeśli problem wróci, napisz do nas na kontakt@templify.store."
+          description="Nie udało się wczytać Twojego profilu. Odśwież stronę lub zaloguj się ponownie. Jeśli problem wróci, napisz do nas na kontakt@templify.store."
           action={{ href: "/produkty", label: "Wróć do sklepu" }}
         />
       </div>
@@ -50,7 +51,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
 
   return (
     <div className="shell section-space space-y-6">
-      <section className="surface-panel space-y-6 p-6 sm:p-8">
+      <section id="profil" className="surface-panel space-y-6 p-6 sm:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-3">
             <span className="eyebrow">Konto</span>
@@ -59,8 +60,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 {profile.full_name ?? "Twoje konto"}
               </h1>
               <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
-                Tutaj znajdziesz swoje zamówienia, stan biblioteki i szybki dostęp do pobranych
-                plików. Wszystko w jednym miejscu, zawsze pod ręką.
+                Tutaj znajdziesz bibliotekę produktów, historię zamówień i podstawowe informacje o
+                koncie. To jest Twoje główne miejsce po zakupie.
               </p>
             </div>
           </div>
@@ -82,10 +83,16 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </article>
         </div>
 
+        <AccountQuickLinks
+          libraryCount={snapshot.libraryCount}
+          orderCount={snapshot.orders.length}
+          email={profile.email}
+        />
+
         {resolvedSearchParams.denied ? (
           <div className="rounded-[1.4rem] border border-primary/20 bg-primary/10 p-4 text-sm text-muted-foreground">
-            To konto nie ma uprawnień administracyjnych. Jeśli uważasz, że to pomyłka, napisz
-            do nas na kontakt@templify.store.
+            To konto nie ma uprawnień administracyjnych. Jeśli uważasz, że to pomyłka, napisz do
+            nas na kontakt@templify.store.
           </div>
         ) : null}
 
@@ -107,12 +114,12 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         </div>
       </section>
 
-      <section className="surface-panel space-y-5 p-6">
+      <section id="zamowienia" className="surface-panel space-y-5 p-6">
         <div className="space-y-2">
           <h2 className="text-2xl text-foreground">Ostatnie zamówienia</h2>
           <p className="text-sm text-muted-foreground">
-            Każde zakończone zamówienie pojawia się tutaj automatycznie — razem z fakturą VAT
-            wysłaną na Twój e-mail.
+            Każde zakończone zamówienie pojawia się tutaj automatycznie razem z historią płatności
+            i dostępem do produktów w bibliotece.
           </p>
         </div>
 

@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CheckCircle2, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { CheckCircle2, Download, LibraryBig, ShieldCheck, Sparkles, Zap } from "lucide-react";
 
 import { AnalyticsProductView } from "@/components/analytics/analytics-product-view";
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
@@ -10,9 +10,12 @@ import { ProductCard } from "@/components/products/product-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
+import { getCurrentUser } from "@/lib/session";
 import { getCanonicalUrl } from "@/lib/seo";
 import {
   getFaqSnapshot,
+  getOwnedProductAccess,
+  getOwnedProductBySlug,
   getRelatedStoreProducts,
   getStoreProductBySlug,
 } from "@/lib/supabase/store";
@@ -78,16 +81,27 @@ export async function generateMetadata({
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = await getStoreProductBySlug(slug);
+  const user = await getCurrentUser();
+
+  const publicProduct = await getStoreProductBySlug(slug);
+  const ownedFallback =
+    !publicProduct && user ? await getOwnedProductBySlug(user.id, slug) : null;
+  const product = publicProduct ?? ownedFallback;
 
   if (!product) {
     notFound();
   }
 
-  const [relatedProducts, faqs] = await Promise.all([
+  const [relatedProducts, faqs, ownedAccess] = await Promise.all([
     getRelatedStoreProducts(product),
     getFaqSnapshot(),
+    user ? getOwnedProductAccess(user.id, product.id) : Promise.resolve(null),
   ]);
+  const hasOwnedAccess = Boolean(ownedAccess);
+  const ownedDownloadHref =
+    hasOwnedAccess && ownedAccess?.filePath
+      ? `/api/library/${product.id}/download`
+      : null;
 
   const productStructuredData = {
     "@context": "https://schema.org",
@@ -150,9 +164,16 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               >
                 {product.category}
               </Badge>
-              <Badge variant="outline" className="border-foreground/15 bg-background/70 text-foreground">
-                {product.format}
-              </Badge>
+              <div className="flex items-center gap-2">
+                {hasOwnedAccess ? (
+                  <Badge variant="outline" className="border-primary/20 bg-primary/12 text-primary">
+                    Kupione
+                  </Badge>
+                ) : null}
+                <Badge variant="outline" className="border-foreground/15 bg-background/70 text-foreground">
+                  {product.format}
+                </Badge>
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -180,10 +201,44 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                   {product.badge}
                 </span>
               ) : null}
+              {ownedAccess?.updateLabel ? (
+                <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1 text-foreground">
+                  {ownedAccess.updateLabel}
+                </span>
+              ) : null}
             </div>
 
             <p className="text-lg leading-8 text-muted-foreground">{product.description}</p>
           </div>
+
+          {hasOwnedAccess ? (
+            <div className="rounded-[1.7rem] border border-primary/20 bg-primary/10 p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline" className="border-primary/20 bg-background/70 text-primary">
+                      Kupione
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      Masz już ten produkt na swoim koncie.
+                    </span>
+                  </div>
+                  <p className="max-w-xl text-sm leading-7 text-muted-foreground">
+                    Produkt jest przypisany do Twojej biblioteki. Możesz pobrać plik od razu albo
+                    wrócić do biblioteki i otworzyć pozostałe zakupy.
+                  </p>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <p>Pobrań: {ownedAccess?.downloadCount ?? 0}</p>
+                  <p>
+                    {ownedAccess?.lastDownloadedAt
+                      ? `Ostatnio pobrano ${new Date(ownedAccess.lastDownloadedAt).toLocaleDateString("pl-PL")}`
+                      : "Jeszcze nie pobrano"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           <div className="grid gap-3 sm:grid-cols-3">
             {trustItems.map((item) => (
@@ -223,25 +278,44 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 ) : null}
               </div>
               <p className="max-w-xs text-sm text-muted-foreground">
-                Produkt cyfrowy. Po zakupie pliki pojawią się w Twojej bibliotece natychmiast —
-                bez czekania i bez wysyłki.
+                {hasOwnedAccess
+                  ? "Zakup jest już przypisany do Twojego konta. Pobieranie działa tylko dla zalogowanego właściciela produktu."
+                  : "Produkt cyfrowy. Po zakupie pliki pojawią się w Twojej bibliotece natychmiast, bez czekania i bez wysyłki."}
               </p>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <AddToCartButton
-              product={{
-                id: product.id,
-                slug: product.slug,
-                name: product.name,
-                category: product.category,
-                shortDescription: product.shortDescription,
-                price: product.price,
-                coverGradient: product.coverGradient,
-              }}
-              fullWidth
-            />
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            {hasOwnedAccess ? (
+              <>
+                {ownedDownloadHref ? (
+                  <Button
+                    size="lg"
+                    render={<Link href={ownedDownloadHref} />}
+                  >
+                    <Download className="size-4" />
+                    Pobierz teraz
+                  </Button>
+                ) : null}
+                <Button size="lg" variant="outline" render={<Link href="/biblioteka" />}>
+                  <LibraryBig className="size-4" />
+                  Otwórz w bibliotece
+                </Button>
+              </>
+            ) : (
+              <AddToCartButton
+                product={{
+                  id: product.id,
+                  slug: product.slug,
+                  name: product.name,
+                  category: product.category,
+                  shortDescription: product.shortDescription,
+                  price: product.price,
+                  coverGradient: product.coverGradient,
+                }}
+                fullWidth
+              />
+            )}
             <Button variant="outline" size="lg" render={<Link href="/produkty" />}>
               Wróć do katalogu
             </Button>
@@ -316,19 +390,36 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             <p className="truncate text-sm text-muted-foreground">{product.name}</p>
             <p className="text-lg font-semibold text-foreground">{formatCurrency(product.price)}</p>
           </div>
-          <div className="w-[200px]">
-            <AddToCartButton
-              product={{
-                id: product.id,
-                slug: product.slug,
-                name: product.name,
-                category: product.category,
-                shortDescription: product.shortDescription,
-                price: product.price,
-                coverGradient: product.coverGradient,
-              }}
-              fullWidth
-            />
+          <div className="w-[220px]">
+            {hasOwnedAccess ? (
+              ownedDownloadHref ? (
+                <Button
+                  className="w-full"
+                  render={<Link href={ownedDownloadHref} />}
+                >
+                  <Download className="size-4" />
+                  Pobierz teraz
+                </Button>
+              ) : (
+                <Button className="w-full" variant="outline" render={<Link href="/biblioteka" />}>
+                  <LibraryBig className="size-4" />
+                  Biblioteka
+                </Button>
+              )
+            ) : (
+              <AddToCartButton
+                product={{
+                  id: product.id,
+                  slug: product.slug,
+                  name: product.name,
+                  category: product.category,
+                  shortDescription: product.shortDescription,
+                  price: product.price,
+                  coverGradient: product.coverGradient,
+                }}
+                fullWidth
+              />
+            )}
           </div>
         </div>
       </div>

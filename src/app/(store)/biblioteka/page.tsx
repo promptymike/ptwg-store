@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Download, LibraryBig } from "lucide-react";
 
+import { LibraryGrid } from "@/components/account/library-grid";
 import { EmptyState } from "@/components/shared/empty-state";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/session";
 import { getLibrarySnapshot } from "@/lib/supabase/store";
 
@@ -54,17 +58,31 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
     redirect("/logowanie?next=/biblioteka");
   }
 
-  const items = await getLibrarySnapshot(user.id);
+  const snapshot = await getLibrarySnapshot(user.id);
 
-  if (items.length === 0) {
+  if (snapshot.error) {
     return (
       <div className="shell section-space space-y-6">
         <LibraryNotice type={status.type} message={status.message} />
         <EmptyState
           badge="Moja biblioteka"
-          title="Biblioteka jest jeszcze pusta"
-          description="Po pierwszym zakupie produkt pojawi się tutaj automatycznie z bezpiecznym linkiem pobrania."
-          action={{ href: "/produkty", label: "Wróć do zakupów" }}
+          title="Nie udało się wczytać biblioteki"
+          description="Nie mogliśmy pobrać Twoich zakupionych produktów. Odśwież stronę lub spróbuj ponownie za chwilę."
+          action={{ href: "/produkty", label: "Przejdź do katalogu" }}
+        />
+      </div>
+    );
+  }
+
+  if (snapshot.items.length === 0) {
+    return (
+      <div className="shell section-space space-y-6">
+        <LibraryNotice type={status.type} message={status.message} />
+        <EmptyState
+          badge="Moja biblioteka"
+          title="Nie masz jeszcze żadnych produktów"
+          description="Po pierwszym zakupie produkt pojawi się tutaj automatycznie, razem z bezpiecznym linkiem pobrania i szybkim powrotem do karty produktu."
+          action={{ href: "/produkty", label: "Przejdź do katalogu" }}
         />
       </div>
     );
@@ -74,65 +92,57 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
     <div className="shell section-space space-y-6">
       <LibraryNotice type={status.type} message={status.message} />
 
-      <div className="space-y-3">
-        <span className="eyebrow">Moja biblioteka</span>
-        <div>
-          <h1 className="text-4xl text-foreground sm:text-5xl">Twoje produkty cyfrowe</h1>
-          <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
-            Twoje pliki są przypisane do konta — tylko Ty masz do nich dostęp. Możesz pobierać
-            je bez limitów, kiedy tylko ich potrzebujesz.
-          </p>
+      <section className="surface-panel overflow-hidden p-6 sm:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-3">
+            <span className="eyebrow">Moja biblioteka</span>
+            <div>
+              <h1 className="text-4xl text-foreground sm:text-5xl">Twoje zakupione produkty</h1>
+              <p className="mt-3 max-w-3xl text-sm text-muted-foreground sm:text-base">
+                Wszystkie kupione pliki, aktualizacje i szybki powrót do kart produktów masz w
+                jednym miejscu. Tylko zalogowane konto z zakupem widzi te materiały.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-[1.4rem] border border-border/70 bg-background/60 px-5 py-5">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-primary/75">Pozycje</p>
+              <p className="mt-3 text-2xl text-foreground">{snapshot.items.length}</p>
+            </div>
+            <div className="rounded-[1.4rem] border border-border/70 bg-background/60 px-5 py-5">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-primary/75">
+                Gotowe do pobrania
+              </p>
+              <p className="mt-3 text-2xl text-foreground">
+                {snapshot.items.filter((item) => item.filePath).length}
+              </p>
+            </div>
+          </div>
         </div>
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary">
+            <LibraryBig className="mr-2 size-3.5" />
+            Konto chroni dostęp do Twoich plików
+          </Badge>
+          <Badge variant="outline" className="border-border/70 bg-background/60 text-foreground">
+            <Download className="mr-2 size-3.5" />
+            Pobranie działa tylko dla zakupionych produktów
+          </Badge>
+        </div>
+      </section>
+
+      <div className="flex flex-wrap gap-3">
+        <Button variant="outline" render={<Link href="/konto" />}>
+          Wróć do konta
+        </Button>
+        <Button variant="outline" render={<Link href="/produkty" />}>
+          Przeglądaj katalog
+        </Button>
       </div>
 
-      <div className="grid gap-4">
-        {items.map((item) => (
-          <article
-            key={item.id}
-            className="surface-panel flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-[0.22em] text-primary/75">
-                {item.category}
-              </p>
-              <h2 className="text-2xl text-foreground">{item.name}</h2>
-              <p className="max-w-2xl text-sm text-muted-foreground">
-                {item.shortDescription}
-              </p>
-              <p className="text-xs uppercase tracking-[0.18em] text-primary/70">
-                {item.format} • dodano {new Date(item.createdAt).toLocaleDateString("pl-PL")}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Pobrania: {item.downloadCount}
-                {item.lastDownloadedAt
-                  ? ` • ostatnio ${new Date(item.lastDownloadedAt).toLocaleDateString("pl-PL")}`
-                  : " • jeszcze nie pobrano"}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href={`/produkty/${item.slug}`}
-                className="rounded-full border border-border/70 bg-background/60 px-5 py-3 text-sm font-semibold text-foreground transition hover:border-primary/30"
-              >
-                Zobacz produkt
-              </Link>
-              {item.filePath ? (
-                <Link
-                  href={`/api/library/${item.productId}/download`}
-                  className="rounded-full border border-primary/30 bg-primary/12 px-5 py-3 text-sm font-semibold text-foreground transition hover:bg-primary/18"
-                >
-                  Pobierz plik
-                </Link>
-              ) : (
-                <span className="rounded-full border border-border/70 bg-background/60 px-5 py-3 text-sm font-semibold text-muted-foreground">
-                  Plik nie został jeszcze dodany
-                </span>
-              )}
-            </div>
-          </article>
-        ))}
-      </div>
+      <LibraryGrid items={snapshot.items} />
     </div>
   );
 }
