@@ -284,7 +284,10 @@ export function AdminProductForm({
       className={className}
       onSubmit={handleSubmit}
     >
-      <fieldset disabled={isUploading} className="space-y-4">
+      <fieldset
+        aria-busy={isUploading}
+        className={`space-y-4 ${isUploading ? "opacity-80" : ""}`}
+      >
         {children}
       </fieldset>
 

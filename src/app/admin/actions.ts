@@ -87,6 +87,14 @@ function getOptionalString(
   return value.length > 0 ? value : undefined;
 }
 
+function getOptionalNumberString(
+  formData: FormData,
+  key: string,
+  options?: { trim?: boolean },
+) {
+  return getOptionalString(formData, key, options);
+}
+
 function parseJsonStringArray(value: string | undefined) {
   if (!value) {
     return [];
@@ -105,6 +113,60 @@ function parseJsonStringArray(value: string | undefined) {
   } catch {
     return [];
   }
+}
+
+function summarizePayloadValue(value: unknown) {
+  if (typeof value === "undefined") {
+    return { type: "undefined" };
+  }
+
+  if (value === null) {
+    return { type: "null" };
+  }
+
+  if (typeof value === "string") {
+    return {
+      type: "string",
+      empty: value.length === 0,
+      length: value.length,
+      preview: value.slice(0, 80),
+    };
+  }
+
+  if (typeof value === "number") {
+    return {
+      type: "number",
+      value,
+    };
+  }
+
+  if (typeof value === "boolean") {
+    return {
+      type: "boolean",
+      value,
+    };
+  }
+
+  if (Array.isArray(value)) {
+    return {
+      type: "array",
+      length: value.length,
+      preview: value.slice(0, 5),
+    };
+  }
+
+  return {
+    type: typeof value,
+  };
+}
+
+function logAdminPayload(scope: string, payload: Record<string, unknown>) {
+  console.info(`[admin-action:${scope}:payload]`, {
+    keys: Object.keys(payload),
+    values: Object.fromEntries(
+      Object.entries(payload).map(([key, value]) => [key, summarizePayloadValue(value)]),
+    ),
+  });
 }
 
 async function ensureAdmin() {
@@ -404,14 +466,13 @@ export async function createProductAction(formData: FormData) {
     const preuploadedPreviewPaths = parseJsonStringArray(
       getOptionalString(formData, "uploadedPreviewPaths", { trim: false }),
     );
-
-    const parsed = productFormSchema.safeParse({
+    const normalizedPayload = {
       sourceId: getOptionalString(formData, "sourceId"),
       name: getRequiredString(formData, "name"),
       slug: getRequiredString(formData, "slug"),
       categoryId: getRequiredString(formData, "categoryId"),
       price: getRequiredString(formData, "price"),
-      compareAtPrice: getOptionalString(formData, "compareAtPrice"),
+      compareAtPrice: getOptionalNumberString(formData, "compareAtPrice"),
       shortDescription: getRequiredString(formData, "shortDescription"),
       description: getRequiredString(formData, "description", { trim: false }),
       format: getRequiredString(formData, "format"),
@@ -430,7 +491,14 @@ export async function createProductAction(formData: FormData) {
       bestseller: parseCheckbox(formData.get("bestseller")),
       featured: parseCheckbox(formData.get("featured")),
       isActive: parseCheckbox(formData.get("isActive")),
-    });
+      uploadedCoverPath: preuploadedCoverPath,
+      uploadedProductFilePath: preuploadedFilePath,
+      uploadedPreviewPathsCount: preuploadedPreviewPaths.length,
+    } satisfies Record<string, unknown>;
+
+    logAdminPayload("create-product", normalizedPayload);
+
+    const parsed = productFormSchema.safeParse(normalizedPayload);
 
     if (!parsed.success) {
       throw new Error(parsed.error.issues[0]?.message ?? "Niepoprawne dane produktu.");
@@ -617,15 +685,14 @@ export async function updateProductAction(formData: FormData) {
     const preuploadedPreviewPaths = parseJsonStringArray(
       getOptionalString(formData, "uploadedPreviewPaths", { trim: false }),
     );
-
-    const parsed = productFormSchema.safeParse({
+    const normalizedPayload = {
       productId: getOptionalString(formData, "productId"),
       sourceId: getOptionalString(formData, "sourceId"),
       name: getRequiredString(formData, "name"),
       slug: getRequiredString(formData, "slug"),
       categoryId: getRequiredString(formData, "categoryId"),
       price: getRequiredString(formData, "price"),
-      compareAtPrice: getOptionalString(formData, "compareAtPrice"),
+      compareAtPrice: getOptionalNumberString(formData, "compareAtPrice"),
       shortDescription: getRequiredString(formData, "shortDescription"),
       description: getRequiredString(formData, "description", { trim: false }),
       format: getRequiredString(formData, "format"),
@@ -644,7 +711,14 @@ export async function updateProductAction(formData: FormData) {
       bestseller: parseCheckbox(formData.get("bestseller")),
       featured: parseCheckbox(formData.get("featured")),
       isActive: parseCheckbox(formData.get("isActive")),
-    });
+      uploadedCoverPath: preuploadedCoverPath,
+      uploadedProductFilePath: preuploadedFilePath,
+      uploadedPreviewPathsCount: preuploadedPreviewPaths.length,
+    } satisfies Record<string, unknown>;
+
+    logAdminPayload("update-product", normalizedPayload);
+
+    const parsed = productFormSchema.safeParse(normalizedPayload);
 
     if (!parsed.success || !parsed.data.productId) {
       throw new Error(parsed.error?.issues[0]?.message ?? "Niepoprawne dane produktu.");
