@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { createProductAction } from "@/app/admin/actions";
+import { AdminProductForm } from "@/components/admin/admin-product-form";
 import { AdminSubmitButton } from "@/components/admin/admin-submit-button";
 import { FileDropzone } from "@/components/admin/file-dropzone";
 import { Input } from "@/components/ui/input";
@@ -309,10 +310,9 @@ export function AdminProductSourcesManager({
                             Utwórz produkt na bazie tego pliku
                           </summary>
 
-                          <form
+                          <AdminProductForm
                             action={createProductAction}
                             className="mt-4 space-y-4"
-                            encType="multipart/form-data"
                           >
                             <input type="hidden" name="sourceId" value={safeText(source.id)} />
                             <input type="hidden" name="returnPath" value="/admin/import" />
@@ -430,7 +430,7 @@ export function AdminProductSourcesManager({
                                 <span className="text-sm text-foreground">Plik produktu</span>
                                 <FileDropzone
                                   name="productFile"
-                                  accept=".pdf,.zip,.png,.jpg,.jpeg,.webp,application/pdf,application/zip"
+                                  accept=".pdf,.zip,application/pdf,application/zip,application/x-zip-compressed"
                                   label="Dodaj finalny plik"
                                   hint="PDF lub ZIP, do 50 MB"
                                   maxSizeMb={50}
@@ -442,7 +442,7 @@ export function AdminProductSourcesManager({
                               idleLabel="Utwórz produkt z tego źródła"
                               pendingLabel="Tworzenie produktu..."
                             />
-                          </form>
+                          </AdminProductForm>
                         </details>
                       )
                     ) : null}

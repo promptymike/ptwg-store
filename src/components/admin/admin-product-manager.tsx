@@ -8,6 +8,7 @@ import {
   updateProductAction,
   updateProductPreviewAction,
 } from "@/app/admin/actions";
+import { AdminProductForm } from "@/components/admin/admin-product-form";
 import { AdminSubmitButton } from "@/components/admin/admin-submit-button";
 import { FileDropzone } from "@/components/admin/file-dropzone";
 import { Input } from "@/components/ui/input";
@@ -436,7 +437,7 @@ function ProductFormFields({
         <span className="text-sm text-foreground">Plik cyfrowy</span>
         <FileDropzone
           name="productFile"
-          accept=".pdf,.zip,.png,.jpg,.jpeg,.webp,application/pdf,application/zip"
+          accept=".pdf,.zip,application/pdf,application/zip,application/x-zip-compressed"
           label="Upuść plik produktu"
           hint="PDF lub ZIP, do 50 MB"
           maxSizeMb={50}
@@ -505,11 +506,7 @@ function PreviewManager({ product }: { product: ProductRecord }) {
         </span>
       </div>
 
-      <form
-        action={createProductPreviewAction}
-        className="space-y-3"
-        encType="multipart/form-data"
-      >
+      <form action={createProductPreviewAction} className="space-y-3">
         <input type="hidden" name="productId" value={product.id} />
         <div className="grid gap-3 lg:grid-cols-[1fr_160px]">
           <Input name="altText" placeholder="Alt tekst preview" />
@@ -674,18 +671,14 @@ export function AdminProductManager({
             Najpierw dodaj co najmniej jedną kategorię w sekcji kategorii.
           </p>
         ) : (
-          <form
-            action={createProductAction}
-            className="space-y-4"
-            encType="multipart/form-data"
-          >
+          <AdminProductForm action={createProductAction} className="space-y-4">
             <ProductFormFields categories={categories} />
             <AdminSubmitButton
               idleLabel="Utwórz produkt"
               pendingLabel="Tworzenie produktu..."
               className="w-full"
             />
-          </form>
+          </AdminProductForm>
         )}
       </section>
 
@@ -769,10 +762,9 @@ export function AdminProductManager({
                     </summary>
 
                     <div className="mt-4 space-y-4">
-                      <form
+                      <AdminProductForm
                         action={updateProductAction}
                         className="space-y-4"
-                        encType="multipart/form-data"
                       >
                         <input type="hidden" name="productId" value={product.id} />
                         <input type="hidden" name="returnPath" value="/admin/produkty" />
@@ -781,7 +773,7 @@ export function AdminProductManager({
                           idleLabel="Zapisz zmiany"
                           pendingLabel="Zapisywanie..."
                         />
-                      </form>
+                      </AdminProductForm>
 
                       <PreviewManager product={product} />
 

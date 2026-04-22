@@ -87,6 +87,26 @@ function getOptionalString(
   return value.length > 0 ? value : undefined;
 }
 
+function parseJsonStringArray(value: string | undefined) {
+  if (!value) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed.filter(
+      (item): item is string => typeof item === "string" && item.length > 0,
+    );
+  } catch {
+    return [];
+  }
+}
+
 async function ensureAdmin() {
   const profile = await getCurrentProfile();
 
@@ -128,13 +148,15 @@ async function uploadProductAssets(params: {
   slug: string;
   coverFile?: File | null;
   productFile?: File | null;
+  uploadedCoverPath?: string | null;
+  uploadedFilePath?: string | null;
   previousCoverPath?: string | null;
   previousFilePath?: string | null;
 }) {
-  let coverPath = params.previousCoverPath ?? null;
-  let filePath = params.previousFilePath ?? null;
+  let coverPath = params.uploadedCoverPath ?? params.previousCoverPath ?? null;
+  let filePath = params.uploadedFilePath ?? params.previousFilePath ?? null;
 
-  if (params.coverFile && params.coverFile.size > 0) {
+  if (!params.uploadedCoverPath && params.coverFile && params.coverFile.size > 0) {
     const validationError = validateUploadFile("cover", params.coverFile);
 
     if (validationError) {
@@ -154,14 +176,10 @@ async function uploadProductAssets(params: {
       throw new Error(`Nie udało się wgrać okładki: ${uploadResult.error.message}`);
     }
 
-    if (coverPath && coverPath !== nextCoverPath) {
-      await removeStorageFile(PRODUCT_COVERS_BUCKET, coverPath);
-    }
-
     coverPath = nextCoverPath;
   }
 
-  if (params.productFile && params.productFile.size > 0) {
+  if (!params.uploadedFilePath && params.productFile && params.productFile.size > 0) {
     const validationError = validateUploadFile("product", params.productFile);
 
     if (validationError) {
@@ -181,10 +199,6 @@ async function uploadProductAssets(params: {
       throw new Error(
         `Nie udało się wgrać pliku produktu: ${uploadResult.error.message}`,
       );
-    }
-
-    if (filePath && filePath !== nextFilePath) {
-      await removeStorageFile(PRODUCT_FILES_BUCKET, filePath);
     }
 
     filePath = nextFilePath;
@@ -379,6 +393,17 @@ export async function createProductAction(formData: FormData) {
 
   try {
     const { supabase } = await ensureAdmin();
+    const preuploadedCoverPath = getOptionalString(formData, "uploadedCoverPath", {
+      trim: false,
+    });
+    const preuploadedFilePath = getOptionalString(
+      formData,
+      "uploadedProductFilePath",
+      { trim: false },
+    );
+    const preuploadedPreviewPaths = parseJsonStringArray(
+      getOptionalString(formData, "uploadedPreviewPaths", { trim: false }),
+    );
 
     const parsed = productFormSchema.safeParse({
       sourceId: getOptionalString(formData, "sourceId"),
@@ -456,24 +481,34 @@ export async function createProductAction(formData: FormData) {
       slug: product.slug,
       coverFile: coverFile instanceof File ? coverFile : null,
       productFile: productFile instanceof File ? productFile : null,
+      uploadedCoverPath: preuploadedCoverPath ?? null,
+      uploadedFilePath: preuploadedFilePath ?? null,
     });
     uploadedCoverPath = assets.coverPath;
     uploadedFilePath = assets.filePath;
 
     const previewFiles = formData.getAll("previewFiles");
-    const previewUploads = await Promise.all(
-      previewFiles
-        .filter((file): file is File => file instanceof File && file.size > 0)
-        .map(async (file, index) => ({
-          storage_path: await uploadProductPreview({
-            productId: product.id,
-            previewFile: file,
-          }),
-          alt_text: `Preview ${index + 1}`,
-          sort_order: index,
-          product_id: product.id,
-        })),
-    );
+    const previewUploads = [
+      ...preuploadedPreviewPaths.map((storagePath, index) => ({
+        storage_path: storagePath,
+        alt_text: `Preview ${index + 1}`,
+        sort_order: index,
+        product_id: product.id,
+      })),
+      ...(await Promise.all(
+        previewFiles
+          .filter((file): file is File => file instanceof File && file.size > 0)
+          .map(async (file, index) => ({
+            storage_path: await uploadProductPreview({
+              productId: product.id,
+              previewFile: file,
+            }),
+            alt_text: `Preview ${preuploadedPreviewPaths.length + index + 1}`,
+            sort_order: preuploadedPreviewPaths.length + index,
+            product_id: product.id,
+          })),
+      )),
+    ];
     uploadedPreviewPaths = previewUploads.map((preview) => preview.storage_path);
 
     const { error: updateError } = await supabase
@@ -571,6 +606,17 @@ export async function updateProductAction(formData: FormData) {
 
   try {
     const { supabase } = await ensureAdmin();
+    const preuploadedCoverPath = getOptionalString(formData, "uploadedCoverPath", {
+      trim: false,
+    });
+    const preuploadedFilePath = getOptionalString(
+      formData,
+      "uploadedProductFilePath",
+      { trim: false },
+    );
+    const preuploadedPreviewPaths = parseJsonStringArray(
+      getOptionalString(formData, "uploadedPreviewPaths", { trim: false }),
+    );
 
     const parsed = productFormSchema.safeParse({
       productId: getOptionalString(formData, "productId"),
@@ -621,6 +667,8 @@ export async function updateProductAction(formData: FormData) {
       slug: parsed.data.slug,
       coverFile: coverFile instanceof File ? coverFile : null,
       productFile: productFile instanceof File ? productFile : null,
+      uploadedCoverPath: preuploadedCoverPath ?? null,
+      uploadedFilePath: preuploadedFilePath ?? null,
       previousCoverPath: existingProduct.cover_path,
       previousFilePath: existingProduct.file_path,
     });
@@ -668,19 +716,27 @@ export async function updateProductAction(formData: FormData) {
     productUpdated = true;
 
     const previewFiles = formData.getAll("previewFiles");
-    const previewUploads = await Promise.all(
-      previewFiles
-        .filter((file): file is File => file instanceof File && file.size > 0)
-        .map(async (file, index) => ({
-          storage_path: await uploadProductPreview({
-            productId: existingProduct.id,
-            previewFile: file,
-          }),
-          alt_text: `Preview ${index + 1}`,
-          sort_order: Date.now() + index,
-          product_id: existingProduct.id,
-        })),
-    );
+    const previewUploads = [
+      ...preuploadedPreviewPaths.map((storagePath, index) => ({
+        storage_path: storagePath,
+        alt_text: `Preview ${index + 1}`,
+        sort_order: Date.now() + index,
+        product_id: existingProduct.id,
+      })),
+      ...(await Promise.all(
+        previewFiles
+          .filter((file): file is File => file instanceof File && file.size > 0)
+          .map(async (file, index) => ({
+            storage_path: await uploadProductPreview({
+              productId: existingProduct.id,
+              previewFile: file,
+            }),
+            alt_text: `Preview ${preuploadedPreviewPaths.length + index + 1}`,
+            sort_order: Date.now() + preuploadedPreviewPaths.length + index,
+            product_id: existingProduct.id,
+          })),
+      )),
+    ];
     uploadedPreviewPaths = previewUploads.map((preview) => preview.storage_path);
 
     if (previewUploads.length > 0) {
@@ -719,6 +775,17 @@ export async function updateProductAction(formData: FormData) {
     revalidatePath(returnPath);
     revalidateStorefront(existingProduct.slug);
     revalidateStorefront(parsed.data.slug);
+
+    await cleanupProductFiles({
+      coverPath:
+        replacedCoverPath && replacedCoverPath !== existingProduct.cover_path
+          ? existingProduct.cover_path
+          : null,
+      filePath:
+        replacedFilePath && replacedFilePath !== existingProduct.file_path
+          ? existingProduct.file_path
+          : null,
+    });
   } catch (error) {
     logAdminActionError("update-product", error, {
       returnPath,
