@@ -56,6 +56,20 @@ npx supabase gen types typescript --linked --schema public | Out-File -FilePath 
 3. `Table Editor`: sprawdź tabele:
    `profiles`, `admin_allowlist`, `categories`, `products`, `product_previews`, `orders`, `order_items`, `library_items`, `site_sections`, `content_pages`, `faq_items`, `testimonials`.
 4. Jeśli chcesz testować bez potwierdzenia maila, wyłącz `Confirm email`.
+5. `Authentication > URL Configuration` — KRYTYCZNE dla produkcji:
+   - `Site URL`: ustaw na produkcyjny origin (np. `https://templify.store`).
+     Jeśli zostanie `http://localhost:3000`, wszystkie linki z maili
+     (potwierdzenie konta, reset hasła, magic link) przeniosą użytkownika
+     na localhost.
+   - `Redirect URLs`: dodaj wszystkie środowiska, z których aplikacja
+     wywołuje `signUp` / `resend` / `resetPasswordForEmail`:
+     - `https://templify.store/**`
+     - `https://templify.store/auth/callback`
+     - (dev) `http://localhost:3000/**`
+     - (preview) URL-e Vercela, z których testujecie.
+   - Supabase akceptuje parametr `emailRedirectTo` tylko gdy jego origin
+     jest na allowliście. W przeciwnym razie cicho podmienia redirect na
+     `Site URL`, co rozjeżdża flow rejestracji.
 
 ## Auth i role
 

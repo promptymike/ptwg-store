@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import type { AuthError } from "@supabase/supabase-js";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getAuthCallbackUrl } from "@/lib/auth-url";
 import { getMissingSupabaseEnv } from "@/lib/env";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { loginSchema, registerSchema } from "@/lib/validations/auth";
@@ -12,18 +14,128 @@ import { loginSchema, registerSchema } from "@/lib/validations/auth";
 type AuthCardProps = {
   mode: "login" | "register";
   nextPath?: string;
+  initialFeedback?: string | null;
 };
+
+type FeedbackTone = "info" | "error" | "success";
+
+type Feedback = {
+  message: string;
+  tone: FeedbackTone;
+  showResend?: boolean;
+};
+
+/**
+ * Dopasowuje surowy komunikat Supabase do stabilnego kodu używanego przez UI.
+ * Supabase zwraca kody w `AuthError.code` dopiero od nowszych SDK, więc
+ * dublujemy logikę przez prosty match po `message`.
+ */
+function categorizeAuthError(error: AuthError | Error): {
+  code: "invalid_credentials" | "email_not_confirmed" | "rate_limited" | "user_already_registered" | "unknown";
+  message: string;
+} {
+  const raw = error.message ?? "";
+  const lowered = raw.toLowerCase();
+
+  if (lowered.includes("email not confirmed") || lowered.includes("confirm your email")) {
+    return {
+      code: "email_not_confirmed",
+      message:
+        "Twój adres e-mail nie został jeszcze potwierdzony. Sprawdź skrzynkę i kliknij link aktywacyjny, albo wyślij go ponownie.",
+    };
+  }
+
+  if (lowered.includes("invalid login credentials") || lowered.includes("invalid credentials")) {
+    return {
+      code: "invalid_credentials",
+      message: "Nieprawidłowy adres e-mail lub hasło.",
+    };
+  }
+
+  if (lowered.includes("rate limit") || lowered.includes("too many")) {
+    return {
+      code: "rate_limited",
+      message:
+        "Zbyt wiele prób. Odczekaj chwilę (zwykle 30-60 sekund) i spróbuj ponownie.",
+    };
+  }
+
+  if (lowered.includes("already registered") || lowered.includes("already exists")) {
+    return {
+      code: "user_already_registered",
+      message:
+        "Konto z tym adresem już istnieje. Przejdź do logowania albo zresetuj hasło.",
+    };
+  }
+
+  return {
+    code: "unknown",
+    message: raw || "Nie udało się ukończyć operacji. Spróbuj ponownie za chwilę.",
+  };
+}
 
 export function AuthCard({
   mode,
   nextPath = "/konto",
+  initialFeedback = null,
 }: AuthCardProps) {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<Feedback | null>(
+    initialFeedback ? { message: initialFeedback, tone: "error" } : null,
+  );
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+
+  async function handleResendConfirmation() {
+    if (!email) {
+      setFeedback({
+        message: "Podaj adres e-mail, aby wysłać link aktywacyjny ponownie.",
+        tone: "error",
+      });
+      return;
+    }
+
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) {
+      return;
+    }
+
+    setIsResending(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: {
+          emailRedirectTo: getAuthCallbackUrl(nextPath),
+        },
+      });
+
+      if (error) {
+        const { message } = categorizeAuthError(error);
+        setFeedback({ message, tone: "error" });
+        return;
+      }
+
+      setFeedback({
+        message:
+          "Wysłaliśmy nowy link aktywacyjny. Sprawdź skrzynkę (także folder Spam).",
+        tone: "success",
+      });
+    } catch (error) {
+      setFeedback({
+        message:
+          error instanceof Error
+            ? error.message
+            : "Nie udało się wysłać linku. Spróbuj ponownie.",
+        tone: "error",
+      });
+    } finally {
+      setIsResending(false);
+    }
+  }
 
   async function handleSubmit() {
     setFeedback(null);
@@ -32,9 +144,11 @@ export function AuthCard({
 
     if (!supabase) {
       console.warn("Auth missing env:", getMissingSupabaseEnv().join(", "));
-      setFeedback(
-        "Logowanie jest chwilowo niedostępne. Spróbuj ponownie za chwilę lub napisz na kontakt@templify.store.",
-      );
+      setFeedback({
+        message:
+          "Logowanie jest chwilowo niedostępne. Spróbuj ponownie za chwilę lub napisz na kontakt@templify.store.",
+        tone: "error",
+      });
       return;
     }
 
@@ -45,7 +159,10 @@ export function AuthCard({
         const result = loginSchema.safeParse({ email, password });
 
         if (!result.success) {
-          setFeedback(result.error.issues[0]?.message ?? "Formularz zawiera błąd.");
+          setFeedback({
+            message: result.error.issues[0]?.message ?? "Formularz zawiera błąd.",
+            tone: "error",
+          });
           return;
         }
 
@@ -55,7 +172,13 @@ export function AuthCard({
         });
 
         if (error) {
-          throw error;
+          const { code, message } = categorizeAuthError(error);
+          setFeedback({
+            message,
+            tone: "error",
+            showResend: code === "email_not_confirmed",
+          });
+          return;
         }
 
         router.push(nextPath);
@@ -66,7 +189,10 @@ export function AuthCard({
       const result = registerSchema.safeParse({ fullName, email, password });
 
       if (!result.success) {
-        setFeedback(result.error.issues[0]?.message ?? "Formularz zawiera błąd.");
+        setFeedback({
+          message: result.error.issues[0]?.message ?? "Formularz zawiera błąd.",
+          tone: "error",
+        });
         return;
       }
 
@@ -77,12 +203,14 @@ export function AuthCard({
           data: {
             full_name: result.data.fullName,
           },
-          emailRedirectTo: `${window.location.origin}/konto`,
+          emailRedirectTo: getAuthCallbackUrl(nextPath),
         },
       });
 
       if (error) {
-        throw error;
+        const { message } = categorizeAuthError(error);
+        setFeedback({ message, tone: "error" });
+        return;
       }
 
       if (data.session) {
@@ -91,19 +219,28 @@ export function AuthCard({
         return;
       }
 
-      setFeedback(
-        "Konto zostało utworzone. Sprawdź skrzynkę e-mail i potwierdź adres, a potem zaloguj się ponownie.",
-      );
+      setFeedback({
+        message:
+          "Konto zostało utworzone. Sprawdź skrzynkę e-mail i kliknij w link aktywacyjny, aby zalogować się po raz pierwszy.",
+        tone: "success",
+      });
     } catch (error) {
-      setFeedback(
+      const message =
         error instanceof Error
-          ? error.message
-          : "Nie udało się zalogować. Spróbuj ponownie za chwilę.",
-      );
+          ? categorizeAuthError(error).message
+          : "Nie udało się ukończyć operacji. Spróbuj ponownie za chwilę.";
+      setFeedback({ message, tone: "error" });
     } finally {
       setIsLoading(false);
     }
   }
+
+  const feedbackToneClass =
+    feedback?.tone === "success"
+      ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-100"
+      : feedback?.tone === "error"
+        ? "border-red-400/30 bg-red-400/10 text-red-100"
+        : "border-primary/20 bg-primary/10 text-muted-foreground";
 
   return (
     <div className="surface-panel gold-frame mx-auto w-full max-w-xl space-y-6 p-6 sm:p-8">
@@ -149,7 +286,7 @@ export function AuthCard({
             type="email"
             onChange={(event) => setEmail(event.target.value)}
             placeholder="twoj@adres.pl"
-            autoComplete={mode === "login" ? "email" : "email"}
+            autoComplete="email"
             inputMode="email"
             spellCheck={false}
           />
@@ -180,8 +317,21 @@ export function AuthCard({
       </Button>
 
       {feedback ? (
-        <div className="rounded-[1.4rem] border border-primary/20 bg-primary/10 p-4 text-sm text-muted-foreground">
-          {feedback}
+        <div
+          className={`space-y-3 rounded-[1.4rem] border p-4 text-sm ${feedbackToneClass}`}
+        >
+          <p>{feedback.message}</p>
+          {feedback.showResend ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleResendConfirmation}
+              disabled={isResending}
+            >
+              {isResending ? "Wysyłanie..." : "Wyślij link aktywacyjny ponownie"}
+            </Button>
+          ) : null}
         </div>
       ) : null}
     </div>

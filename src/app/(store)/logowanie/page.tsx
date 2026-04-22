@@ -6,6 +6,7 @@ import { getCurrentProfile } from "@/lib/session";
 type LoginPageProps = {
   searchParams: Promise<{
     next?: string;
+    auth_error?: string;
   }>;
 };
 
@@ -17,9 +18,18 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     redirect(resolvedSearchParams.next ?? "/konto");
   }
 
+  const rawAuthError = resolvedSearchParams.auth_error?.trim();
+  const initialFeedback = rawAuthError
+    ? `Link z maila nie mógł zostać zweryfikowany (${rawAuthError}). Zaloguj się ręcznie lub poproś o wysłanie nowego linku.`
+    : null;
+
   return (
     <div className="shell section-space">
-      <AuthCard mode="login" nextPath={resolvedSearchParams.next ?? "/konto"} />
+      <AuthCard
+        mode="login"
+        nextPath={resolvedSearchParams.next ?? "/konto"}
+        initialFeedback={initialFeedback}
+      />
     </div>
   );
 }
