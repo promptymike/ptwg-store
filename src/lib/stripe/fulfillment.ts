@@ -245,7 +245,22 @@ export async function fulfillCheckoutSession(
     .single();
 
   if (orderError || !order) {
-    throw new Error(orderError?.message ?? "Nie udało się zapisać zamówienia.");
+    // Postgres 42P10 = "there is no unique or exclusion constraint matching
+    // the ON CONFLICT specification". Usually means the Supabase DB is
+    // missing the unique constraint on orders.stripe_checkout_session_id —
+    // i.e. migration 20260422120000_fix_orders_upsert_conflict_target.sql
+    // was never applied against this environment. Surface that hint so
+    // whoever reads the checkout-success page (or server log) can fix it
+    // instead of guessing.
+    const baseMessage =
+      orderError?.message ?? "Nie udało się zapisać zamówienia.";
+    const needsMigrationHint =
+      typeof orderError?.code === "string" && orderError.code === "42P10";
+    throw new Error(
+      needsMigrationHint
+        ? `${baseMessage} (Postgres 42P10 — zaaplikuj migracj\u0119 20260422120000_fix_orders_upsert_conflict_target.sql przeciwko bazie Supabase.)`
+        : baseMessage,
+    );
   }
 
   const { error: orderItemsError } = await supabase.from("order_items").upsert(
