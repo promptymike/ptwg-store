@@ -84,7 +84,7 @@ export function CookieConsentBanner() {
   return (
     <div className="fixed inset-x-0 bottom-4 z-50 px-4">
       <div className="mx-auto max-w-5xl rounded-[2rem] border border-border/80 bg-card/95 p-5 shadow-[0_30px_90px_-40px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-        <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-end">
           <div className="space-y-3">
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/75">

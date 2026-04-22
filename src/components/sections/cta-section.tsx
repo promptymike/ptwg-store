@@ -7,7 +7,7 @@ export function CtaSection() {
   return (
     <section className="shell section-space pt-0">
       <div className="surface-panel overflow-hidden p-6 sm:p-8 lg:p-12">
-        <div className="grid gap-8 xl:grid-cols-[1.08fr_0.92fr] xl:items-center">
+        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] xl:items-center">
           <div className="space-y-4">
             <span className="eyebrow">Gotowy na spokojniejszą pracę?</span>
             <h2 className="text-balance text-4xl text-foreground sm:text-5xl">

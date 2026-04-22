@@ -28,7 +28,7 @@ export function WhyTemplifySection({
 }: WhyTemplifySectionProps) {
   return (
     <section className="shell section-space">
-      <div className="grid gap-8 xl:grid-cols-[0.92fr_1.08fr]">
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
         <SectionHeading
           badge={content.eyebrow}
           title={content.title}

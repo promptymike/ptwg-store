@@ -16,7 +16,7 @@ export function TestPromoSection() {
           className="absolute -left-20 -bottom-20 size-72 rounded-full bg-gradient-to-tr from-primary/20 to-transparent blur-3xl"
         />
 
-        <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+        <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-center">
           <div className="space-y-5">
             <span className="eyebrow">
               <Brain className="size-3.5" />

@@ -41,7 +41,7 @@ export async function SiteFooter() {
 
   return (
     <footer className="border-t border-border/60">
-      <div className="shell section-space grid gap-10 xl:grid-cols-[1.4fr_repeat(3,1fr)]">
+      <div className="shell section-space grid gap-10 xl:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
         <div className="space-y-5">
           <span className="eyebrow">Templify</span>
           <div className="space-y-3">

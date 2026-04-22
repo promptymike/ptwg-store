@@ -190,7 +190,7 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
       <section className="surface-panel space-y-6 p-6 sm:p-8">
         <div className="space-y-3">
           <span className="eyebrow">Bezpieczna płatność</span>

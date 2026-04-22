@@ -42,7 +42,7 @@ export function BundlesSection({ recommendedBundle }: BundlesSectionProps) {
 
             return (
               <article key={bundle.id} className="surface-panel p-6 sm:p-8">
-                <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
                   <div className="space-y-4">
                     <div
                       className={`h-36 rounded-[1.8rem] border border-border/70 bg-gradient-to-br ${bundle.accent}`}

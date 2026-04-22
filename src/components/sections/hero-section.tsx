@@ -34,7 +34,7 @@ export function HeroSection({ content, stats }: HeroSectionProps) {
         <div className="hero-orb -top-8 right-10 size-36 bg-primary/18" />
         <div className="hero-orb bottom-8 left-8 size-28 bg-secondary" />
 
-        <div className="relative grid gap-10 xl:grid-cols-[1.08fr_0.92fr] xl:items-center">
+        <div className="relative grid gap-10 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] xl:items-center">
           <div className="space-y-7">
             <span className="eyebrow">{content.eyebrow}</span>
             <div className="space-y-5">
