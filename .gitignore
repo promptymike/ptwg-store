@@ -56,3 +56,7 @@ node_modules/
 
 .vercel
 /audit/
+
+# Local helper scripts pull secrets from Vercel into this temp file —
+# keep it out of git so a stray commit never publishes a JWT.
+.env.vercel.tmp
