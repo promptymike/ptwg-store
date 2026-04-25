@@ -430,7 +430,9 @@ async function mapProductRow(
     compareAtPrice: normalizeNullableText(String(row.compare_at_price ?? "")) === null
       ? undefined
       : normalizeNumber(row.compare_at_price),
-    format: polishOverride?.format ?? normalizeText(row.format, "Brak formatu"),
+    // DB wins for format so admin-driven values like "Ebook" / "Planer"
+    // surface even when mock-store.ts still ships a stale "HTML" override.
+    format: normalizeText(row.format, polishOverride?.format ?? "Brak formatu"),
     pages: normalizeInteger(row.pages),
     tags: polishOverride?.tags ?? normalizeStringList(row.tags),
     rating: normalizeNumber(row.rating),
