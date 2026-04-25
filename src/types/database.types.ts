@@ -355,6 +355,30 @@ export type Database = {
         }
         Relationships: []
       }
+      cart_abandonment_sends: {
+        Row: {
+          channel: string
+          email: string
+          id: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          email: string
+          id?: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          email?: string
+          id?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -820,6 +844,8 @@ export type Database = {
           id: string
           includes: string[]
           is_active: boolean
+          last_price_drop_push_at: string | null
+          last_push_announcement_at: string | null
           name: string
           pages: number
           pipeline_status: Database["public"]["Enums"]["product_pipeline_status"]
@@ -852,6 +878,8 @@ export type Database = {
           id?: string
           includes?: string[]
           is_active?: boolean
+          last_price_drop_push_at?: string | null
+          last_push_announcement_at?: string | null
           name: string
           pages?: number
           pipeline_status?: Database["public"]["Enums"]["product_pipeline_status"]
@@ -884,6 +912,8 @@ export type Database = {
           id?: string
           includes?: string[]
           is_active?: boolean
+          last_price_drop_push_at?: string | null
+          last_push_announcement_at?: string | null
           name?: string
           pages?: number
           pipeline_status?: Database["public"]["Enums"]["product_pipeline_status"]
@@ -961,6 +991,30 @@ export type Database = {
           p256dh?: string
           user_agent?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      review_request_sends: {
+        Row: {
+          email: string
+          id: string
+          product_id: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          email: string
+          id?: string
+          product_id: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          email?: string
+          id?: string
+          product_id?: string
+          sent_at?: string
+          user_id?: string
         }
         Relationships: []
       }

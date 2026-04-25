@@ -41,7 +41,7 @@ export function ProductReviews({
   }
 
   return (
-    <section className="space-y-6">
+    <section id="recenzje" className="space-y-6 scroll-mt-24">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-[0.24em] text-primary/75">

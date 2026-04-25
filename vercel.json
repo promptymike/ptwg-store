@@ -4,6 +4,14 @@
     {
       "path": "/api/cron/newsletter-drip",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/cart-abandonment",
+      "schedule": "0 12,20 * * *"
+    },
+    {
+      "path": "/api/cron/review-requests",
+      "schedule": "0 10 * * *"
     }
   ]
 }

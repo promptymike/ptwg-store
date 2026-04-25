@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { DEFAULT_COVER_IMAGE_OPACITY } from "@/lib/product";
+import {
+  announcePriceDrop,
+  announceProductPublished,
+} from "@/lib/push-product";
 import { getCurrentProfile } from "@/lib/session";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import {
@@ -646,6 +650,10 @@ export async function createProductAction(formData: FormData) {
     revalidatePath("/admin/import");
     revalidatePath(returnPath);
     revalidateStorefront(product.slug);
+
+    if (parsed.data.status === "published") {
+      await announceProductPublished(product.id);
+    }
   } catch (error) {
     logAdminActionError("create-product", error, {
       createdProductId,
@@ -749,7 +757,7 @@ export async function updateProductAction(formData: FormData) {
 
     const { data: existingProduct, error: existingError } = await supabase
       .from("products")
-      .select("id, slug, cover_path, file_path")
+      .select("id, slug, cover_path, file_path, status, price")
       .eq("id", parsed.data.productId)
       .maybeSingle();
 
@@ -874,6 +882,24 @@ export async function updateProductAction(formData: FormData) {
     revalidateStorefront(existingProduct.slug);
     revalidateStorefront(parsed.data.slug);
 
+    if (
+      existingProduct.status !== "published" &&
+      parsed.data.status === "published"
+    ) {
+      await announceProductPublished(parsed.data.productId);
+    }
+
+    if (
+      parsed.data.status === "published" &&
+      existingProduct.price > parsed.data.price
+    ) {
+      await announcePriceDrop(
+        parsed.data.productId,
+        existingProduct.price,
+        parsed.data.price,
+      );
+    }
+
     await cleanupProductFiles({
       coverPath:
         replacedCoverPath && replacedCoverPath !== existingProduct.cover_path
@@ -928,7 +954,7 @@ export async function publishProductAction(formData: FormData) {
 
     const { data: existingProduct, error: existingError } = await supabase
       .from("products")
-      .select("id, slug")
+      .select("id, slug, status")
       .eq("id", productId)
       .maybeSingle();
 
@@ -952,6 +978,10 @@ export async function publishProductAction(formData: FormData) {
     revalidatePath("/admin/produkty");
     revalidatePath(returnPath);
     revalidateStorefront(existingProduct.slug);
+
+    if (existingProduct.status !== "published") {
+      await announceProductPublished(productId);
+    }
   } catch (error) {
     logAdminActionError("publish-product", error, {
       returnPath,
