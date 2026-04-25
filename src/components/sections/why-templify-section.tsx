@@ -3,19 +3,19 @@ import type { SiteSectionContent } from "@/types/store";
 
 const reasons = [
   {
-    title: "Sprzedajemy efekt, nie plik",
+    title: "Konkret, nie ściema",
     description:
-      "Każdy szablon jest skupiony na realnej zmianie w Twojej pracy — nie na liczbie stron ani formacie pliku.",
+      "Każdy ebook jest napisany przez praktyków, dla zwykłych ludzi. Bez wodolejstwa, bez teorii.",
   },
   {
-    title: "Premium, które pozostaje czytelne",
+    title: "Działa na każdym urządzeniu",
     description:
-      "Edytorskie odstępy, spokojna paleta i jasne ścieżki zakupu. Marka wygląda drogo, a strona dalej jest łatwa w użyciu.",
+      "Pliki HTML otwierasz w przeglądarce — na telefonie, tablecie i komputerze. Bez instalacji aplikacji.",
   },
   {
-    title: "Gotowe do wdrożenia",
+    title: "Pobierasz natychmiast",
     description:
-      "Wszystkie pliki są zaprojektowane tak, żebyś mógł ich użyć w ciągu godziny — bez długich konfiguracji i instrukcji.",
+      "Po opłaceniu masz pliki w bibliotece od razu. Możesz zacząć czytać tego samego wieczoru.",
   },
 ];
 

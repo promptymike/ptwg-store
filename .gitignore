@@ -47,3 +47,9 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Local soft-launch staging — real product files / screenshots that
+# should never end up in Git (we keep the source of truth in Drive
+# and the deliverables in Supabase Storage).
+/ebook-staging/
+/screenshots/

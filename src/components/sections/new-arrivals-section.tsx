@@ -28,7 +28,7 @@ export function NewArrivalsSection({ products }: NewArrivalsSectionProps) {
       <div className="space-y-8">
         <SectionHeading
           badge="Nowości"
-          title="Świeże szablony w ofercie"
+          title="Świeże ebooki w ofercie"
           description="Dopiero dodaliśmy je do biblioteki. Sprawdź, zanim staną się kolejnym bestsellerem."
         />
 
@@ -42,8 +42,8 @@ export function NewArrivalsSection({ products }: NewArrivalsSectionProps) {
           <p className="flex max-w-2xl items-start gap-3 text-sm leading-7 text-muted-foreground">
             <Sparkles className="mt-1 size-4 shrink-0 text-primary" aria-hidden />
             <span className="break-words">
-              Sekcja odświeża się, gdy admin oznaczy kolejny produkt etykietą „Nowość”.
-              Każdy z nich ma licencję do pracy i zwrot w 14 dni, tak jak reszta biblioteki.
+              Sekcja odświeża się, gdy dodajemy nowe ebooki. Każdy ma 14 dni na zwrot
+              i bezterminowy dostęp w Twojej bibliotece.
             </span>
           </p>
           <Button variant="outline" size="lg" render={<Link href="/produkty" />}>

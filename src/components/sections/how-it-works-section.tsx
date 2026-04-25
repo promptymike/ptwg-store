@@ -4,27 +4,27 @@ import type { SiteSectionContent } from "@/types/store";
 const steps = [
   {
     step: "01",
-    title: "Wybierz system",
+    title: "Wybierz ebook",
     description:
-      "Przeglądaj katalog po kategorii lub efekcie i wybierz szablon, który rozwiązuje Twój najbliższy problem.",
+      "Przeglądaj katalog po kategorii i wybierz przewodnik, który rozwiązuje obszar, który chcesz teraz zmienić.",
   },
   {
     step: "02",
     title: "Opłać bezpiecznie",
     description:
-      "Przechodzisz przez bezpieczny checkout online. Płacisz kartą, BLIK-iem lub Apple Pay — jednym kliknięciem.",
+      "Przechodzisz przez bezpieczny checkout online. Płatność kartą obsługiwana przez Stripe — jeden klik.",
   },
   {
     step: "03",
     title: "Otwórz bibliotekę",
     description:
-      "Produkty pojawiają się w Twojej bibliotece natychmiast po płatności — bez czekania i ręcznego odbioru.",
+      "Pliki pojawiają się w Twojej bibliotece natychmiast po płatności — bez czekania i ręcznego odbioru.",
   },
   {
     step: "04",
-    title: "Wdrażaj od razu",
+    title: "Czytaj na każdym urządzeniu",
     description:
-      "Pliki, systemy Notion i pakiety są tak zbudowane, by przyniosły efekt jeszcze tego samego dnia.",
+      "Każdy ebook to plik HTML, który otwierasz w przeglądarce na telefonie, tablecie lub komputerze. Bez aplikacji.",
   },
 ];
 

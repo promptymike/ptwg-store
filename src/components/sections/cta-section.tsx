@@ -9,14 +9,14 @@ export function CtaSection() {
       <div className="surface-panel overflow-hidden p-6 sm:p-8 lg:p-12">
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] xl:items-center">
           <div className="space-y-4">
-            <span className="eyebrow">Gotowy na spokojniejszą pracę?</span>
+            <span className="eyebrow">Gotowy/a, by ogarnąć kawałek życia?</span>
             <h2 className="text-balance text-4xl text-foreground sm:text-5xl">
-              Zacznij od jednego szablonu. Zmień tempo całego tygodnia.
+              Zacznij od jednego ebooka. Zmień jeden obszar życia.
             </h2>
             <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-              Każdy produkt w Templify jest zaprojektowany pod wdrożenie od pierwszego dnia.
-              Natychmiastowy dostęp, 14 dni na zwrot i spokojny, klarowny styl, który wpisuje się
-              w Twoją markę.
+              Każdy ebook w Templify jest zaprojektowany pod realne wdrożenie — od pierwszego
+              wieczoru. Natychmiastowy dostęp, 14 dni na zwrot, czytasz na telefonie, tablecie
+              lub komputerze.
             </p>
             <p className="flex items-center gap-2 text-sm text-muted-foreground">
               <Mail className="size-4 text-primary" />

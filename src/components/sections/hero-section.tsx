@@ -80,36 +80,36 @@ export function HeroSection({ content, stats }: HeroSectionProps) {
               <p className="text-xs uppercase tracking-[0.22em] text-foreground/65">
                 Bestseller tygodnia
               </p>
-              <h2 className="mt-4 text-3xl text-foreground">Spokojniejszy tydzień pracy</h2>
+              <h2 className="mt-4 text-3xl text-foreground">Pieniądze pod kontrolą</h2>
               <p className="mt-4 text-sm leading-7 text-foreground/72">
-                System do priorytetów, decyzji i spotkań w Notion. Wdrażasz w jedno popołudnie.
+                Praktyczny system budżetu domowego. Bez Excela, bez wyrzeczeń. Wdrożysz w jeden wieczór.
               </p>
               <ul className="mt-5 space-y-2 text-sm text-foreground/75">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-primary" /> dashboard tygodnia
+                  <CheckCircle2 className="size-4 text-primary" /> plan tygodnia finansowego
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-primary" /> log decyzji i spotkań
+                  <CheckCircle2 className="size-4 text-primary" /> ukryte koszty i subskrypcje
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-primary" /> gotowe rytuały pracy
+                  <CheckCircle2 className="size-4 text-primary" /> poduszka finansowa krok po kroku
                 </li>
               </ul>
             </article>
 
             <article className="rounded-[2rem] border border-border/70 bg-gradient-to-br from-[#fbf1ee] via-[#efd8d1] to-[#dcc2b9] p-6 shadow-[0_30px_70px_-50px_rgba(138,84,58,0.35)] dark:from-[#2f2521] dark:via-[#211713] dark:to-[#17100e]">
               <p className="text-xs uppercase tracking-[0.22em] text-foreground/65">
-                Pakiet premium
+                Pakiet
               </p>
-              <h2 className="mt-4 text-3xl text-foreground">Operacyjny start w jednym zestawie</h2>
+              <h2 className="mt-4 text-3xl text-foreground">Finanse domowe w jednym zestawie</h2>
               <p className="mt-4 text-sm leading-7 text-foreground/72">
-                Planowanie, content i produktywność w jednym pakiecie. Jedna estetyka, jeden rytm.
+                Budżet domowy + podstawy ekonomii. Wszystko, co potrzebujesz, by ogarnąć pieniądze.
               </p>
               <div className="mt-5 flex items-baseline gap-3">
-                <span className="text-2xl font-semibold text-foreground">299&nbsp;zł</span>
-                <span className="text-sm text-foreground/60 line-through">357&nbsp;zł</span>
+                <span className="text-2xl font-semibold text-foreground">79&nbsp;zł</span>
+                <span className="text-sm text-foreground/60 line-through">88&nbsp;zł</span>
                 <span className="rounded-full bg-primary/15 px-2.5 py-1 text-xs font-medium text-primary">
-                  −16%
+                  −10%
                 </span>
               </div>
             </article>

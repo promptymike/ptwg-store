@@ -18,7 +18,7 @@ export default function CartPage() {
         as="h1"
         badge="Twój koszyk"
         title="Zestaw produktów, który za chwilę trafi do Twojej biblioteki"
-        description="Przejrzyj wybrane szablony, edytuj ilości i przejdź do bezpiecznej płatności. Wszystkie produkty są cyfrowe — dostaniesz do nich dostęp natychmiast po zakupie."
+        description="Przejrzyj wybrane ebooki, edytuj ilości i przejdź do bezpiecznej płatności. Wszystkie produkty są cyfrowe — dostaniesz do nich dostęp natychmiast po zakupie."
       />
       <CartView />
     </div>

@@ -19,9 +19,9 @@ function getSectionOrFallback(
 }
 
 export const metadata: Metadata = buildCanonicalMetadata({
-  title: "Premium szablony cyfrowe i gotowe systemy pracy",
+  title: "Praktyczne ebooki i planery dla codziennego życia",
   description:
-    "Szablony Notion, plannery i systemy operacyjne zaprojektowane dla założycieli, studiów i konsultantów. Natychmiastowy dostęp, bezterminowa licencja, 14 dni na zwrot.",
+    "Konkretne ebooki i planery: finanse, zdrowie, macierzyństwo, produktywność, kariera, podróże. Napisane przez praktyków. Natychmiastowy dostęp, bezterminowa licencja, 14 dni na zwrot.",
   path: "/",
 });
 

@@ -86,7 +86,7 @@ export function TestPromoSection() {
               <div className="rounded-2xl border border-primary/20 bg-primary/10 p-3 text-xs text-foreground">
                 <p className="font-semibold text-primary">Rekomendacja</p>
                 <p className="mt-1 text-muted-foreground">
-                  Planowanie i Notion · systemy tygodnia i log decyzji.
+                  Produktywność i czas · plannery dnia i tygodnia, które realnie działają.
                 </p>
               </div>
             </div>

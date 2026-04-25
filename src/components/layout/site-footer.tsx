@@ -46,11 +46,11 @@ export async function SiteFooter() {
           <span className="eyebrow">Templify</span>
           <div className="space-y-3">
             <h2 className="max-w-md text-3xl text-foreground sm:text-4xl">
-              Premium szablony cyfrowe i gotowe systemy pracy.
+              Praktyczne ebooki i planery dla codziennego życia.
             </h2>
             <p className="max-w-md text-sm leading-7 text-muted-foreground sm:text-base">
-              Sprzedajemy efekt, nie plik. Każdy szablon jest zaprojektowany pod szybsze wdrożenie,
-              lepsze decyzje i spokojniejszą pracę każdego dnia.
+              Sprzedajemy konkret, nie ściemę. Każdy ebook jest napisany przez praktyków:
+              o pieniądzach, zdrowiu, macierzyństwie, czasie i karierze.
             </p>
           </div>
 

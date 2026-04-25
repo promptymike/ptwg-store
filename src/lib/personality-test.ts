@@ -147,44 +147,44 @@ export type CategoryRecommendation = {
 
 const TRAIT_TO_CATEGORY: Record<TraitKey, Omit<CategoryRecommendation, "trait">> = {
   conscientiousness: {
-    categorySlug: "planowanie-i-notion",
-    categoryTitle: "Planowanie i Notion",
-    href: "/produkty?kategoria=Planowanie+i+Notion",
+    categorySlug: "produktywnosc-czas",
+    categoryTitle: "Produktywność i czas",
+    href: "/produkty?kategoria=Produktywno%C5%9B%C4%87+i+czas",
     headline: "Systemy planowania pod Twoją konsekwencję",
     reason:
-      "Twój styl pracy zyskuje na strukturze. Szablony tygodniowe, dashboardy i checklisty domkną to, co już robisz dobrze.",
+      "Twój styl działania zyskuje na strukturze. Plannery dnia, tygodnia i miesiąca pomogą Ci utrzymać rytm bez wypalania się.",
   },
   openness: {
-    categorySlug: "content-i-marketing",
-    categoryTitle: "Content i marketing",
-    href: "/produkty?kategoria=Content+i+marketing",
-    headline: "Rytm dla Twojej kreatywności",
+    categorySlug: "mindset-rozwoj",
+    categoryTitle: "Mindset i rozwój osobisty",
+    href: "/produkty?kategoria=Mindset+i+rozw%C3%B3j+osobisty",
+    headline: "Rozwój wewnętrzny dla otwartych umysłów",
     reason:
-      "Masz pomysły — potrzebujesz rytmu, który zamienia je w publikacje. Workbooki marki i planer contentu są dla Ciebie.",
+      "Lubisz pytać, próbować, rozumieć. Ebooki o psychologii wpływu, szczęściu i emocjach wzmocnią Twoją refleksyjność praktycznymi narzędziami.",
   },
   extraversion: {
-    categorySlug: "sprzedaz-i-oferty",
-    categoryTitle: "Sprzedaż i oferty",
-    href: "/produkty?kategoria=Sprzedaż+i+oferty",
-    headline: "Szablony dla ludzi, którzy lubią rozmawiać z klientem",
+    categorySlug: "fitness-ruch",
+    categoryTitle: "Fitness i ruch",
+    href: "/produkty?kategoria=Fitness+i+ruch",
+    headline: "Energia w ruchu, nie w fotelu",
     reason:
-      "Naturalnie sprzedajesz i wchodzisz w relacje — dołóż dopracowane propozycje, pipeline i zestaw do launchu.",
+      "Energia napędza Twój dzień — zamień ją w trening, który da Ci konkretny rezultat. Plany ćwiczeń bez sprzętu, w domu lub na zewnątrz.",
   },
   agreeableness: {
-    categorySlug: "sprzedaz-i-oferty",
-    categoryTitle: "Sprzedaż i oferty",
-    href: "/produkty?kategoria=Sprzedaż+i+oferty",
-    headline: "Spokojny, powtarzalny onboarding klienta",
+    categorySlug: "macierzynstwo-rodzina",
+    categoryTitle: "Macierzyństwo i rodzina",
+    href: "/produkty?kategoria=Macierzy%C5%84stwo+i+rodzina",
+    headline: "Dla osób, które dbają o bliskich",
     reason:
-      "Klienci czują się przy Tobie dobrze — zadbaj o to, by proces onboardingu był równie premium jak rozmowy z Tobą.",
+      "Masz w sobie troskę i empatię. Przewodniki o macierzyństwie, rodzicielstwie i wspólnym życiu pomogą Ci o tych, na których Ci zależy.",
   },
   emotionalStability: {
-    categorySlug: "finanse-i-operacje",
-    categoryTitle: "Finanse i operacje",
-    href: "/produkty?kategoria=Finanse+i+operacje",
-    headline: "Finansowy spokój oparty na systemie",
+    categorySlug: "finanse-osobiste",
+    categoryTitle: "Finanse osobiste",
+    href: "/produkty?kategoria=Finanse+osobiste",
+    headline: "Spokój oparty na ogarniętych pieniądzach",
     reason:
-      "Zachowujesz równowagę — zamień ją w stały rytm finansowy: fakturowanie, cashflow i miesięczne przeglądy.",
+      "Zachowujesz równowagę — zamień ją w stały rytm finansowy. Budżet domowy, podstawy ekonomii i poduszka finansowa.",
   },
 };
 

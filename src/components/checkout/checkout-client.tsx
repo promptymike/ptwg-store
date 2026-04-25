@@ -183,7 +183,7 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
       <EmptyState
         badge="Płatność"
         title="Najpierw dodaj coś do koszyka"
-        description="Żeby przejść do płatności, wybierz przynajmniej jeden szablon z katalogu. Zajmie Ci to chwilę."
+        description="Żeby przejść do płatności, wybierz przynajmniej jeden ebook z katalogu. Zajmie Ci to chwilę."
         action={{ href: "/produkty", label: "Przeglądaj katalog" }}
       />
     );

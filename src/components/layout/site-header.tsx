@@ -47,7 +47,7 @@ export function SiteHeader({ isAuthenticated = false }: SiteHeaderProps) {
         <Link href="/" className="flex items-baseline gap-3">
           <span className="font-heading text-3xl leading-none text-foreground">Templify</span>
           <span className="hidden text-[11px] uppercase tracking-[0.34em] text-muted-foreground sm:inline">
-            szablony premium
+            ebooki i planery
           </span>
         </Link>
 

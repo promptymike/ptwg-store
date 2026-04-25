@@ -34,12 +34,12 @@ export function AdminCategoryManager({
         <form action={createCategoryAction} className="grid gap-4 xl:grid-cols-2">
           <label className="space-y-2">
             <span className="text-sm text-foreground">Nazwa</span>
-            <Input name="name" placeholder="Planowanie i Notion" />
+            <Input name="name" placeholder="Finanse osobiste" />
           </label>
 
           <label className="space-y-2">
             <span className="text-sm text-foreground">Slug</span>
-            <Input name="slug" placeholder="planowanie-i-notion" />
+            <Input name="slug" placeholder="finanse-osobiste" />
           </label>
 
           <label className="space-y-2">

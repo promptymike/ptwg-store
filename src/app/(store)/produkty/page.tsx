@@ -14,7 +14,7 @@ import { buildCanonicalMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildCanonicalMetadata({
   title: "Produkty",
   description:
-    "Przeglądaj premium szablony Templify: planowanie, content, sprzedaż, finanse i produktywność osobista.",
+    "Przeglądaj praktyczne ebooki Templify: finanse, zdrowie, fitness, macierzyństwo, produktywność, mindset, praca i podróże.",
   path: "/produkty",
 });
 
@@ -48,8 +48,8 @@ export default async function ProductsPage({
     <div className="shell section-space space-y-8">
       <SectionHeading
         badge="Katalog"
-        title="Premium szablony cyfrowe dla założycieli, twórców i marek usługowych"
-        description="Templify układa szablony według tego, co dają w pracy: planowanie, content, oferty, finanse i spokojniejsze codzienne operacje."
+        title="Praktyczne ebooki i planery dla każdego obszaru życia"
+        description="Templify grupuje ebooki według dziedziny: finanse, zdrowie, fitness, macierzyństwo, produktywność, mindset, praca i podróże."
       />
 
       <div className="surface-panel space-y-6 p-6">

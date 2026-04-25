@@ -1,9 +1,12 @@
 export const CATEGORY_OPTIONS = [
-  "Planowanie i Notion",
-  "Content i marketing",
-  "Sprzedaż i oferty",
-  "Finanse i operacje",
-  "Produktywność osobista",
+  "Finanse osobiste",
+  "Zdrowie i dieta",
+  "Fitness i ruch",
+  "Macierzyństwo i rodzina",
+  "Produktywność i czas",
+  "Mindset i rozwój osobisty",
+  "Praca i kariera",
+  "Podróże i lifestyle",
 ] as const;
 
 export const ROLE_OPTIONS = ["admin", "user"] as const;

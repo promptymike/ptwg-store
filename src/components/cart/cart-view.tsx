@@ -29,7 +29,7 @@ export function CartView() {
       <EmptyState
         badge="Koszyk"
         title="Twój koszyk jest jeszcze pusty"
-        description="Dodaj pierwszy szablon i przejdź do bezpiecznej płatności. Pliki pojawią się w Twojej bibliotece natychmiast po zakupie."
+        description="Dodaj pierwszy ebook i przejdź do bezpiecznej płatności. Pliki pojawią się w Twojej bibliotece natychmiast po zakupie."
         action={{ href: "/produkty", label: "Przeglądaj katalog" }}
       />
     );
