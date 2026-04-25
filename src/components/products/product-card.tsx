@@ -63,6 +63,15 @@ export function ProductCard({
             />
           ) : null}
 
+          {/* Soft dark gradient at the bottom so the product title always
+              passes contrast against the pastel cover background, in both
+              light and dark themes (foreground colour flips per theme but
+              the cover gradient stays pastel either way). */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-stone-950/35 via-stone-950/10 to-transparent"
+          />
+
           {discountPercent ? (
             <span className="absolute left-1/2 top-0 z-10 inline-flex -translate-x-1/2 translate-y-3 items-center gap-1 rounded-full bg-destructive px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-white shadow-[0_10px_30px_-10px_rgba(185,76,66,0.65)]">
               -{discountPercent}%
@@ -72,19 +81,22 @@ export function ProductCard({
           <div className="relative flex h-full flex-col justify-between gap-8">
             <div className="flex items-center justify-between gap-3">
               <Badge
-                className={`border-0 bg-gradient-to-r ${product.accent} text-[11px] uppercase tracking-[0.22em] text-brand-foreground`}
+                className={`border-0 bg-stone-950/85 text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-50 backdrop-blur-sm`}
               >
                 {product.category}
               </Badge>
               {badgeLabel ? (
-                <Badge variant="outline" className="border-foreground/15 bg-background/75 text-foreground">
+                <Badge
+                  variant="outline"
+                  className="border-stone-950/15 bg-stone-50/95 text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-900"
+                >
                   {badgeLabel}
                 </Badge>
               ) : null}
             </div>
 
             <div className="space-y-3">
-              <h3 className="line-clamp-3 max-w-xs break-words text-3xl text-foreground">
+              <h3 className="line-clamp-3 max-w-xs break-words font-heading text-3xl font-semibold text-stone-950 [text-shadow:0_1px_0_rgba(255,255,255,0.5)]">
                 {product.name}
               </h3>
             </div>

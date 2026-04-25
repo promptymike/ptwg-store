@@ -160,30 +160,43 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             />
           ) : null}
 
+          {/* Soft dark gradient at the bottom keeps the title legible on the
+              pastel cover regardless of theme. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-stone-950/35 via-stone-950/10 to-transparent"
+          />
+
           <div className="relative flex h-full flex-col justify-between">
             <div className="flex items-center justify-between gap-3">
               <Badge
-                className={`border-0 bg-gradient-to-r ${product.accent} text-brand-foreground`}
+                className={`border-0 bg-stone-950/85 font-semibold uppercase tracking-[0.18em] text-stone-50 backdrop-blur-sm`}
               >
                 {product.category}
               </Badge>
               <div className="flex items-center gap-2">
                 {hasOwnedAccess ? (
-                  <Badge variant="outline" className="border-primary/20 bg-primary/12 text-primary">
+                  <Badge
+                    variant="outline"
+                    className="border-stone-950/20 bg-stone-50/95 text-stone-900"
+                  >
                     Kupione
                   </Badge>
                 ) : null}
-                <Badge variant="outline" className="border-foreground/15 bg-background/70 text-foreground">
+                <Badge
+                  variant="outline"
+                  className="border-stone-950/15 bg-stone-50/95 font-semibold text-stone-900"
+                >
                   {product.format}
                 </Badge>
               </div>
             </div>
 
             <div className="space-y-4">
-              <p className="text-xs uppercase tracking-[0.28em] text-foreground/65">
+              <p className="text-xs uppercase tracking-[0.28em] text-stone-900/85 [text-shadow:0_1px_0_rgba(255,255,255,0.4)]">
                 {product.heroNote}
               </p>
-              <h1 className="max-w-xl text-balance text-5xl text-foreground sm:text-6xl [overflow-wrap:anywhere]">
+              <h1 className="max-w-xl text-balance font-heading text-5xl font-semibold text-stone-950 sm:text-6xl [overflow-wrap:anywhere] [text-shadow:0_1px_0_rgba(255,255,255,0.5)]">
                 {product.name}
               </h1>
             </div>
