@@ -2011,6 +2011,7 @@ export async function getStorefrontSnapshot() {
   const [
     sections,
     settings,
+    allProducts,
     featuredProducts,
     bestsellerProducts,
     newArrivalProducts,
@@ -2019,6 +2020,7 @@ export async function getStorefrontSnapshot() {
   ] = await Promise.all([
     getSiteSectionsSnapshot(),
     getSiteSettingsSnapshot(),
+    getStoreProducts(),
     getFeaturedStoreProducts(),
     getBestsellerStoreProducts(),
     getNewArrivalStoreProducts(),
@@ -2036,15 +2038,33 @@ export async function getStorefrontSnapshot() {
     (product) => !bestsellerIds.has(product.id),
   );
 
+  // Mock products are kept as a last-resort fallback when the database is
+  // completely empty (fresh install / preview env without seeds). When the
+  // database has real products but admins haven't flagged any as featured or
+  // bestseller yet, we promote the real products so the storefront does not
+  // advertise mock items that fail at checkout (the checkout API only finds
+  // products that exist in Supabase by id).
+  const hasRealProducts = allProducts.length > 0;
+  const featuredLimit = Math.max(1, settings.homepageFeaturedLimit || 4);
+
+  const resolvedFeatured =
+    featuredProducts.length > 0
+      ? featuredProducts
+      : hasRealProducts
+        ? allProducts.slice(0, featuredLimit)
+        : mockFeaturedProducts;
+
+  const resolvedBestsellers =
+    bestsellerProducts.length > 0
+      ? bestsellerProducts
+      : hasRealProducts
+        ? allProducts.slice(0, 3)
+        : mockBestsellers;
+
   return {
     sections,
-    featuredProducts:
-      (featuredProducts.length > 0 ? featuredProducts : mockFeaturedProducts).slice(
-        0,
-        Math.max(1, settings.homepageFeaturedLimit || 4),
-      ),
-    bestsellerProducts:
-      bestsellerProducts.length > 0 ? bestsellerProducts : mockBestsellers,
+    featuredProducts: resolvedFeatured.slice(0, featuredLimit),
+    bestsellerProducts: resolvedBestsellers,
     newArrivalProducts: deduplicatedNewArrivals,
     recommendedBundle:
       getBundleById(settings.recommendedBundleId) ?? bundles[0] ?? null,

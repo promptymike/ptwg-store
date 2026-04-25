@@ -11,7 +11,7 @@ import { getCurrentUser } from "@/lib/session";
 import { getCustomerLibrarySnapshot } from "@/lib/supabase/store";
 
 export const metadata: Metadata = {
-  title: "Biblioteka | Templify",
+  title: "Biblioteka",
   robots: {
     index: false,
     follow: false,

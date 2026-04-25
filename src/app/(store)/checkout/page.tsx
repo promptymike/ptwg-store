@@ -5,7 +5,7 @@ import { CheckoutClient } from "@/components/checkout/checkout-client";
 import { getCurrentUser } from "@/lib/session";
 
 export const metadata: Metadata = {
-  title: "Checkout | Templify",
+  title: "Checkout",
   robots: {
     index: false,
     follow: false,

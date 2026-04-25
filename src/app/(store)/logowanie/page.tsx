@@ -1,7 +1,16 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { AuthCard } from "@/components/auth/auth-card";
 import { getCurrentProfile } from "@/lib/session";
+
+export const metadata: Metadata = {
+  title: "Logowanie",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 type LoginPageProps = {
   searchParams: Promise<{

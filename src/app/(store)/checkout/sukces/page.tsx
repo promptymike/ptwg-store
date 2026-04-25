@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { CheckoutSuccessClient } from "@/components/checkout/checkout-success-client";
@@ -8,6 +9,14 @@ import {
   fulfillCheckoutSession,
   type CheckoutFulfillmentResult,
 } from "@/lib/stripe/fulfillment";
+
+export const metadata: Metadata = {
+  title: "Dziękujemy za zakup",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 type CheckoutSuccessPageProps = {
   searchParams: Promise<{

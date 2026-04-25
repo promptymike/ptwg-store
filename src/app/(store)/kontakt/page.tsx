@@ -8,7 +8,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const page = await getContentPageBySlug("kontakt");
 
   return buildCanonicalMetadata({
-    title: `${page?.title ?? "Kontakt"} | Templify`,
+    title: page?.title ?? "Kontakt",
     description:
       page?.description ?? "Skontaktuj się z zespołem Templify.",
     path: "/kontakt",

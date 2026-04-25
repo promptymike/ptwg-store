@@ -19,7 +19,7 @@ function getSectionOrFallback(
 }
 
 export const metadata: Metadata = buildCanonicalMetadata({
-  title: "Templify | Premium szablony cyfrowe i gotowe systemy pracy",
+  title: "Premium szablony cyfrowe i gotowe systemy pracy",
   description:
     "Szablony Notion, plannery i systemy operacyjne zaprojektowane dla założycieli, studiów i konsultantów. Natychmiastowy dostęp, bezterminowa licencja, 14 dni na zwrot.",
   path: "/",

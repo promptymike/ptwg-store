@@ -15,7 +15,7 @@ import { getCurrentProfile, getCurrentUser } from "@/lib/session";
 import { getAccountSnapshot } from "@/lib/supabase/store";
 
 export const metadata: Metadata = {
-  title: "Konto | Templify",
+  title: "Konto",
   robots: {
     index: false,
     follow: false,

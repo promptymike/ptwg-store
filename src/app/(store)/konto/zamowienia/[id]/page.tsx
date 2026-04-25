@@ -16,7 +16,7 @@ import { getCurrentUser } from "@/lib/session";
 import { getAccountOrderDetails } from "@/lib/supabase/store";
 
 export const metadata: Metadata = {
-  title: "Szczegoly zamowienia | Templify",
+  title: "Szczegóły zamówienia",
   robots: {
     index: false,
     follow: false,

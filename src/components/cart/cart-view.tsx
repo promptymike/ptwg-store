@@ -168,7 +168,7 @@ export function CartView() {
         <ul className="space-y-2 text-xs text-muted-foreground">
           <li className="flex items-start gap-2">
             <ShieldCheck className="mt-0.5 size-4 text-primary" />
-            Bezpieczne płatności online — karta, BLIK, Apple Pay.
+            Bezpieczne płatności kartą obsługiwane przez Stripe.
           </li>
           <li className="flex items-start gap-2">
             <Zap className="mt-0.5 size-4 text-primary" />

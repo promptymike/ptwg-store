@@ -5,6 +5,7 @@ type SectionHeadingProps = {
   title: string;
   description: string;
   align?: "left" | "center";
+  as?: "h1" | "h2";
 };
 
 export function SectionHeading({
@@ -12,6 +13,7 @@ export function SectionHeading({
   title,
   description,
   align = "left",
+  as: HeadingTag = "h2",
 }: SectionHeadingProps) {
   return (
     <div
@@ -22,7 +24,9 @@ export function SectionHeading({
     >
       <span className="eyebrow">{badge}</span>
       <div className="space-y-3">
-        <h2 className="text-balance break-words text-4xl text-foreground sm:text-5xl">{title}</h2>
+        <HeadingTag className="text-balance break-words text-4xl text-foreground sm:text-5xl">
+          {title}
+        </HeadingTag>
         <p className="text-pretty break-words text-sm leading-7 text-muted-foreground sm:text-base">
           {description}
         </p>
