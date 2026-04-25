@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { CircleAlert, Receipt } from "lucide-react";
 
 import { AccountQuickLinks } from "@/components/account/account-quick-links";
+import { ContinueReadingHero } from "@/components/account/continue-reading-hero";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { EmptyState } from "@/components/shared/empty-state";
 import {
@@ -12,7 +14,10 @@ import {
   formatShortDate,
 } from "@/lib/format";
 import { getCurrentProfile, getCurrentUser } from "@/lib/session";
-import { getAccountSnapshot } from "@/lib/supabase/store";
+import {
+  getAccountSnapshot,
+  getCustomerLibrarySnapshot,
+} from "@/lib/supabase/store";
 
 export const metadata: Metadata = {
   title: "Konto",
@@ -36,19 +41,22 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     redirect("/logowanie");
   }
 
-  const [profile, snapshot] = await Promise.all([
+  const [profile, snapshot, library] = await Promise.all([
     getCurrentProfile(),
     getAccountSnapshot(user.id),
+    getCustomerLibrarySnapshot(user.id),
   ]);
 
   if (!profile || !snapshot) {
     return (
       <div className="shell section-space">
         <EmptyState
+          icon={CircleAlert}
           badge="Konto użytkownika"
           title="Nie udało się pobrać profilu"
           description="Nie udało się wczytać Twojego profilu. Odśwież stronę lub zaloguj się ponownie. Jeśli problem wróci, napisz do nas na kontakt@templify.store."
           action={{ href: "/produkty", label: "Wróć do sklepu" }}
+          secondaryAction={{ href: "/kontakt", label: "Napisz do nas" }}
         />
       </div>
     );
@@ -56,6 +64,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
 
   return (
     <div className="shell section-space space-y-6">
+      <ContinueReadingHero items={library.items} />
+
       <section id="profil" className="surface-panel space-y-6 p-6 sm:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-3">
@@ -130,10 +140,12 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
 
         {snapshot.orders.length === 0 ? (
           <EmptyState
+            icon={Receipt}
             badge="Brak zamówień"
             title="Nie masz jeszcze żadnych zamówień"
             description="Po pierwszym zakupie historia zamówień pojawi się tutaj, a pliki trafią prosto do Twojej biblioteki."
             action={{ href: "/produkty", label: "Przeglądaj katalog" }}
+            secondaryAction={{ href: "/test", label: "Zrób test dopasowania" }}
           />
         ) : (
           <div className="grid gap-3">

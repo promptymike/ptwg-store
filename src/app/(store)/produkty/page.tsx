@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SearchX } from "lucide-react";
 
 import { CategoryFilterBar } from "@/components/products/category-filter-bar";
 import { ProductCard } from "@/components/products/product-card";
@@ -46,6 +47,9 @@ export default async function ProductsPage({
 
   return (
     <div className="shell section-space space-y-8">
+      {/* Visible heading is h2 so that the page-h1 belongs to the
+          product page after navigation — keeps end-to-end tests stable
+          and avoids two h1s in the document on the way to a product. */}
       <SectionHeading
         badge="Katalog"
         title="Praktyczne ebooki i planery dla każdego obszaru życia"
@@ -62,10 +66,12 @@ export default async function ProductsPage({
 
         {products.length === 0 ? (
           <EmptyState
+            icon={SearchX}
             badge="Brak wyników"
             title="Nie znaleziono produktów w tej kategorii"
-            description="Spróbuj wrócić do wszystkich produktów albo wybierz inny use case z paska filtrowania."
+            description="Spróbuj wrócić do wszystkich produktów albo wybierz inny obszar życia z filtra powyżej."
             action={{ href: "/produkty", label: "Pokaż wszystkie produkty" }}
+            secondaryAction={{ href: "/test", label: "Zrób test dopasowania" }}
           />
         ) : (
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">

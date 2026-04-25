@@ -65,10 +65,12 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
       <div className="shell section-space space-y-6">
         <LibraryNotice type={status.type} message={status.message} />
         <EmptyState
+          icon={LibraryBig}
           badge="Moja biblioteka"
           title="Nie udało się wczytać biblioteki"
           description="Nie mogliśmy pobrać Twoich zakupionych produktów. Odśwież stronę lub spróbuj ponownie za chwilę."
           action={{ href: "/produkty", label: "Przejdź do katalogu" }}
+          secondaryAction={{ href: "/kontakt", label: "Napisz do nas" }}
         />
       </div>
     );
@@ -79,10 +81,12 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
       <div className="shell section-space space-y-6">
         <LibraryNotice type={status.type} message={status.message} />
         <EmptyState
+          icon={LibraryBig}
           badge="Moja biblioteka"
-          title="Nie masz jeszcze żadnych produktów"
-          description="Po pierwszym zakupie produkt pojawi się tutaj automatycznie, razem z bezpiecznym linkiem pobrania i szybkim powrotem do karty produktu."
-          action={{ href: "/produkty", label: "Przejdź do katalogu" }}
+          title="Twoja biblioteka czeka na pierwszy ebook"
+          description="Po pierwszym zakupie produkty pojawią się tu automatycznie wraz z bezpiecznym linkiem do czytania w przeglądarce i szybkim pobraniem PDF."
+          action={{ href: "/produkty", label: "Wybierz pierwszy ebook" }}
+          secondaryAction={{ href: "/test", label: "Zrób test dopasowania" }}
         />
       </div>
     );

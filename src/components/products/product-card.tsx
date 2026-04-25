@@ -42,18 +42,18 @@ export function ProductCard({
   const coverOverlayOpacity = getCoverImageOverlayOpacity(product);
 
   return (
-    <article className="surface-panel group flex h-full flex-col overflow-hidden transition hover:border-primary/30">
+    <article className="surface-panel group flex h-full flex-col overflow-hidden transition duration-300 ease-out hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_24px_70px_-30px_rgba(0,0,0,0.5)]">
       <Link href={productHref} className="block" aria-label={`Zobacz produkt: ${product.name}`}>
         <div
-          className={`relative min-h-64 overflow-hidden border-b border-border/70 bg-gradient-to-br ${product.coverGradient} p-6 transition group-hover:brightness-105`}
+          className={`relative min-h-64 overflow-hidden border-b border-border/70 bg-gradient-to-br ${product.coverGradient} p-6 transition duration-500 group-hover:brightness-105`}
         >
-          <div className="hero-orb right-5 top-5 size-20 bg-white/35" />
-          <div className="hero-orb bottom-6 left-6 size-16 bg-primary/18" />
+          <div className="hero-orb right-5 top-5 size-20 bg-white/35 transition duration-700 group-hover:bg-white/45" />
+          <div className="hero-orb bottom-6 left-6 size-16 bg-primary/18 transition duration-700 group-hover:bg-primary/30" />
 
           {product.coverImageUrl && coverOverlayOpacity > 0 ? (
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 transition group-hover:scale-[1.02]"
+              className="pointer-events-none absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.06]"
               style={{
                 backgroundImage: `url(${product.coverImageUrl})`,
                 backgroundPosition: "center",
@@ -127,7 +127,7 @@ export function ProductCard({
             </div>
             <Link
               href={productHref}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary transition hover:text-primary/80"
+              className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full px-2 text-sm font-semibold text-primary transition hover:text-primary/80"
             >
               Zobacz
               <ArrowUpRight className="size-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

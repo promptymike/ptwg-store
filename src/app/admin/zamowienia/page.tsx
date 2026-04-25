@@ -47,25 +47,27 @@ export default async function AdminOrdersPage() {
               key={order.id}
               className="rounded-[1.4rem] border border-border/70 bg-background/60 px-4 py-4"
             >
-              <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                <div className="space-y-2">
-                  <div>
-                    <p className="text-lg text-foreground">{order.customer}</p>
-                    <p className="text-sm text-muted-foreground">
+              <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                <div className="min-w-0 space-y-2">
+                  <div className="min-w-0">
+                    <p className="break-words text-lg text-foreground">
+                      {order.customer}
+                    </p>
+                    <p className="break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">
                       {order.email} • {new Date(order.date).toLocaleDateString("pl-PL")}
                     </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="line-clamp-2 break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">
                     {order.items.length > 0
                       ? order.items.join(", ")
                       : "Brak pozycji przypisanych do zamówienia."}
                   </p>
                 </div>
 
-                <div className="text-sm xl:text-right">
+                <div className="min-w-0 shrink-0 text-sm xl:text-right">
                   <p className="text-foreground">{formatCurrency(order.amount)}</p>
                   <p className="text-primary">{formatOrderStatus(order.status)}</p>
-                  <p className="text-muted-foreground">{order.id}</p>
+                  <p className="break-all text-muted-foreground">{order.id}</p>
                 </div>
               </div>
             </article>

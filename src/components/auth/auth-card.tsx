@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AuthError } from "@supabase/supabase-js";
+import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -237,19 +238,26 @@ export function AuthCard({
 
   const feedbackToneClass =
     feedback?.tone === "success"
-      ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-100"
+      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
       : feedback?.tone === "error"
-        ? "border-red-400/30 bg-red-400/10 text-red-100"
+        ? "border-destructive/30 bg-destructive/10 text-foreground"
         : "border-primary/20 bg-primary/10 text-muted-foreground";
 
   return (
-    <div className="surface-panel gold-frame mx-auto w-full max-w-xl space-y-6 p-6 sm:p-8">
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!isLoading) handleSubmit();
+      }}
+      className="surface-panel gold-frame mx-auto w-full max-w-xl space-y-6 p-6 sm:p-8"
+      noValidate
+    >
       <div className="space-y-3">
         <span className="eyebrow">
           {mode === "login" ? "Logowanie" : "Rejestracja"}
         </span>
         <div>
-          <h1 className="text-4xl text-white sm:text-5xl">
+          <h1 className="text-4xl text-foreground sm:text-5xl">
             {mode === "login" ? "Witaj ponownie" : "Załóż konto"}
           </h1>
           <p className="mt-3 text-sm text-muted-foreground sm:text-base">
@@ -263,7 +271,7 @@ export function AuthCard({
       <div className="space-y-4">
         {mode === "register" ? (
           <label className="space-y-2" htmlFor="auth-full-name">
-            <span className="text-sm font-medium text-white">Imię i nazwisko</span>
+            <span className="text-sm font-medium text-foreground">Imię i nazwisko</span>
             <Input
               id="auth-full-name"
               name="fullName"
@@ -278,7 +286,7 @@ export function AuthCard({
         ) : null}
 
         <label className="space-y-2" htmlFor="auth-email">
-          <span className="text-sm font-medium text-white">Adres e-mail</span>
+          <span className="text-sm font-medium text-foreground">Adres e-mail</span>
           <Input
             id="auth-email"
             name="email"
@@ -293,7 +301,7 @@ export function AuthCard({
         </label>
 
         <label className="space-y-2" htmlFor="auth-password">
-          <span className="text-sm font-medium text-white">Hasło</span>
+          <span className="text-sm font-medium text-foreground">Hasło</span>
           <Input
             id="auth-password"
             name="password"
@@ -306,19 +314,24 @@ export function AuthCard({
         </label>
       </div>
 
-      <Button onClick={handleSubmit} size="lg" className="w-full" disabled={isLoading}>
-        {isLoading
-          ? mode === "login"
-            ? "Logowanie..."
-            : "Tworzenie konta..."
-          : mode === "login"
-            ? "Zaloguj się"
-            : "Utwórz konto"}
+      <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
+        {isLoading ? (
+          <>
+            <Loader2 className="size-4 animate-spin" />
+            {mode === "login" ? "Logowanie..." : "Tworzenie konta..."}
+          </>
+        ) : mode === "login" ? (
+          "Zaloguj się"
+        ) : (
+          "Utwórz konto"
+        )}
       </Button>
 
       {feedback ? (
         <div
-          className={`space-y-3 rounded-[1.4rem] border p-4 text-sm ${feedbackToneClass}`}
+          className={`space-y-3 rounded-[1.4rem] border p-4 text-sm animate-in fade-in slide-in-from-top-1 duration-200 ${feedbackToneClass}`}
+          role={feedback.tone === "error" ? "alert" : "status"}
+          aria-live="polite"
         >
           <p>{feedback.message}</p>
           {feedback.showResend ? (
@@ -329,11 +342,18 @@ export function AuthCard({
               onClick={handleResendConfirmation}
               disabled={isResending}
             >
-              {isResending ? "Wysyłanie..." : "Wyślij link aktywacyjny ponownie"}
+              {isResending ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Wysyłanie...
+                </>
+              ) : (
+                "Wyślij link aktywacyjny ponownie"
+              )}
             </Button>
           ) : null}
         </div>
       ) : null}
-    </div>
+    </form>
   );
 }

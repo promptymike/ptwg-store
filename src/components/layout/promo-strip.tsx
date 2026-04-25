@@ -49,7 +49,7 @@ export function PromoStrip() {
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-background/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary transition hover:bg-primary hover:text-primary-foreground"
+          className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-primary/30 bg-background/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-primary transition hover:bg-primary hover:text-primary-foreground"
           aria-label={`Skopiuj kod ${PROMO_CODE}`}
         >
           {PROMO_CODE}
@@ -61,9 +61,9 @@ export function PromoStrip() {
         type="button"
         onClick={handleDismiss}
         aria-label="Zamknij pasek"
-        className="absolute right-1 top-1/2 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition hover:bg-background/80 hover:text-foreground"
+        className="absolute right-1 top-1/2 inline-flex size-10 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition hover:bg-background/80 hover:text-foreground sm:size-9"
       >
-        <X className="size-3.5" />
+        <X className="size-4" />
       </button>
     </div>
   );

@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Minus, Plus, ShieldCheck, Trash2, Zap } from "lucide-react";
+import {
+  Minus,
+  Plus,
+  ShieldCheck,
+  ShoppingBag,
+  Trash2,
+  Zap,
+} from "lucide-react";
 
 import { useCart } from "@/components/cart/cart-provider";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -27,10 +34,12 @@ export function CartView() {
   if (items.length === 0) {
     return (
       <EmptyState
+        icon={ShoppingBag}
         badge="Koszyk"
         title="Twój koszyk jest jeszcze pusty"
         description="Dodaj pierwszy ebook i przejdź do bezpiecznej płatności. Pliki pojawią się w Twojej bibliotece natychmiast po zakupie."
         action={{ href: "/produkty", label: "Przeglądaj katalog" }}
+        secondaryAction={{ href: "/test", label: "Zrób test dopasowania" }}
       />
     );
   }

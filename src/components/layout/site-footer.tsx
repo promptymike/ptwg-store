@@ -79,12 +79,12 @@ export async function SiteFooter() {
             <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-foreground/80">
               {group.title}
             </h3>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
               {group.links.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-sm text-muted-foreground transition hover:text-foreground"
+                  className="-mx-2 inline-flex min-h-[36px] items-center rounded-lg px-2 py-1.5 text-sm text-muted-foreground transition hover:bg-secondary/40 hover:text-foreground"
                 >
                   {link.label}
                 </Link>
