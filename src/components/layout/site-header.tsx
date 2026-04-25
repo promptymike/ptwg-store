@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Heart,
   LayoutDashboard,
   LibraryBig,
   Menu,
@@ -157,6 +158,14 @@ export function SiteHeader({ profile }: SiteHeaderProps) {
                   >
                     <LibraryBig className="size-4" />
                     Moja biblioteka
+                  </Link>
+                  <Link
+                    href="/lista-zyczen"
+                    role="menuitem"
+                    className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-secondary"
+                  >
+                    <Heart className="size-4" />
+                    Lista życzeń
                   </Link>
                   <Link
                     href="/konto"

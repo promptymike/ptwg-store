@@ -20,6 +20,7 @@ const footerGroups = [
       { href: "/rejestracja", label: "Załóż konto" },
       { href: "/konto", label: "Panel klienta" },
       { href: "/biblioteka", label: "Moja biblioteka" },
+      { href: "/lista-zyczen", label: "Lista życzeń" },
     ],
   },
   {

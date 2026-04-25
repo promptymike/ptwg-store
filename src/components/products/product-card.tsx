@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight, BookOpen, CheckCircle2 } from "lucide-react";
 
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
+import { WishlistButton } from "@/components/products/wishlist-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
@@ -90,6 +91,12 @@ export function ProductCard({
             <span className="absolute left-1/2 top-0 z-10 inline-flex -translate-x-1/2 translate-y-3 items-center gap-1 rounded-full bg-destructive px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-white shadow-[0_10px_30px_-10px_rgba(185,76,66,0.65)]">
               -{discountPercent}%
             </span>
+          ) : null}
+
+          {!isOwned ? (
+            <div className="absolute right-3 top-3 z-10">
+              <WishlistButton productId={product.id} productName={product.name} />
+            </div>
           ) : null}
 
           <div className="relative flex h-full flex-col justify-between gap-8">

@@ -820,6 +820,116 @@ export async function getBundlesSnapshot(): Promise<Bundle[]> {
   });
 }
 
+export type AdminActivityEvent = {
+  id: string;
+  type: "order" | "review" | "subscriber" | "blog";
+  title: string;
+  detail: string;
+  href: string;
+  createdAt: string;
+};
+
+// Returns the latest activity across orders / reviews / subscribers / blog
+// publishes, merged into one timeline so the admin dashboard has a single
+// "what happened lately" widget instead of four sub-widgets.
+export async function getAdminRecentActivity(
+  limit = 12,
+): Promise<AdminActivityEvent[]> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return [];
+
+  const events: AdminActivityEvent[] = [];
+
+  const [orders, reviews, subscribers, posts] = await Promise.all([
+    supabase
+      .from("orders")
+      .select("id, email, total, created_at")
+      .order("created_at", { ascending: false })
+      .limit(8),
+    supabase
+      .from("product_reviews")
+      .select(
+        "id, rating, status, created_at, products(name), profiles(full_name, email)",
+      )
+      .order("created_at", { ascending: false })
+      .limit(8),
+    supabase
+      .from("newsletter_subscribers")
+      .select("id, email, created_at, source")
+      .order("created_at", { ascending: false })
+      .limit(8),
+    supabase
+      .from("blog_posts")
+      .select("id, slug, title, status, published_at, updated_at")
+      .order("updated_at", { ascending: false })
+      .limit(6),
+  ]);
+
+  for (const row of orders.data ?? []) {
+    events.push({
+      id: `order-${row.id}`,
+      type: "order",
+      title: `Zamówienie ${formatCurrency(row.total)}`,
+      detail: row.email,
+      href: `/admin/zamowienia`,
+      createdAt: row.created_at,
+    });
+  }
+
+  type ReviewRow = {
+    id: string;
+    rating: number;
+    status: string;
+    created_at: string;
+    products: { name: string } | { name: string }[] | null;
+    profiles: { full_name: string | null; email: string } | null;
+  };
+  for (const row of (reviews.data ?? []) as ReviewRow[]) {
+    const product = Array.isArray(row.products) ? row.products[0] : row.products;
+    const author = row.profiles?.full_name ?? row.profiles?.email ?? "Anonim";
+    events.push({
+      id: `review-${row.id}`,
+      type: "review",
+      title: `${row.rating}★ ${row.status === "pending" ? "(do moderacji)" : row.status === "approved" ? "(opublikowana)" : "(odrzucona)"}`,
+      detail: `${author} → ${product?.name ?? "produkt"}`,
+      href: "/admin/recenzje",
+      createdAt: row.created_at,
+    });
+  }
+
+  for (const row of subscribers.data ?? []) {
+    events.push({
+      id: `sub-${row.id}`,
+      type: "subscriber",
+      title: "Nowy zapis na newsletter",
+      detail: `${row.email} (${row.source})`,
+      href: "/admin/ustawienia",
+      createdAt: row.created_at,
+    });
+  }
+
+  for (const row of posts.data ?? []) {
+    events.push({
+      id: `blog-${row.id}`,
+      type: "blog",
+      title:
+        row.status === "published"
+          ? `Wpis opublikowany: ${row.title}`
+          : `Wpis zaktualizowany: ${row.title} (${row.status})`,
+      detail: `/blog/${row.slug}`,
+      href: `/admin/blog/${row.slug}`,
+      createdAt: row.published_at ?? row.updated_at,
+    });
+  }
+
+  return events
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
+    .slice(0, limit);
+}
+
 // Returns the set of product ids owned by `userId` (or empty when the
 // user is anonymous / Supabase env is missing). Cheap single-column
 // query — meant to be called once per server render and passed down
@@ -1331,8 +1441,14 @@ export async function getAdminDashboardSnapshot() {
       unattachedSourceCount: 0,
       orderCount: 0,
       revenue: formatCurrency(0),
+      revenueRaw: 0,
       contentCount: 0,
       adminCount: 0,
+      pendingReviewCount: 0,
+      approvedReviewCount: 0,
+      subscriberCount: 0,
+      blogPublishedCount: 0,
+      bundleCount: 0,
     };
   }
 
@@ -1347,6 +1463,11 @@ export async function getAdminDashboardSnapshot() {
       { data: totals, error: totalsError },
       { count: contentCount },
       { count: adminCount },
+      { count: pendingReviewCount },
+      { count: approvedReviewCount },
+      { count: subscriberCount },
+      { count: blogPublishedCount },
+      { count: bundleCount },
     ] = await Promise.all([
       supabase.from("products").select("*", { count: "exact", head: true }),
       supabase
@@ -1372,6 +1493,26 @@ export async function getAdminDashboardSnapshot() {
         .from("admin_allowlist")
         .select("*", { count: "exact", head: true })
         .eq("is_active", true),
+      supabase
+        .from("product_reviews")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending"),
+      supabase
+        .from("product_reviews")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "approved"),
+      supabase
+        .from("newsletter_subscribers")
+        .select("*", { count: "exact", head: true })
+        .is("unsubscribed_at", null),
+      supabase
+        .from("blog_posts")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "published"),
+      supabase
+        .from("bundles")
+        .select("*", { count: "exact", head: true })
+        .eq("is_active", true),
     ]);
 
     if (totalsError) {
@@ -1390,8 +1531,14 @@ export async function getAdminDashboardSnapshot() {
       unattachedSourceCount: normalizeInteger(unattachedSourceCount),
       orderCount: normalizeInteger(orderCount),
       revenue: formatCurrency(revenueTotal),
+      revenueRaw: revenueTotal,
       contentCount: normalizeInteger(contentCount),
       adminCount: normalizeInteger(adminCount),
+      pendingReviewCount: normalizeInteger(pendingReviewCount),
+      approvedReviewCount: normalizeInteger(approvedReviewCount),
+      subscriberCount: normalizeInteger(subscriberCount),
+      blogPublishedCount: normalizeInteger(blogPublishedCount),
+      bundleCount: normalizeInteger(bundleCount),
     };
   } catch (error) {
     logAdminStoreError("admin-dashboard", error);
@@ -1404,8 +1551,14 @@ export async function getAdminDashboardSnapshot() {
       unattachedSourceCount: 0,
       orderCount: 0,
       revenue: formatCurrency(null),
+      revenueRaw: 0,
       contentCount: 0,
       adminCount: 0,
+      pendingReviewCount: 0,
+      approvedReviewCount: 0,
+      subscriberCount: 0,
+      blogPublishedCount: 0,
+      bundleCount: 0,
     };
   }
 }
