@@ -175,13 +175,17 @@ export async function POST(request: Request) {
       customer_email: user.email ?? parsed.data.email,
       client_reference_id: user.id,
       locale: "pl",
-      // Stripe Tax computes Polish VAT (23%) automatically and applies the
-      // EU reverse-charge rule when the buyer provides a verified VAT ID.
-      // Requires the Stripe account to have Tax registrations configured —
-      // when missing, Stripe surfaces a clear error during session creation
-      // rather than charging incorrect tax.
-      automatic_tax: { enabled: true },
-      tax_id_collection: { enabled: true },
+      // Tax wiring is gated behind STRIPE_TAX_ENABLED — without an active
+      // tax registration in the Stripe dashboard, automatic_tax errors
+      // out with "Stripe Tax is not active on this account". When the
+      // merchant flips the flag, Stripe Tax automatically computes Polish
+      // VAT and applies EU reverse-charge for verified VAT IDs.
+      ...(env.stripeTaxEnabled
+        ? {
+            automatic_tax: { enabled: true },
+            tax_id_collection: { enabled: true },
+          }
+        : {}),
       billing_address_collection: "required",
       // Persist the resulting customer object so the buyer's address /
       // VAT ID can be reused across orders (and surfaced in invoices).
@@ -200,9 +204,9 @@ export async function POST(request: Request) {
               value: "Plik HTML / PDF — natychmiastowy dostęp",
             },
           ],
-          rendering_options: {
-            amount_tax_display: "include_inclusive_tax",
-          },
+          rendering_options: env.stripeTaxEnabled
+            ? { amount_tax_display: "include_inclusive_tax" }
+            : undefined,
         },
       },
       metadata: {
@@ -227,16 +231,16 @@ export async function POST(request: Request) {
           price_data: {
             currency: "pln",
             unit_amount: unitAmount,
-            // Stripe Tax requires a tax_behavior — "inclusive" matches the
-            // way we display gross PLN prices in the storefront. Stripe
-            // splits the VAT out from the line for invoice + reporting.
-            tax_behavior: "inclusive",
+            // tax_behavior + tax_code are only meaningful when Stripe Tax
+            // is active on the account; sending them otherwise is a no-op
+            // but keeps the code path consistent for when Tax is enabled.
+            ...(env.stripeTaxEnabled ? { tax_behavior: "inclusive" as const } : {}),
             product_data: {
               name: promoRule ? `${product.name} (${promoRule.label})` : product.name,
               description: product.short_description,
-              // Polish VAT for ebooks dropped to 5% (PKWiU 58.11.20).
-              // Tax code below is Stripe's standard for "Books — eBooks".
-              tax_code: "txcd_35010000",
+              ...(env.stripeTaxEnabled
+                ? { tax_code: "txcd_35010000" }
+                : {}),
               metadata: {
                 product_id: product.id,
                 product_slug: product.slug,

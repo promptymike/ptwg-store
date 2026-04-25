@@ -16,6 +16,10 @@ export const env = {
   stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   stripeSecretKey: process.env.STRIPE_SECRET_KEY,
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+  // Off by default. Flip STRIPE_TAX_ENABLED=true once a Polish Tax
+  // registration exists in the Stripe dashboard — automatic_tax fails
+  // session creation if Tax is not active on the account.
+  stripeTaxEnabled: process.env.STRIPE_TAX_ENABLED === "true",
   // Plausible (privacy-friendly analytics). Only loaded after the user
   // grants analytics consent — see plausible-analytics.tsx.
   plausibleDomain: process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN,
