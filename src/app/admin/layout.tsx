@@ -18,6 +18,7 @@ const adminLinks = [
   { href: "/admin/recenzje", label: "Recenzje" },
   { href: "/admin/newsletter", label: "Newsletter" },
   { href: "/admin/blog", label: "Blog" },
+  { href: "/admin/eksperymenty", label: "A/B testy" },
   { href: "/admin/content", label: "Content / Strony" },
   { href: "/admin/admini", label: "Użytkownicy / Admini" },
   { href: "/admin/ustawienia", label: "Ustawienia" },

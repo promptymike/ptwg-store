@@ -41,6 +41,62 @@ type AnalyticsWindow = Window & {
 
 const AnalyticsContext = createContext<AnalyticsContextValue | null>(null);
 
+const VISITOR_ID_KEY = "templify:visitor-id";
+
+function getVisitorId(): string {
+  if (typeof window === "undefined") return "ssr";
+  try {
+    let id = window.localStorage.getItem(VISITOR_ID_KEY);
+    if (!id) {
+      id =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `v_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      window.localStorage.setItem(VISITOR_ID_KEY, id);
+    }
+    return id;
+  } catch {
+    return "anon";
+  }
+}
+
+function shipEventToServer(payload: AnalyticsPayload) {
+  const properties = payload.properties as Record<string, unknown>;
+  const body = JSON.stringify({
+    name: payload.name,
+    visitorId: getVisitorId(),
+    experimentKey:
+      typeof properties.experiment === "string" ? properties.experiment : undefined,
+    variant: typeof properties.variant === "string" ? properties.variant : undefined,
+    surface:
+      typeof properties.surface === "string" ? properties.surface : undefined,
+    productId:
+      typeof properties.productId === "string" ? properties.productId : undefined,
+    path: typeof window !== "undefined" ? window.location.pathname : undefined,
+    amount:
+      typeof properties.amount === "number" ? properties.amount : undefined,
+    properties,
+  });
+
+  // navigator.sendBeacon survives navigations like add-to-cart → checkout.
+  // Fallback to fetch keepalive for browsers / tabs that lack beacon.
+  try {
+    if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+      const blob = new Blob([body], { type: "application/json" });
+      navigator.sendBeacon("/api/analytics/event", blob);
+      return;
+    }
+  } catch {
+    // fall through to fetch
+  }
+  fetch("/api/analytics/event", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+    keepalive: true,
+  }).catch(() => {});
+}
+
 function pushAnalyticsEvent(payload: AnalyticsPayload) {
   const analyticsWindow = window as AnalyticsWindow;
 
@@ -59,6 +115,8 @@ function pushAnalyticsEvent(payload: AnalyticsPayload) {
       detail: payload,
     }),
   );
+
+  shipEventToServer(payload);
 }
 
 export function AnalyticsProvider({ children }: { children: ReactNode }) {

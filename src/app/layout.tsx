@@ -6,6 +6,7 @@ import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { PlausibleAnalytics } from "@/components/analytics/plausible-analytics";
 import { CookieConsentBanner } from "@/components/compliance/cookie-consent";
 import { CartProvider } from "@/components/cart/cart-provider";
+import { PwaBootstrap } from "@/components/pwa/pwa-bootstrap";
 import { ThemeProvider, ThemeScript } from "@/components/theme/theme-provider";
 import { CursorGlow } from "@/components/ui/cursor-glow";
 import { CONSENT_COOKIE_KEY } from "@/lib/consent";
@@ -68,6 +69,7 @@ export default async function RootLayout({
               {children}
               <CookieConsentBanner initialHasConsent={initialHasConsent} />
               <CursorGlow />
+              <PwaBootstrap />
             </CartProvider>
             <PlausibleAnalytics />
           </AnalyticsProvider>

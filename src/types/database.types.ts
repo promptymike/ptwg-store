@@ -36,6 +36,72 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_events: {
+        Row: {
+          amount: number | null
+          created_at: string
+          event_name: string
+          experiment_key: string | null
+          id: number
+          path: string | null
+          product_id: string | null
+          properties: Json
+          referrer: string | null
+          surface: string | null
+          user_agent: string | null
+          user_id: string | null
+          variant: string | null
+          visitor_id: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          event_name: string
+          experiment_key?: string | null
+          id?: number
+          path?: string | null
+          product_id?: string | null
+          properties?: Json
+          referrer?: string | null
+          surface?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          variant?: string | null
+          visitor_id: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          event_name?: string
+          experiment_key?: string | null
+          id?: number
+          path?: string | null
+          product_id?: string | null
+          properties?: Json
+          referrer?: string | null
+          surface?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          variant?: string | null
+          visitor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytics_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           author_id: string | null

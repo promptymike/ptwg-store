@@ -1,26 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import {
-  ArrowUpRight,
-  BookOpen,
-  Check,
-  Heart,
-  Share2,
-  ShoppingBag,
-} from "lucide-react";
+import { ArrowUpRight, Heart, ShoppingBag } from "lucide-react";
 
 import {
   type CartProductSnapshot,
   useCart,
 } from "@/components/cart/cart-provider";
-import { useWishlistSnapshot } from "@/components/products/wishlist-button";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
 import { getCoverImageOverlayOpacity } from "@/lib/product";
-import { encodeShareToken } from "@/lib/wishlist-share";
-import { writeWishlist } from "@/lib/wishlist";
+import { readWishlist, writeWishlist } from "@/lib/wishlist";
 
 type SlimProduct = {
   id: string;
@@ -35,21 +25,12 @@ type SlimProduct = {
   isOwned: boolean;
 };
 
-type WishlistViewProps = {
+type WishlistSharedViewProps = {
   products: SlimProduct[];
 };
 
-export function WishlistView({ products }: WishlistViewProps) {
-  const wishlist = useWishlistSnapshot();
+export function WishlistSharedView({ products }: WishlistSharedViewProps) {
   const { addItem } = useCart();
-  const [shareCopied, setShareCopied] = useState(false);
-
-  const items = useMemo(() => {
-    const order = new Map(wishlist.map((entry, idx) => [entry.productId, idx]));
-    return products
-      .filter((p) => order.has(p.id))
-      .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
-  }, [wishlist, products]);
 
   function toCartSnapshot(product: SlimProduct): CartProductSnapshot {
     return {
@@ -63,103 +44,55 @@ export function WishlistView({ products }: WishlistViewProps) {
     };
   }
 
-  function handleAddAll() {
-    for (const product of items) {
-      if (!product.isOwned) addItem(toCartSnapshot(product));
-    }
+  function addToOwnWishlist(productId: string) {
+    const current = readWishlist();
+    if (current.some((entry) => entry.productId === productId)) return;
+    writeWishlist([
+      ...current,
+      { productId, addedAt: new Date().toISOString() },
+    ]);
   }
 
-  function handleClear() {
-    writeWishlist([]);
-  }
-
-  async function handleShare() {
-    if (items.length === 0) return;
-    const token = encodeShareToken(items.map((p) => p.id));
-    const shareUrl = `${window.location.origin}/lista-zyczen?share=${token}`;
-    const shareText = `Moja lista życzeń na Templify (${items.length} ${items.length === 1 ? "ebook" : "ebooków"}):`;
-    const nav = (window.navigator as Navigator & {
-      share?: (data: ShareData) => Promise<void>;
-    });
-    if (nav.share) {
-      try {
-        await nav.share({
-          title: "Moja lista życzeń",
-          text: shareText,
-          url: shareUrl,
-        });
-        return;
-      } catch {
-        // user cancelled or share failed — fall back to clipboard
-      }
-    }
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setShareCopied(true);
-      window.setTimeout(() => setShareCopied(false), 2000);
-    } catch {
-      // clipboard unavailable — silent
-    }
-  }
-
-  if (wishlist.length === 0 || items.length === 0) {
+  if (products.length === 0) {
     return (
       <div className="surface-panel space-y-3 p-8 text-center">
         <Heart className="mx-auto size-10 text-rose-500/60" />
         <h2 className="text-2xl text-foreground">Lista jest pusta</h2>
         <p className="mx-auto max-w-md text-sm text-muted-foreground">
-          Klikaj serduszko na karcie produktu, by tu zapisywać ebooki na
-          później. Lista jest w przeglądarce — nie wymaga konta.
+          Link do listy nie zawiera już dostępnych produktów. Mogły zostać
+          usunięte z katalogu.
         </p>
         <div className="flex justify-center pt-2">
-          <Button render={<Link href="/produkty" />}>
-            Przeglądaj katalog
+          <Button render={<Link href="/lista-zyczen" />}>
+            Otwórz swoją listę
           </Button>
         </div>
       </div>
     );
   }
 
-  const buyableCount = items.filter((p) => !p.isOwned).length;
+  const totalPrice = products
+    .filter((p) => !p.isOwned)
+    .reduce((sum, p) => sum + p.price, 0);
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="surface-panel flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
-          {items.length} {items.length === 1 ? "produkt" : "produktów"} na liście
-          {buyableCount < items.length
-            ? ` (${items.length - buyableCount} masz już w bibliotece)`
-            : ""}
-          .
+          {products.length} {products.length === 1 ? "produkt" : "produktów"} na
+          udostępnionej liście. Łączna wartość:{" "}
+          <span className="font-semibold text-foreground">
+            {formatCurrency(totalPrice)}
+          </span>
         </p>
-        <div className="flex flex-wrap gap-2">
-          {buyableCount > 0 ? (
-            <Button onClick={handleAddAll}>
-              <ShoppingBag className="size-4" />
-              Dodaj {buyableCount} do koszyka
-            </Button>
-          ) : null}
-          <Button variant="outline" onClick={handleShare}>
-            {shareCopied ? (
-              <>
-                <Check className="size-4" />
-                Skopiowano link
-              </>
-            ) : (
-              <>
-                <Share2 className="size-4" />
-                Udostępnij listę
-              </>
-            )}
-          </Button>
-          <Button variant="ghost" onClick={handleClear}>
-            Wyczyść listę
-          </Button>
-        </div>
+        <Button render={<Link href="/lista-zyczen" />}>
+          <Heart className="size-4" />
+          Otwórz swoją listę
+        </Button>
       </div>
 
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {items.map((product) => {
+        {products.map((product) => {
           const overlay = getCoverImageOverlayOpacity({
             coverImageOpacity: product.coverImageOpacity ?? undefined,
           });
@@ -201,40 +134,43 @@ export function WishlistView({ products }: WishlistViewProps) {
                 <p className="line-clamp-2 break-words text-sm leading-6 text-muted-foreground">
                   {product.shortDescription}
                 </p>
-                <div className="mt-auto flex items-center justify-between gap-3">
-                  <p className="text-base font-semibold text-foreground">
-                    {formatCurrency(product.price)}
-                  </p>
+                <p className="text-base font-semibold text-foreground">
+                  {formatCurrency(product.price)}
+                </p>
+                <div className="mt-auto flex flex-wrap gap-2">
                   {product.isOwned ? (
                     <Button
                       size="sm"
                       variant="outline"
-                      render={
-                        <a
-                          href={`/api/library/${product.id}/read`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        />
-                      }
+                      render={<Link href="/biblioteka" />}
                     >
-                      <BookOpen className="size-3.5" />
-                      Otwórz
+                      W bibliotece
                     </Button>
                   ) : (
-                    <Button
-                      size="sm"
-                      onClick={() => addItem(toCartSnapshot(product))}
-                    >
-                      <ShoppingBag className="size-3.5" />
-                      Do koszyka
-                    </Button>
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={() => addItem(toCartSnapshot(product))}
+                      >
+                        <ShoppingBag className="size-3.5" />
+                        Do koszyka
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => addToOwnWishlist(product.id)}
+                      >
+                        <Heart className="size-3.5" />
+                        Na moją listę
+                      </Button>
+                    </>
                   )}
                 </div>
                 <Link
                   href={`/produkty/${product.slug}`}
                   className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-primary"
                 >
-                  Zobacz produkt
+                  Szczegóły produktu
                   <ArrowUpRight className="size-3" />
                 </Link>
               </div>
