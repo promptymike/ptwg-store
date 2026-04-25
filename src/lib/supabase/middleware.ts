@@ -10,12 +10,36 @@ function copyCookies(from: NextResponse, to: NextResponse) {
   });
 }
 
+function hasSupabaseAuthCookie(request: NextRequest) {
+  return request.cookies
+    .getAll()
+    .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.endsWith("-auth-token"));
+}
+
+function buildLoginRedirect(request: NextRequest, response: NextResponse) {
+  const loginUrl = new URL("/logowanie", request.url);
+  loginUrl.searchParams.set("next", request.nextUrl.pathname);
+  const redirectResponse = NextResponse.redirect(loginUrl);
+  copyCookies(response, redirectResponse);
+  return redirectResponse;
+}
+
 export async function updateSupabaseSession(request: NextRequest) {
   if (!hasSupabaseEnv() || !env.supabaseUrl || !env.supabasePublishableKey) {
     return NextResponse.next({ request });
   }
 
+  const pathname = request.nextUrl.pathname;
+  const requiresAdmin = pathname.startsWith("/admin");
+  const requiresUser =
+    pathname.startsWith("/konto") || pathname.startsWith("/biblioteka");
+  const requiresAuth = requiresAdmin || requiresUser;
+
   let response = NextResponse.next({ request });
+
+  if (requiresAuth && !hasSupabaseAuthCookie(request)) {
+    return buildLoginRedirect(request, response);
+  }
 
   const supabase = createServerClient<Database>(
     env.supabaseUrl,
@@ -44,21 +68,12 @@ export async function updateSupabaseSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const pathname = request.nextUrl.pathname;
-  const requiresAdmin = pathname.startsWith("/admin");
-  const requiresUser =
-    pathname.startsWith("/konto") || pathname.startsWith("/biblioteka");
-
-  if (!requiresAdmin && !requiresUser) {
+  if (!requiresAuth) {
     return response;
   }
 
   if (!user) {
-    const loginUrl = new URL("/logowanie", request.url);
-    loginUrl.searchParams.set("next", pathname);
-    const redirectResponse = NextResponse.redirect(loginUrl);
-    copyCookies(response, redirectResponse);
-    return redirectResponse;
+    return buildLoginRedirect(request, response);
   }
 
   if (!requiresAdmin) {

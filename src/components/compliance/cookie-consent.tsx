@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +10,10 @@ import {
   type ConsentState,
   readConsentFromStorage,
 } from "@/lib/consent";
+
+type CookieConsentBannerProps = {
+  initialHasConsent: boolean;
+};
 
 type ConsentCategory = "necessary" | "analytics" | "marketing";
 
@@ -47,43 +51,77 @@ function buildConsentState(
   };
 }
 
-export function CookieConsentBanner() {
-  const [hasMounted, setHasMounted] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
+function subscribeToConsent(onChange: () => void) {
+  if (typeof window === "undefined") {
+    return () => undefined;
+  }
+
+  window.addEventListener("storage", onChange);
+  window.addEventListener(CONSENT_UPDATED_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(CONSENT_UPDATED_EVENT, onChange);
+  };
+}
+
+let cachedConsentSnapshot: Partial<ConsentState> | null = null;
+let cachedConsentRaw: string | null = "";
+
+function getConsentSnapshot(): Partial<ConsentState> | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const raw = window.localStorage.getItem(CONSENT_STORAGE_KEY);
+  if (raw === cachedConsentRaw) {
+    return cachedConsentSnapshot;
+  }
+
+  cachedConsentRaw = raw;
+  cachedConsentSnapshot = readConsentFromStorage();
+  return cachedConsentSnapshot;
+}
+
+const SERVER_HAS_CONSENT_SENTINEL: Partial<ConsentState> = Object.freeze({});
+
+export function CookieConsentBanner({
+  initialHasConsent,
+}: CookieConsentBannerProps) {
+  const getServerSnapshot = useCallback(
+    () => (initialHasConsent ? SERVER_HAS_CONSENT_SENTINEL : null),
+    [initialHasConsent],
+  );
+  const consent = useSyncExternalStore(
+    subscribeToConsent,
+    getConsentSnapshot,
+    getServerSnapshot,
+  );
+  const [dismissed, setDismissed] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [analytics, setAnalytics] = useState(false);
   const [marketing, setMarketing] = useState(false);
 
   useEffect(() => {
-    const stored = readConsentFromStorage();
-    const nextVisible = stored === null;
-    const nextAnalytics = Boolean(stored?.analytics);
-    const nextMarketing = Boolean(stored?.marketing);
+    if (consent) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync analytics/marketing checkboxes from external store
+      setAnalytics(Boolean(consent.analytics));
+      setMarketing(Boolean(consent.marketing));
+    }
+  }, [consent]);
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe post-mount read of localStorage consent
-    setHasMounted(true);
-    setIsVisible(nextVisible);
-    setAnalytics(nextAnalytics);
-    setMarketing(nextMarketing);
+  const saveConsent = useCallback((next: ConsentState) => {
+    writeConsent(next);
+    setDismissed(true);
+    setIsSettingsOpen(false);
   }, []);
 
-  if (!hasMounted) {
-    return null;
-  }
-
-  function saveConsent(consent: ConsentState) {
-    writeConsent(consent);
-    setIsVisible(false);
-    setIsSettingsOpen(false);
-  }
-
-  if (!isVisible) {
+  if (consent !== null || dismissed) {
     return null;
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-4 z-50 px-4">
-      <div className="mx-auto max-w-5xl rounded-[2rem] border border-border/80 bg-card/95 p-5 shadow-[0_30px_90px_-40px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-50 px-4">
+      <div className="pointer-events-auto mx-auto max-w-5xl rounded-[2rem] border border-border/80 bg-card/95 p-5 shadow-[0_30px_90px_-40px_rgba(0,0,0,0.35)] backdrop-blur-xl">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-end">
           <div className="space-y-3">
             <div className="space-y-2">

@@ -331,6 +331,24 @@ function isPublicStorefrontProduct(input: {
   );
 }
 
+const STOREFRONT_MAX_SLUG_LENGTH = 80;
+const STOREFRONT_MAX_NAME_LENGTH = 120;
+
+function looksLikeJunkProduct(input: {
+  slug?: unknown;
+  name?: unknown;
+}) {
+  const slug = normalizeText(input.slug);
+  const name = normalizeText(input.name);
+
+  if (slug.length > STOREFRONT_MAX_SLUG_LENGTH) return true;
+  if (name.length > STOREFRONT_MAX_NAME_LENGTH) return true;
+  if (/(.)\1{9,}/.test(slug)) return true;
+  if (/(.)\1{14,}/.test(name)) return true;
+
+  return false;
+}
+
 function normalizeProductStatus(value: unknown): ProductStatus {
   return typeof value === "string" &&
     (PRODUCT_STATUSES as readonly string[]).includes(value)
@@ -599,7 +617,11 @@ export async function getStoreProducts(category?: string) {
       : mockProducts;
   }
 
-  return Promise.all((data as ProductRow[]).map((row) => mapProductRow(row)));
+  const filteredRows = (data as ProductRow[]).filter(
+    (row) => !looksLikeJunkProduct({ slug: row.slug, name: row.name }),
+  );
+
+  return Promise.all(filteredRows.map((row) => mapProductRow(row)));
 }
 
 export async function getFeaturedStoreProducts(limit = 4) {
@@ -658,6 +680,10 @@ export async function getStoreProductBySlug(slug: string) {
 
   if (error || !data) {
     return getMockProductBySlug(slug);
+  }
+
+  if (looksLikeJunkProduct({ slug: data.slug, name: data.name })) {
+    return null;
   }
 
   const previewsMap = await getProductPreviewsMap([data.id]);

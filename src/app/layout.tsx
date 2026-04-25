@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Cormorant_Garamond, Manrope } from "next/font/google";
+import { cookies } from "next/headers";
 
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { CookieConsentBanner } from "@/components/compliance/cookie-consent";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { ThemeProvider, ThemeScript } from "@/components/theme/theme-provider";
 import { CursorGlow } from "@/components/ui/cursor-glow";
+import { CONSENT_COOKIE_KEY } from "@/lib/consent";
 import "./globals.css";
 
 const geistMono = Geist_Mono({
@@ -34,11 +36,14 @@ export const metadata: Metadata = {
     "Templify to premium sklep z szablonami cyfrowymi, plannerami i gotowymi systemami dla założycieli, studiów i marek usługowych. Natychmiastowy dostęp po zakupie.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const initialHasConsent = cookieStore.has(CONSENT_COOKIE_KEY);
+
   return (
     <html
       lang="pl"
@@ -51,7 +56,7 @@ export default function RootLayout({
           <AnalyticsProvider>
             <CartProvider>
               {children}
-              <CookieConsentBanner />
+              <CookieConsentBanner initialHasConsent={initialHasConsent} />
               <CursorGlow />
             </CartProvider>
           </AnalyticsProvider>

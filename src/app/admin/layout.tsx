@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { LogoutButton } from "@/components/auth/logout-button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { getCurrentProfile } from "@/lib/session";
+import { getCurrentProfile, getCurrentUser } from "@/lib/session";
 
 const adminLinks = [
   { href: "/admin", label: "Dashboard" },
@@ -29,7 +30,17 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/logowanie?next=/admin");
+  }
+
   const profile = await getCurrentProfile();
+
+  if (profile?.role !== "admin") {
+    redirect("/konto?denied=admin");
+  }
 
   return (
     <div className="shell section-space space-y-8">

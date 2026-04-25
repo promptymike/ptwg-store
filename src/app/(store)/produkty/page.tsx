@@ -33,10 +33,16 @@ export default async function ProductsPage({
   )
     ? resolvedSearchParams.kategoria
     : undefined;
-  const [products, categories] = await Promise.all([
-    getStoreProducts(category),
+  const [allProducts, allCategories] = await Promise.all([
+    getStoreProducts(),
     getCategoryFilterOptions(),
   ]);
+
+  const products = category
+    ? allProducts.filter((p) => p.category === category)
+    : allProducts;
+  const populatedCategories = new Set(allProducts.map((p) => p.category));
+  const categories = allCategories.filter((c) => populatedCategories.has(c));
 
   return (
     <div className="shell section-space space-y-8">

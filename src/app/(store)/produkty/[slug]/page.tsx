@@ -183,7 +183,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               <p className="text-xs uppercase tracking-[0.28em] text-foreground/65">
                 {product.heroNote}
               </p>
-              <h1 className="max-w-xl text-balance break-words text-5xl text-foreground sm:text-6xl">
+              <h1 className="max-w-xl text-balance text-5xl text-foreground sm:text-6xl [overflow-wrap:anywhere]">
                 {product.name}
               </h1>
             </div>
