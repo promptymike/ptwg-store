@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 
 type CheckoutSuccessClientProps = {
   orderId: string;
+  orderNumber: string;
   amount: string;
   email: string;
   itemCount: number;
@@ -17,6 +18,7 @@ type CheckoutSuccessClientProps = {
 
 export function CheckoutSuccessClient({
   orderId,
+  orderNumber,
   amount,
   email,
   itemCount,
@@ -66,7 +68,7 @@ export function CheckoutSuccessClient({
       <div className="grid gap-4 md:grid-cols-3">
         <article className="rounded-[1.4rem] border border-border/70 bg-background/70 p-5">
           <p className="text-xs uppercase tracking-[0.22em] text-primary/75">Numer zamówienia</p>
-          <p className="mt-3 text-lg text-foreground">{orderId}</p>
+          <p className="mt-3 text-lg text-foreground">{orderNumber}</p>
         </article>
         <article className="rounded-[1.4rem] border border-border/70 bg-background/70 p-5">
           <p className="text-xs uppercase tracking-[0.22em] text-primary/75">Kwota</p>
@@ -115,8 +117,8 @@ export function CheckoutSuccessClient({
         <Button size="lg" render={<Link href="/biblioteka" />}>
           Otwórz moją bibliotekę
         </Button>
-        <Button size="lg" variant="outline" render={<Link href="/konto" />}>
-          Zobacz szczegóły konta
+        <Button size="lg" variant="outline" render={<Link href={`/konto/zamowienia/${orderId}`} />}>
+          Zobacz szczegóły zamówienia
         </Button>
       </div>
     </section>

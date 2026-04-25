@@ -22,10 +22,10 @@ export function LibraryGrid({ items }: LibraryGridProps) {
           key={item.id}
           className="surface-panel overflow-hidden border-border/70 bg-background/70"
         >
-          <div className="grid gap-0 lg:grid-cols-[260px_minmax(0,1fr)]">
+          <div className="grid gap-0 lg:grid-cols-[240px_minmax(0,1fr)]">
             <Link
               href={`/produkty/${item.slug}`}
-              className={`relative min-h-[220px] overflow-hidden bg-gradient-to-br ${item.coverGradient} p-6 transition hover:brightness-105`}
+              className={`relative min-h-[190px] overflow-hidden bg-gradient-to-br ${item.coverGradient} p-5 transition hover:brightness-105 sm:min-h-[220px]`}
             >
               <div className="hero-orb right-4 top-4 size-16 bg-white/35" />
               <div className="hero-orb bottom-4 left-4 size-14 bg-primary/18" />
@@ -66,7 +66,7 @@ export function LibraryGrid({ items }: LibraryGridProps) {
               </div>
             </Link>
 
-            <div className="flex min-w-0 flex-col justify-between gap-6 p-6">
+            <div className="flex min-w-0 flex-col justify-between gap-6 p-5 sm:p-6">
               <div className="space-y-4">
                 <div className="space-y-3">
                   <div className="flex flex-wrap items-center gap-2">
@@ -91,7 +91,7 @@ export function LibraryGrid({ items }: LibraryGridProps) {
                   </div>
                 </div>
 
-                <div className="grid gap-3 md:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-3">
                   <div className="rounded-[1.2rem] border border-border/70 bg-background/60 px-4 py-4">
                     <p className="text-[11px] uppercase tracking-[0.22em] text-primary/75">
                       Format
@@ -117,8 +117,12 @@ export function LibraryGrid({ items }: LibraryGridProps) {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                <Button size="lg" render={<Link href={`/produkty/${item.slug}`} />}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto"
+                  render={<Link href={`/produkty/${item.slug}`} />}
+                >
                   <PackageOpen className="size-4" />
                   Otwórz produkt
                 </Button>
@@ -126,6 +130,7 @@ export function LibraryGrid({ items }: LibraryGridProps) {
                   <Button
                     size="lg"
                     variant="outline"
+                    className="w-full sm:w-auto"
                     render={<Link href={`/api/library/${item.productId}/download`} />}
                   >
                     <Download className="size-4" />

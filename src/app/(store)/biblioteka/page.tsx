@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/session";
-import { getLibrarySnapshot } from "@/lib/supabase/store";
+import { getCustomerLibrarySnapshot } from "@/lib/supabase/store";
 
 export const metadata: Metadata = {
   title: "Biblioteka | Templify",
@@ -58,7 +58,7 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
     redirect("/logowanie?next=/biblioteka");
   }
 
-  const snapshot = await getLibrarySnapshot(user.id);
+  const snapshot = await getCustomerLibrarySnapshot(user.id);
 
   if (snapshot.error) {
     return (

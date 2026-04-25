@@ -15,7 +15,7 @@ import { getCoverImageOverlayOpacity } from "@/lib/product";
 import { getCanonicalUrl } from "@/lib/seo";
 import {
   getFaqSnapshot,
-  getOwnedProductAccess,
+  getCustomerOwnedProductAccess,
   getOwnedProductBySlug,
   getRelatedStoreProducts,
   getStoreProductBySlug,
@@ -96,7 +96,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   const [relatedProducts, faqs, ownedAccess] = await Promise.all([
     getRelatedStoreProducts(product),
     getFaqSnapshot(),
-    user ? getOwnedProductAccess(user.id, product.id) : Promise.resolve(null),
+    user ? getCustomerOwnedProductAccess(user.id, product.id) : Promise.resolve(null),
   ]);
   const hasOwnedAccess = Boolean(ownedAccess);
   const ownedDownloadHref =
@@ -125,7 +125,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   };
 
   return (
-    <div className="shell section-space space-y-10 pb-28 sm:pb-0">
+    <div className="shell space-y-8 py-10 pb-28 sm:py-12 sm:pb-0 lg:py-16">
       <AnalyticsProductView
         id={product.id}
         slug={product.slug}
@@ -142,7 +142,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
         <div
-          className={`surface-panel relative min-h-[420px] overflow-hidden bg-gradient-to-br ${product.coverGradient} p-8`}
+          className={`surface-panel relative min-h-[340px] overflow-hidden bg-gradient-to-br ${product.coverGradient} p-6 sm:min-h-[400px] sm:p-8`}
         >
           <div className="hero-orb right-10 top-8 size-28 bg-white/35" />
           <div className="hero-orb bottom-8 left-10 size-24 bg-primary/24" />
@@ -243,15 +243,21 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             </div>
           ) : null}
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-2 sm:grid-cols-3">
             {trustItems.map((item) => (
               <article
                 key={item.title}
-                className="rounded-[1.4rem] border border-border/70 bg-background/70 p-4"
+                className="rounded-2xl border border-border/70 bg-background/65 p-3.5"
               >
-                <item.icon className="size-5 text-primary" />
-                <p className="mt-3 text-sm font-medium text-foreground">{item.title}</p>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>
+                <div className="flex items-start gap-3">
+                  <item.icon className="mt-0.5 size-4 shrink-0 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{item.title}</p>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                      {item.description}
+                    </p>
+                  </div>
+                </div>
               </article>
             ))}
           </div>
@@ -393,7 +399,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             <p className="truncate text-sm text-muted-foreground">{product.name}</p>
             <p className="text-lg font-semibold text-foreground">{formatCurrency(product.price)}</p>
           </div>
-          <div className="w-[220px]">
+          <div className="w-[min(48vw,12rem)] shrink-0">
             {hasOwnedAccess ? (
               ownedDownloadHref ? (
                 <Button

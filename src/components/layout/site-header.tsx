@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, ShoppingBag, UserRound, X } from "lucide-react";
 
+import { LogoutButton } from "@/components/auth/logout-button";
 import { useCart } from "@/components/cart/cart-provider";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -74,15 +75,13 @@ export function SiteHeader({ isAuthenticated = false }: SiteHeaderProps) {
         <div className="hidden items-center gap-2 xl:flex">
           <ThemeToggle />
           {isAuthenticated ? (
-            <Button
-              variant="outline"
-              size="sm"
-              className="size-10 rounded-full p-0"
-              render={<Link href="/konto" />}
-            >
-              <UserRound className="size-4" />
-              <span className="sr-only">Konto</span>
-            </Button>
+            <>
+              <Button variant="outline" size="sm" render={<Link href="/konto" />}>
+                <UserRound className="size-4" />
+                Konto
+              </Button>
+              <LogoutButton variant="ghost" size="sm" />
+            </>
           ) : (
             <Button variant="outline" size="sm" render={<Link href="/logowanie?next=/checkout" />}>
               Zaloguj się
@@ -150,9 +149,15 @@ export function SiteHeader({ isAuthenticated = false }: SiteHeaderProps) {
               })}
               <div className="mt-2 flex flex-col gap-2 border-t border-border/60 pt-3">
                 {isAuthenticated ? (
-                  <Button variant="outline" render={<Link href="/konto" />}>
-                    Konto
-                  </Button>
+                  <>
+                    <Button variant="outline" render={<Link href="/konto" />}>
+                      Konto
+                    </Button>
+                    <Button variant="outline" render={<Link href="/biblioteka" />}>
+                      Moja biblioteka
+                    </Button>
+                    <LogoutButton />
+                  </>
                 ) : (
                   <>
                     <Button variant="outline" render={<Link href="/logowanie?next=/checkout" />}>

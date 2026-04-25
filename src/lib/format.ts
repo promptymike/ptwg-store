@@ -22,6 +22,40 @@ export function formatCurrency(
   }).format(normalizedValue);
 }
 
+export function formatOrderNumber(
+  id: string | null | undefined,
+  createdAt?: string | null,
+) {
+  if (!id) {
+    return "TPL-BRAK-NUMERU";
+  }
+
+  const date = createdAt ? new Date(createdAt) : null;
+  const year =
+    date && !Number.isNaN(date.getTime())
+      ? date.getFullYear()
+      : new Date().getFullYear();
+  const compactId = id.replace(/-/g, "").slice(-6).toUpperCase();
+
+  return `TPL-${year}-${compactId || "000000"}`;
+}
+
+export function formatShortDate(value: string | null | undefined) {
+  if (!value) {
+    return "Brak daty";
+  }
+
+  const normalizedDate = new Date(value);
+
+  if (Number.isNaN(normalizedDate.getTime())) {
+    return "Brak daty";
+  }
+
+  return new Intl.DateTimeFormat("pl-PL", {
+    dateStyle: "medium",
+  }).format(normalizedDate);
+}
+
 export function formatOrderStatus(status: string | null | undefined) {
   switch (status) {
     case "new":

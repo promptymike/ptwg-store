@@ -60,7 +60,7 @@ export function AccountQuickLinks({
           <div className="mt-5 space-y-2">
             <p className="text-lg text-foreground">{item.title}</p>
             <p className="text-sm leading-6 text-muted-foreground">{item.description}</p>
-            <p className="text-xs uppercase tracking-[0.18em] text-primary/75">
+            <p className="break-all text-xs uppercase tracking-[0.18em] text-primary/75">
               {metaByKey[item.key]}
             </p>
           </div>

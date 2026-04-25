@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 
 import { CheckoutSuccessClient } from "@/components/checkout/checkout-success-client";
 import { EmptyState } from "@/components/shared/empty-state";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatOrderNumber } from "@/lib/format";
 import { getCurrentUser } from "@/lib/session";
 import {
   fulfillCheckoutSession,
@@ -78,6 +78,7 @@ export default async function CheckoutSuccessPage({
     <div className="shell section-space">
       <CheckoutSuccessClient
         orderId={result.orderId}
+        orderNumber={formatOrderNumber(result.orderId)}
         amount={formatCurrency(result.total)}
         email={result.email}
         itemCount={result.items.length}

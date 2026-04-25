@@ -155,6 +155,33 @@ async function getExistingFulfillmentResult(
   };
 }
 
+async function ensureLibraryAccess(
+  supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
+  userId: string,
+  orderId: string,
+  items: FulfilledLineItem[],
+) {
+  if (items.length === 0) {
+    return;
+  }
+
+  const { error } = await supabase.from("library_items").upsert(
+    items.map((item) => ({
+      user_id: userId,
+      product_id: item.productId,
+      order_id: orderId,
+    })),
+    {
+      onConflict: "user_id,product_id",
+      ignoreDuplicates: false,
+    },
+  );
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 export async function fulfillCheckoutSession(
   sessionId: string,
   options: FulfillmentOptions = {},
@@ -177,6 +204,12 @@ export async function fulfillCheckoutSession(
       const existingResult = await getExistingFulfillmentResult(supabase, sessionId);
 
       if (existingResult) {
+        await ensureLibraryAccess(
+          supabase,
+          existingResult.userId,
+          existingResult.orderId,
+          existingResult.items,
+        );
         return existingResult;
       }
     }
@@ -185,6 +218,12 @@ export async function fulfillCheckoutSession(
   const existingOrder = await getExistingFulfillmentResult(supabase, sessionId);
 
   if (existingOrder) {
+    await ensureLibraryAccess(
+      supabase,
+      existingOrder.userId,
+      existingOrder.orderId,
+      existingOrder.items,
+    );
     await recordWebhookEvent(supabase, options.eventId, options.eventType, sessionId);
     return existingOrder;
   }
@@ -292,21 +331,7 @@ export async function fulfillCheckoutSession(
   //   unique (user_id, product_id)
   // constraint declared in CREATE TABLE (migration 20260417223000), so the
   // ON CONFLICT arbiter is valid without any follow-up migration.
-  const { error: libraryError } = await supabase.from("library_items").upsert(
-    items.map((item) => ({
-      user_id: userId,
-      product_id: item.productId,
-      order_id: order.id,
-    })),
-    {
-      onConflict: "user_id,product_id",
-      ignoreDuplicates: false,
-    },
-  );
-
-  if (libraryError) {
-    throw new Error(libraryError.message);
-  }
+  await ensureLibraryAccess(supabase, userId, order.id, items);
 
   await recordWebhookEvent(supabase, options.eventId, options.eventType, session.id);
 

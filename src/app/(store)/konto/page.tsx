@@ -5,7 +5,12 @@ import { redirect } from "next/navigation";
 import { AccountQuickLinks } from "@/components/account/account-quick-links";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { EmptyState } from "@/components/shared/empty-state";
-import { formatCurrency, formatOrderStatus } from "@/lib/format";
+import {
+  formatCurrency,
+  formatOrderNumber,
+  formatOrderStatus,
+  formatShortDate,
+} from "@/lib/format";
 import { getCurrentProfile, getCurrentUser } from "@/lib/session";
 import { getAccountSnapshot } from "@/lib/supabase/store";
 
@@ -71,7 +76,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         <div className="grid gap-4 md:grid-cols-3">
           <article className="rounded-[1.5rem] border border-border/70 bg-background/60 p-5">
             <p className="text-xs uppercase tracking-[0.22em] text-primary/75">E-mail</p>
-            <p className="mt-3 text-lg text-foreground">{profile.email}</p>
+            <p className="mt-3 break-all text-lg text-foreground">{profile.email}</p>
           </article>
           <article className="rounded-[1.5rem] border border-border/70 bg-background/60 p-5">
             <p className="text-xs uppercase tracking-[0.22em] text-primary/75">Rola</p>
@@ -133,23 +138,28 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         ) : (
           <div className="grid gap-3">
             {snapshot.orders.map((order) => (
-              <article
+              <Link
                 key={order.id}
-                className="rounded-[1.4rem] border border-border/70 bg-background/60 px-4 py-4"
+                href={`/konto/zamowienia/${order.id}`}
+                className="group rounded-[1.4rem] border border-border/70 bg-background/60 px-4 py-4 transition hover:border-primary/30 hover:bg-background/80"
               >
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-lg text-foreground">{order.id}</p>
+                  <div className="min-w-0">
+                    <p className="text-lg text-foreground">
+                      {formatOrderNumber(order.id, order.created_at)}
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(order.created_at).toLocaleDateString("pl-PL")}
+                      {formatShortDate(order.created_at)}
                     </p>
                   </div>
-                  <div className="text-sm">
+                  <div className="shrink-0 text-sm sm:text-right">
                     <p className="text-foreground">{formatCurrency(order.total)}</p>
-                    <p className="text-primary">{formatOrderStatus(order.status)}</p>
+                    <p className="text-primary">
+                      {formatOrderStatus(order.status)} · Szczegóły
+                    </p>
                   </div>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         )}

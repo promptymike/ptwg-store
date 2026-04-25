@@ -68,6 +68,11 @@ type LibraryRow = Tables<"library_items"> & {
   };
 };
 
+type LibraryItemRow = Pick<
+  Tables<"library_items">,
+  "id" | "created_at" | "download_count" | "last_downloaded_at" | "product_id"
+>;
+
 type LibraryAccessRow = Pick<
   Tables<"library_items">,
   "id" | "created_at" | "download_count" | "last_downloaded_at"
@@ -87,6 +92,25 @@ type AccountOrderRow = Pick<
   Tables<"orders">,
   "id" | "status" | "total" | "created_at"
 >;
+
+type AccountOrderItemRow = Pick<
+  Tables<"order_items">,
+  "id" | "product_id" | "product_name" | "quantity" | "unit_price"
+>;
+
+type AccountOrderDetailsRow = Pick<
+  Tables<"orders">,
+  "id" | "status" | "total" | "subtotal" | "currency" | "created_at"
+> & {
+  order_items: AccountOrderItemRow[];
+};
+
+type AccountOrderProductRow = Pick<
+  Tables<"products">,
+  "id" | "slug" | "short_description" | "format" | "file_path"
+> & {
+  categories: Pick<Tables<"categories">, "name"> | null;
+};
 
 type AdminProductSourceStatus = "unattached" | "draft" | "published";
 
@@ -192,6 +216,27 @@ export type OwnedProductAccessSnapshot = {
   downloadCount: number;
   lastDownloadedAt: string | null;
   updateLabel: "Nowość" | "Zaktualizowano" | null;
+};
+
+export type AccountOrderDetailsSnapshot = {
+  id: string;
+  status: string;
+  total: number;
+  subtotal: number;
+  currency: string;
+  createdAt: string;
+  items: Array<{
+    id: string;
+    productId: string;
+    productName: string;
+    quantity: number;
+    unitPrice: number;
+    slug: string | null;
+    shortDescription: string;
+    format: string;
+    category: Category;
+    filePath: string | null;
+  }>;
 };
 
 const SECTION_ORDER = [
@@ -882,6 +927,254 @@ export async function getOwnedProductAccess(
     downloadCount: item.download_count,
     lastDownloadedAt: item.last_downloaded_at,
     updateLabel: getLibraryActivityBadge(item.created_at, item.products.updated_at),
+  };
+}
+
+export async function getCustomerLibrarySnapshot(
+  userId: string,
+): Promise<LibrarySnapshotResult> {
+  const supabase = await createSupabaseServerClient();
+  const adminSupabase = createSupabaseAdminClient();
+
+  if (!supabase || !adminSupabase) {
+    return {
+      items: [],
+      error: "Brak konfiguracji Supabase.",
+    };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("library_items")
+      .select("id, created_at, download_count, last_downloaded_at, product_id")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (error || !data) {
+      return {
+        items: [],
+        error: error?.message ?? "Nie udało się pobrać biblioteki.",
+      };
+    }
+
+    const libraryRows = data as LibraryItemRow[];
+    const seenProductIds = new Set<string>();
+    const orderedProductIds = libraryRows
+      .map((item) => item.product_id)
+      .filter((productId) => {
+        if (!productId || seenProductIds.has(productId)) {
+          return false;
+        }
+
+        seenProductIds.add(productId);
+        return true;
+      });
+
+    if (orderedProductIds.length === 0) {
+      return {
+        items: [],
+        error: null,
+      };
+    }
+
+    const { data: products, error: productsError } = await adminSupabase
+      .from("products")
+      .select(
+        "id, slug, name, short_description, format, file_path, cover_path, cover_gradient, cover_image_opacity, updated_at, categories(name, slug)",
+      )
+      .in("id", orderedProductIds);
+
+    if (productsError || !products) {
+      return {
+        items: [],
+        error:
+          productsError?.message ??
+          "Nie udało się pobrać produktów z biblioteki.",
+      };
+    }
+
+    const productsById = new Map(
+      (products as Array<LibraryRow["products"]>).map((product) => [
+        product.id,
+        product,
+      ]),
+    );
+
+    const items = await Promise.all(
+      libraryRows
+        .filter((item, index, rows) => {
+          if (!item.product_id || !productsById.has(item.product_id)) {
+            return false;
+          }
+
+          return rows.findIndex((row) => row.product_id === item.product_id) === index;
+        })
+        .map(async (item) => {
+          const product = productsById.get(item.product_id);
+
+          if (!product) {
+            return null;
+          }
+
+          const category = getSingleRelation(product.categories);
+
+          return {
+            id: item.id,
+            createdAt: item.created_at,
+            downloadCount: item.download_count,
+            lastDownloadedAt: item.last_downloaded_at,
+            productId: product.id,
+            slug: normalizeText(product.slug, product.id),
+            name: normalizeText(product.name, "Produkt z biblioteki"),
+            shortDescription: normalizeText(
+              product.short_description,
+              "Kupiony produkt cyfrowy dostępny na Twoim koncie.",
+            ),
+            format: normalizeText(product.format, "Plik cyfrowy"),
+            category: normalizeCategory(category?.name),
+            filePath: normalizeNullableText(product.file_path),
+            coverImageUrl: product.cover_path
+              ? await createProductCoverSignedUrl(product.cover_path)
+              : null,
+            coverGradient: normalizeText(
+              product.cover_gradient,
+              "from-[#fbf5ea] via-[#f4ead9] to-[#e4c58d]",
+            ),
+            coverImageOpacity: normalizeCoverImageOpacity(
+              product.cover_image_opacity,
+            ),
+            updateLabel: getLibraryActivityBadge(item.created_at, product.updated_at),
+          };
+        }),
+    );
+
+    return {
+      items: items.filter((item): item is LibraryItemSnapshot => Boolean(item)),
+      error: null,
+    };
+  } catch (error) {
+    logAdminStoreError("customer-library", error, { userId });
+
+    return {
+      items: [],
+      error: "Nie udało się pobrać biblioteki.",
+    };
+  }
+}
+
+export async function getCustomerOwnedProductAccess(
+  userId: string,
+  productId: string,
+): Promise<OwnedProductAccessSnapshot | null> {
+  const supabase = await createSupabaseServerClient();
+  const adminSupabase = createSupabaseAdminClient();
+
+  if (!supabase || !adminSupabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("library_items")
+    .select("id, created_at, download_count, last_downloaded_at, product_id")
+    .eq("user_id", userId)
+    .eq("product_id", productId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  const item = data as LibraryItemRow;
+  const { data: product, error: productError } = await adminSupabase
+    .from("products")
+    .select("id, slug, file_path, updated_at")
+    .eq("id", item.product_id)
+    .maybeSingle();
+
+  if (productError || !product) {
+    return null;
+  }
+
+  return {
+    libraryItemId: item.id,
+    productId: product.id,
+    slug: product.slug,
+    filePath: product.file_path,
+    createdAt: item.created_at,
+    updatedAt: product.updated_at,
+    downloadCount: item.download_count,
+    lastDownloadedAt: item.last_downloaded_at,
+    updateLabel: getLibraryActivityBadge(item.created_at, product.updated_at),
+  };
+}
+
+export async function getAccountOrderDetails(
+  userId: string,
+  orderId: string,
+): Promise<AccountOrderDetailsSnapshot | null> {
+  const supabase = await createSupabaseServerClient();
+  const adminSupabase = createSupabaseAdminClient();
+
+  if (!supabase || !adminSupabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("orders")
+    .select(
+      "id, status, total, subtotal, currency, created_at, order_items(id, product_id, product_name, quantity, unit_price)",
+    )
+    .eq("user_id", userId)
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  const order = data as AccountOrderDetailsRow;
+  const productIds = order.order_items.map((item) => item.product_id);
+  const { data: products } =
+    productIds.length > 0
+      ? await adminSupabase
+          .from("products")
+          .select("id, slug, short_description, format, file_path, categories(name)")
+          .in("id", productIds)
+      : { data: [] };
+
+  const productsById = new Map(
+    ((products ?? []) as AccountOrderProductRow[]).map((product) => [
+      product.id,
+      product,
+    ]),
+  );
+
+  return {
+    id: order.id,
+    status: order.status,
+    total: normalizeNumber(order.total),
+    subtotal: normalizeNumber(order.subtotal),
+    currency: normalizeText(order.currency, "PLN"),
+    createdAt: order.created_at,
+    items: order.order_items.map((item) => {
+      const product = productsById.get(item.product_id);
+      const category = product ? getSingleRelation(product.categories) : null;
+
+      return {
+        id: item.id,
+        productId: item.product_id,
+        productName: normalizeText(item.product_name, "Produkt cyfrowy"),
+        quantity: normalizeInteger(item.quantity, 1),
+        unitPrice: normalizeNumber(item.unit_price),
+        slug: product ? normalizeText(product.slug, product.id) : null,
+        shortDescription: product
+          ? normalizeText(product.short_description)
+          : "Produkt z zamówienia.",
+        format: product ? normalizeText(product.format, "Plik cyfrowy") : "Plik cyfrowy",
+        category: normalizeCategory(category?.name),
+        filePath: product ? normalizeNullableText(product.file_path) : null,
+      };
+    }),
   };
 }
 

@@ -1,19 +1,25 @@
 "use client";
 
+import type { ComponentProps } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type LogoutButtonProps = {
   redirectTo?: string;
-  variant?: "default" | "outline" | "secondary" | "ghost";
+  variant?: ComponentProps<typeof Button>["variant"];
+  size?: ComponentProps<typeof Button>["size"];
+  className?: string;
 };
 
 export function LogoutButton({
   redirectTo = "/",
   variant = "outline",
+  size = "default",
+  className,
 }: LogoutButtonProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +43,14 @@ export function LogoutButton({
   }
 
   return (
-    <Button variant={variant} onClick={handleLogout} disabled={isLoading}>
+    <Button
+      variant={variant}
+      size={size}
+      className={className}
+      onClick={handleLogout}
+      disabled={isLoading}
+    >
+      <LogOut className="size-4" />
       {isLoading ? "Wylogowywanie..." : "Wyloguj"}
     </Button>
   );
