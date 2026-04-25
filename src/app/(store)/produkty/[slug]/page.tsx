@@ -7,6 +7,7 @@ import { BookOpen, CheckCircle2, Download, LibraryBig, ShieldCheck, Sparkles, Za
 import { AnalyticsProductView } from "@/components/analytics/analytics-product-view";
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
 import { ProductCard } from "@/components/products/product-card";
+import { ProductReviews } from "@/components/products/product-reviews";
 import { ProductTestimonials } from "@/components/products/product-testimonials";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,11 @@ import { formatCurrency } from "@/lib/format";
 import { getCurrentUser } from "@/lib/session";
 import { getCoverImageOverlayOpacity } from "@/lib/product";
 import { getCanonicalUrl } from "@/lib/seo";
+import {
+  getApprovedReviewsForProduct,
+  getCustomerReviewForProduct,
+  summariseReviews,
+} from "@/lib/supabase/reviews";
 import {
   getFaqSnapshot,
   getCustomerOwnedProductAccess,
@@ -95,16 +101,27 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const [relatedProducts, faqs, testimonials, ownedAccess, ownedProductIds] =
-    await Promise.all([
-      getRelatedStoreProducts(product),
-      getFaqSnapshot(),
-      getTestimonialsSnapshot(),
-      user
-        ? getCustomerOwnedProductAccess(user.id, product.id)
-        : Promise.resolve(null),
-      getOwnedProductIds(user?.id ?? null),
-    ]);
+  const [
+    relatedProducts,
+    faqs,
+    testimonials,
+    ownedAccess,
+    ownedProductIds,
+    productReviews,
+    customerReview,
+  ] = await Promise.all([
+    getRelatedStoreProducts(product),
+    getFaqSnapshot(),
+    getTestimonialsSnapshot(),
+    user
+      ? getCustomerOwnedProductAccess(user.id, product.id)
+      : Promise.resolve(null),
+    getOwnedProductIds(user?.id ?? null),
+    getApprovedReviewsForProduct(product.id),
+    user ? getCustomerReviewForProduct(user.id, product.id) : Promise.resolve(null),
+  ]);
+  const reviewSummary = summariseReviews(productReviews);
+  const canReview = Boolean(user && ownedAccess);
   const hasOwnedAccess = Boolean(ownedAccess);
   const ownedDownloadHref =
     hasOwnedAccess && ownedAccess?.filePath
@@ -112,18 +129,26 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       : null;
 
   const productUrl = getCanonicalUrl(`/produkty/${product.slug}`);
+  // Real moderated reviews override curated testimonials in JSON-LD as
+  // soon as one exists — Google prefers verified ratings and rejects
+  // suspiciously perfect averages.
   const aggregateRating =
-    testimonials.length > 0
+    reviewSummary.count > 0
       ? {
-          ratingValue: (
-            testimonials.reduce(
-              (sum, item) => sum + (Number.parseFloat(item.score ?? "5") || 5),
-              0,
-            ) / testimonials.length
-          ).toFixed(1),
-          reviewCount: testimonials.length,
+          ratingValue: reviewSummary.average.toFixed(1),
+          reviewCount: reviewSummary.count,
         }
-      : null;
+      : testimonials.length > 0
+        ? {
+            ratingValue: (
+              testimonials.reduce(
+                (sum, item) => sum + (Number.parseFloat(item.score ?? "5") || 5),
+                0,
+              ) / testimonials.length
+            ).toFixed(1),
+            reviewCount: testimonials.length,
+          }
+        : null;
 
   const productStructuredData = {
     "@context": "https://schema.org",
@@ -483,10 +508,35 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         </section>
       ) : null}
 
-      <ProductTestimonials
-        testimonials={testimonials}
-        productName={product.name}
-      />
+      {productReviews.length > 0 ? (
+        <ProductReviews
+          productId={product.id}
+          productName={product.name}
+          reviews={productReviews}
+          summary={reviewSummary}
+          canReview={canReview}
+          existingReview={customerReview}
+        />
+      ) : (
+        <>
+          {/* No real reviews yet — show curated testimonials, plus the
+              review form so owners can be the first. */}
+          <ProductTestimonials
+            testimonials={testimonials}
+            productName={product.name}
+          />
+          {canReview ? (
+            <ProductReviews
+              productId={product.id}
+              productName={product.name}
+              reviews={productReviews}
+              summary={reviewSummary}
+              canReview={canReview}
+              existingReview={customerReview}
+            />
+          ) : null}
+        </>
+      )}
 
       {relatedProducts.length > 0 ? (
         <section className="space-y-6">

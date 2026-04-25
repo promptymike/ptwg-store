@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { NewsletterForm } from "@/components/newsletter/newsletter-form";
 import { getSiteSettingsSnapshot } from "@/lib/supabase/store";
 
 const footerGroups = [
@@ -52,6 +53,12 @@ export async function SiteFooter() {
               Sprzedajemy konkret, nie ściemę. Każdy ebook jest napisany przez praktyków:
               o pieniądzach, zdrowiu, macierzyństwie, czasie i karierze.
             </p>
+          </div>
+
+          <div className="space-y-3 rounded-[1.5rem] border border-border/70 bg-background/60 p-5 text-sm text-muted-foreground">
+            <p className="text-xs uppercase tracking-[0.22em] text-primary/75">Newsletter</p>
+            <p className="text-foreground">1 króciutki insight tygodniowo + bezpłatna próbka ebooka po zapisie.</p>
+            <NewsletterForm source="footer" variant="compact" />
           </div>
 
           <div className="rounded-[1.5rem] border border-border/70 bg-background/60 p-5 text-sm text-muted-foreground">

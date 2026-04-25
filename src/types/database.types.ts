@@ -7,8 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
@@ -37,6 +35,65 @@ export type Database = {
           note?: string
         }
         Relationships: []
+      }
+      blog_posts: {
+        Row: {
+          author_id: string | null
+          body: string
+          cover_path: string | null
+          created_at: string
+          excerpt: string
+          id: string
+          published_at: string | null
+          reading_minutes: number
+          related_product_ids: string[]
+          slug: string
+          status: Database["public"]["Enums"]["blog_post_status"]
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          body?: string
+          cover_path?: string | null
+          created_at?: string
+          excerpt?: string
+          id?: string
+          published_at?: string | null
+          reading_minutes?: number
+          related_product_ids?: string[]
+          slug: string
+          status?: Database["public"]["Enums"]["blog_post_status"]
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          cover_path?: string | null
+          created_at?: string
+          excerpt?: string
+          id?: string
+          published_at?: string | null
+          reading_minutes?: number
+          related_product_ids?: string[]
+          slug?: string
+          status?: Database["public"]["Enums"]["blog_post_status"]
+          tags?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       bundle_products: {
         Row: {
@@ -261,6 +318,50 @@ export type Database = {
           },
         ]
       }
+      newsletter_subscribers: {
+        Row: {
+          consent: boolean
+          created_at: string
+          email: string
+          id: string
+          resend_contact_id: string | null
+          source: string
+          unsubscribed_at: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          consent?: boolean
+          created_at?: string
+          email: string
+          id?: string
+          resend_contact_id?: string | null
+          source?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          consent?: boolean
+          created_at?: string
+          email?: string
+          id?: string
+          resend_contact_id?: string | null
+          source?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_subscribers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
@@ -390,6 +491,70 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_reviews: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_verified_purchase: boolean
+          order_id: string | null
+          product_id: string
+          rating: number
+          status: Database["public"]["Enums"]["review_status"]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          is_verified_purchase?: boolean
+          order_id?: string | null
+          product_id: string
+          rating: number
+          status?: Database["public"]["Enums"]["review_status"]
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_verified_purchase?: boolean
+          order_id?: string | null
+          product_id?: string
+          rating?: number
+          status?: Database["public"]["Enums"]["review_status"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -700,9 +865,11 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
+      blog_post_status: "draft" | "published" | "archived"
       order_status: "new" | "paid" | "fulfilled" | "cancelled"
       product_pipeline_status: "working" | "refining" | "ready" | "published"
       product_status: "draft" | "published" | "archived"
+      review_status: "pending" | "approved" | "rejected"
       user_role: "admin" | "user"
     }
     CompositeTypes: {
@@ -831,9 +998,11 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      blog_post_status: ["draft", "published", "archived"],
       order_status: ["new", "paid", "fulfilled", "cancelled"],
       product_pipeline_status: ["working", "refining", "ready", "published"],
       product_status: ["draft", "published", "archived"],
+      review_status: ["pending", "approved", "rejected"],
       user_role: ["admin", "user"],
     },
   },

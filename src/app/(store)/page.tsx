@@ -7,6 +7,7 @@ import { CtaSection } from "@/components/sections/cta-section";
 import { FaqSection } from "@/components/sections/faq-section";
 import { HeroSection } from "@/components/sections/hero-section";
 import { NewArrivalsSection } from "@/components/sections/new-arrivals-section";
+import { NewsletterSection } from "@/components/sections/newsletter-section";
 import { categoryHighlights, storeStats } from "@/data/mock-store";
 import { buildCanonicalMetadata, getCanonicalUrl } from "@/lib/seo";
 import { getCurrentUser } from "@/lib/session";
@@ -134,6 +135,7 @@ export default async function HomePage() {
         ownedProductIds={ownedProductIds}
       />
       <FaqSection content={getSectionOrFallback(sections, "faq")} faqs={faqs} />
+      <NewsletterSection />
       <CtaSection />
     </>
   );

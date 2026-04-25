@@ -31,6 +31,10 @@ export const env = {
   resendFromAddress:
     process.env.RESEND_FROM_ADDRESS ?? "Templify <noreply@templify.pl>",
   resendReplyTo: process.env.RESEND_REPLY_TO ?? "kontakt@templify.store",
+  // Optional Resend Audience id for newsletter contacts. When set, every
+  // subscription syncs to that audience so admins can fire broadcasts
+  // straight from resend.com/audiences.
+  resendAudienceId: process.env.RESEND_AUDIENCE_ID,
 };
 
 export function hasSupabaseEnv() {
