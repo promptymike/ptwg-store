@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CheckCircle2, ShieldCheck, Sparkles, Zap } from "lucide-react";
 
+import { HeroCta } from "@/components/experiments/hero-cta";
 import { Button } from "@/components/ui/button";
 import type { SiteSectionContent, StoreStat } from "@/types/store";
 
@@ -47,9 +48,11 @@ export function HeroSection({ content, stats }: HeroSectionProps) {
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Button size="lg" render={<Link href={content.ctaHref ?? "/produkty"} />}>
-                {content.ctaLabel ?? "Przeglądaj katalog"}
-              </Button>
+              {/* Primary CTA is A/B-tested via HeroCta — pulls a sticky
+                  variant per visitor and reports impressions / clicks
+                  through the analytics provider. Add ?exp_hero_cta_v1=
+                  free_sample to force a specific variant for QA. */}
+              <HeroCta fallbackHref={content.ctaHref ?? "/produkty"} />
               <Button
                 size="lg"
                 variant="outline"

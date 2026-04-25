@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   LibraryBig,
   Menu,
+  Search,
   ShieldCheck,
   ShoppingBag,
   UserRound,
@@ -17,6 +18,7 @@ import {
 import { LogoutButton } from "@/components/auth/logout-button";
 import { useCart } from "@/components/cart/cart-provider";
 import { MiniCart } from "@/components/cart/mini-cart";
+import { SearchDialog } from "@/components/search/search-dialog";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -45,6 +47,7 @@ export function SiteHeader({ profile }: SiteHeaderProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -52,7 +55,20 @@ export function SiteHeader({ profile }: SiteHeaderProps) {
     setIsMobileOpen(false);
     setIsAccountOpen(false);
     setIsCartOpen(false);
+    setIsSearchOpen(false);
   }, [pathname]);
+
+  // Cmd/Ctrl + K opens search anywhere on the site (Notion / Linear pattern).
+  useEffect(() => {
+    function handleKey(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setIsSearchOpen(true);
+      }
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
 
   useEffect(() => {
     if (!isMobileOpen) return;
@@ -115,6 +131,15 @@ export function SiteHeader({ profile }: SiteHeaderProps) {
         </nav>
 
         <div className="hidden items-center gap-2 xl:flex">
+          <button
+            type="button"
+            onClick={() => setIsSearchOpen(true)}
+            aria-label="Szukaj na stronie"
+            title="Szukaj (Ctrl+K)"
+            className="inline-flex h-11 items-center justify-center rounded-full border border-border/70 bg-card/70 px-3 text-muted-foreground transition hover:border-primary/40 hover:text-foreground"
+          >
+            <Search className="size-4" />
+          </button>
           <ThemeToggle />
           {profile ? (
             <div className="relative" ref={accountRef}>
@@ -224,6 +249,14 @@ export function SiteHeader({ profile }: SiteHeaderProps) {
         </div>
 
         <div className="flex items-center gap-2 xl:hidden">
+          <button
+            type="button"
+            onClick={() => setIsSearchOpen(true)}
+            aria-label="Szukaj"
+            className="inline-flex size-10 items-center justify-center rounded-full border border-border/70 bg-background/80 text-foreground transition hover:bg-secondary"
+          >
+            <Search className="size-4" />
+          </button>
           <Button
             variant="outline"
             size="sm"
@@ -341,6 +374,7 @@ export function SiteHeader({ profile }: SiteHeaderProps) {
       ) : null}
 
       <MiniCart open={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      <SearchDialog open={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </header>
   );
 }

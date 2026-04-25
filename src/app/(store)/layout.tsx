@@ -4,6 +4,7 @@ import { PromoStrip } from "@/components/layout/promo-strip";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { StoreOnboardingTour } from "@/components/onboarding/store-onboarding-tour";
+import { WishlistSync } from "@/components/products/wishlist-sync";
 import { getCurrentProfile } from "@/lib/session";
 
 function deriveInitials(input: string | null | undefined) {
@@ -43,6 +44,7 @@ export default async function StoreLayout({
           Skipped for anonymous browsers — they get the slim cookie banner
           instead and see the product cards work without a modal. */}
       {profileSummary ? <StoreOnboardingTour /> : null}
+      {profileSummary ? <WishlistSync /> : null}
     </div>
   );
 }

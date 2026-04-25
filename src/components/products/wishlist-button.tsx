@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { Heart } from "lucide-react";
 
+import { toggleWishlistAction } from "@/app/actions/wishlist";
 import {
   type WishlistEntry,
   WISHLIST_EVENT,
@@ -52,14 +53,19 @@ export function WishlistButton({
 
   function toggle() {
     const current = readWishlist();
-    if (isOnList) {
-      writeWishlist(current.filter((entry) => entry.productId !== productId));
-    } else {
+    const nextAdd = !isOnList;
+    if (nextAdd) {
       writeWishlist([
         ...current,
         { productId, addedAt: new Date().toISOString() },
       ]);
+    } else {
+      writeWishlist(current.filter((entry) => entry.productId !== productId));
     }
+    // Best-effort server persistence — silently no-ops for anonymous users
+    // because the server action checks auth and returns ok:false. Local
+    // state already updated, so user sees instant feedback either way.
+    void toggleWishlistAction({ productId, add: nextAdd }).catch(() => {});
   }
 
   return (

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Download, LibraryBig } from "lucide-react";
 
 import { LibraryGrid } from "@/components/account/library-grid";
+import { ReadingStreakBadge } from "@/components/account/reading-streak-badge";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -109,7 +110,7 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 lg:max-w-md">
             <div className="rounded-[1.4rem] border border-border/70 bg-background/60 px-5 py-5">
               <p className="text-[11px] uppercase tracking-[0.22em] text-primary/75">Pozycje</p>
               <p className="mt-3 text-2xl text-foreground">{snapshot.items.length}</p>
@@ -121,6 +122,9 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
               <p className="mt-3 text-2xl text-foreground">
                 {snapshot.items.filter((item) => item.filePath).length}
               </p>
+            </div>
+            <div className="sm:col-span-2">
+              <ReadingStreakBadge />
             </div>
           </div>
         </div>

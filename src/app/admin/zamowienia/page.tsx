@@ -1,5 +1,9 @@
+import Link from "next/link";
+import { Download } from "lucide-react";
+
 import { AdminStatusNotice } from "@/components/admin/admin-status-notice";
 import { EmptyState } from "@/components/shared/empty-state";
+import { Button } from "@/components/ui/button";
 import { formatCurrency, formatOrderStatus } from "@/lib/format";
 import { getAdminOrdersSnapshot } from "@/lib/supabase/store";
 
@@ -34,11 +38,17 @@ export default async function AdminOrdersPage() {
       <AdminStatusNotice type={error ? "error" : undefined} message={error ?? undefined} />
 
       <section className="surface-panel space-y-5 p-6">
-        <div className="space-y-2">
-          <h2 className="text-2xl text-foreground">Zamówienia</h2>
-          <p className="text-sm text-muted-foreground">
-            Realne dane po Stripe Checkout i fulfillment do biblioteki użytkownika.
-          </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <h2 className="text-2xl text-foreground">Zamówienia</h2>
+            <p className="text-sm text-muted-foreground">
+              Realne dane po Stripe Checkout i fulfillment do biblioteki użytkownika.
+            </p>
+          </div>
+          <Button render={<Link href="/api/admin/orders/export" />}>
+            <Download className="size-4" />
+            Eksport CSV
+          </Button>
         </div>
 
         <div className="grid gap-3">

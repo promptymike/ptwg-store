@@ -633,6 +633,31 @@ const READER_SCRIPT = String.raw`
     window.addEventListener("load", function () {
       restoreScroll();
       try { localStorage.setItem(okey, String(Date.now())); } catch (e) {}
+      // Streak: idempotent per UTC day. Mirrors lib/reading-streak.ts so
+      // /biblioteka can show updated counts without an explicit ping.
+      try {
+        var sk = "templify:reading-streak";
+        var rawState = localStorage.getItem(sk);
+        var state = rawState ? JSON.parse(rawState) : { current: 0, best: 0, lastReadOn: null, totalDays: 0 };
+        var d = new Date();
+        var today = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+        if (state.lastReadOn !== today) {
+          var nextCurrent = 1;
+          if (state.lastReadOn) {
+            var dayMs = 86400000;
+            var diff = Math.round((Date.parse(today + "T00:00:00Z") - Date.parse(state.lastReadOn + "T00:00:00Z")) / dayMs);
+            if (diff === 1) nextCurrent = (state.current || 0) + 1;
+          }
+          var nextStreak = {
+            current: nextCurrent,
+            best: Math.max(state.best || 0, nextCurrent),
+            lastReadOn: today,
+            totalDays: (state.totalDays || 0) + 1,
+          };
+          localStorage.setItem(sk, JSON.stringify(nextStreak));
+          try { window.dispatchEvent(new Event("templify-reading-streak-updated")); } catch (e) {}
+        }
+      } catch (e) {}
       persistProgress();
     });
 
