@@ -472,6 +472,66 @@ export type Database = {
         }
         Relationships: []
       }
+      gift_codes: {
+        Row: {
+          amount_minor: number
+          code: string
+          created_at: string
+          currency: string
+          expires_at: string | null
+          id: string
+          message: string | null
+          purchaser_email: string
+          recipient_email: string | null
+          recipient_name: string | null
+          redeemed_at: string | null
+          redeemed_by_user_id: string | null
+          redeemed_order_id: string | null
+          status: Database["public"]["Enums"]["gift_code_status"]
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_minor: number
+          code: string
+          created_at?: string
+          currency?: string
+          expires_at?: string | null
+          id?: string
+          message?: string | null
+          purchaser_email: string
+          recipient_email?: string | null
+          recipient_name?: string | null
+          redeemed_at?: string | null
+          redeemed_by_user_id?: string | null
+          redeemed_order_id?: string | null
+          status?: Database["public"]["Enums"]["gift_code_status"]
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_minor?: number
+          code?: string
+          created_at?: string
+          currency?: string
+          expires_at?: string | null
+          id?: string
+          message?: string | null
+          purchaser_email?: string
+          recipient_email?: string | null
+          recipient_name?: string | null
+          redeemed_at?: string | null
+          redeemed_by_user_id?: string | null
+          redeemed_order_id?: string | null
+          status?: Database["public"]["Enums"]["gift_code_status"]
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       library_items: {
         Row: {
           created_at: string
@@ -1180,6 +1240,12 @@ export type Database = {
     }
     Enums: {
       blog_post_status: "draft" | "published" | "archived"
+      gift_code_status:
+        | "pending"
+        | "issued"
+        | "redeemed"
+        | "refunded"
+        | "expired"
       order_status: "new" | "paid" | "fulfilled" | "cancelled" | "refunded"
       product_pipeline_status: "working" | "refining" | "ready" | "published"
       product_status: "draft" | "published" | "archived"
@@ -1313,6 +1379,13 @@ export const Constants = {
   public: {
     Enums: {
       blog_post_status: ["draft", "published", "archived"],
+      gift_code_status: [
+        "pending",
+        "issued",
+        "redeemed",
+        "refunded",
+        "expired",
+      ],
       order_status: ["new", "paid", "fulfilled", "cancelled", "refunded"],
       product_pipeline_status: ["working", "refining", "ready", "published"],
       product_status: ["draft", "published", "archived"],

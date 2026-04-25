@@ -5,6 +5,7 @@ import type Stripe from "stripe";
 import { sendEmail } from "@/lib/email/client";
 import { renderOrderConfirmationEmail } from "@/lib/email/templates";
 import { formatOrderNumber } from "@/lib/format";
+import { markGiftCodeRedeemed } from "@/lib/gift-codes";
 import { getStripeServerClient } from "@/lib/stripe";
 import { getCanonicalUrl } from "@/lib/seo";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -485,6 +486,22 @@ export async function fulfillCheckoutSession(
     console.warn("[fulfillment] could not expand session for email", error);
   }
   await sendOrderConfirmationEmail(result, customerName, expandedSession);
+
+  // Mark a redeemed voucher: if the buyer applied one, the checkout API
+  // attached its id to the session metadata. Done before affiliate logic
+  // because it's part of the actual purchase, not analytics.
+  const giftCodeId = session.metadata?.gift_code_id;
+  if (giftCodeId) {
+    try {
+      await markGiftCodeRedeemed({
+        giftCodeId,
+        orderId: result.orderId,
+        userId,
+      });
+    } catch (error) {
+      console.warn("[fulfillment] gift code redemption failed", error);
+    }
+  }
 
   // Affiliate attribution: if checkout metadata carries a code that
   // matches an active affiliate, log a referral row for admin review.

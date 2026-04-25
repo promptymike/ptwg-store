@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { env, getMissingStripeWebhookEnv } from "@/lib/env";
 import { getStripeServerClient } from "@/lib/stripe";
 import { fulfillCheckoutSession } from "@/lib/stripe/fulfillment";
+import { fulfillGiftPurchase } from "@/lib/stripe/gift-fulfillment";
 
 export async function POST(request: Request) {
   const missingEnv = getMissingStripeWebhookEnv();
@@ -60,10 +61,17 @@ export async function POST(request: Request) {
     const session = event.data.object as Stripe.Checkout.Session;
 
     try {
-      await fulfillCheckoutSession(session.id, {
-        eventId: event.id,
-        eventType: event.type,
-      });
+      // Two product flows live behind the same webhook: regular ebook /
+      // bundle purchases and gift voucher purchases. The voucher flow
+      // doesn't create an order, so we branch on metadata.kind.
+      if (session.metadata?.kind === "gift_voucher") {
+        await fulfillGiftPurchase(session.id);
+      } else {
+        await fulfillCheckoutSession(session.id, {
+          eventId: event.id,
+          eventType: event.type,
+        });
+      }
     } catch (error) {
       return NextResponse.json(
         {

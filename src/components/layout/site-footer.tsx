@@ -10,6 +10,7 @@ const footerGroups = [
       { href: "/produkty", label: "Wszystkie produkty" },
       { href: "/#featured", label: "Bestsellery" },
       { href: "/#bundles", label: "Pakiety" },
+      { href: "/podarunek", label: "Voucher podarunkowy" },
       { href: "/test", label: "Test stylu pracy" },
     ],
   },

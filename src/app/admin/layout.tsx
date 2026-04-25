@@ -20,6 +20,7 @@ const adminLinks = [
   { href: "/admin/blog", label: "Blog" },
   { href: "/admin/eksperymenty", label: "A/B testy" },
   { href: "/admin/afiliacja", label: "Afiliacja" },
+  { href: "/admin/podarunki", label: "Vouchery" },
   { href: "/admin/push", label: "Push" },
   { href: "/admin/content", label: "Content / Strony" },
   { href: "/admin/admini", label: "Użytkownicy / Admini" },

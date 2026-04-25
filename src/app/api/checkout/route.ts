@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getMissingStripeCheckoutEnv, env } from "@/lib/env";
+import { lookupGiftCode } from "@/lib/gift-codes";
 import { applyPromoPercent, findPromoRule } from "@/lib/promo";
 import { getStripeServerClient } from "@/lib/stripe";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -162,6 +163,28 @@ export async function POST(request: Request) {
 
   const promoRule = findPromoRule(parsed.data.promoCode);
 
+  // Resolve the gift voucher (if any). Vouchers are stacked AFTER the
+  // percentage promo: we shave dollars off the discounted total. If the
+  // lookup fails we hard-stop so the buyer doesn't think their voucher
+  // worked when it didn't.
+  let giftCodeRow: { id: string; code: string; amountMinor: number } | null =
+    null;
+  const rawGiftCode = parsed.data.giftCode?.trim();
+  if (rawGiftCode) {
+    const lookup = await lookupGiftCode(rawGiftCode);
+    if (lookup.status !== "ok") {
+      return NextResponse.json(
+        { message: lookup.message, code: "gift_code_invalid" },
+        { status: 400 },
+      );
+    }
+    giftCodeRow = {
+      id: lookup.id,
+      code: lookup.code,
+      amountMinor: lookup.amountMinor,
+    };
+  }
+
   // Validate the affiliate code against the live `affiliates` table.
   // Anything unknown / inactive is silently dropped — we never want to
   // award commission for a fake code, but we also don't want a typo to
@@ -178,9 +201,50 @@ export async function POST(request: Request) {
     }
   }
 
+  // Compute the discount amount the gift code grants. Capped at the
+  // post-promo subtotal because Stripe rejects coupons larger than the
+  // order. We create a single-use Stripe coupon below — never reuse it.
+  let giftCoupon: { couponId: string; appliedMinor: number } | null = null;
+  if (giftCodeRow) {
+    const subtotalMinor = aggregatedItems.reduce((sum, [productId, quantity]) => {
+      const product = productMap.get(productId);
+      if (!product) return sum;
+      const baseUnit = product.price * 100;
+      const discountedUnit = promoRule
+        ? applyPromoPercent(baseUnit, promoRule.percentOff)
+        : baseUnit;
+      return sum + discountedUnit * quantity;
+    }, 0);
+    const appliedMinor = Math.min(giftCodeRow.amountMinor, subtotalMinor);
+    if (appliedMinor > 0) {
+      try {
+        const coupon = await stripe.coupons.create({
+          amount_off: appliedMinor,
+          currency: "pln",
+          duration: "once",
+          name: `Voucher ${giftCodeRow.code}`,
+          metadata: { gift_code_id: giftCodeRow.id, gift_code: giftCodeRow.code },
+        });
+        giftCoupon = { couponId: coupon.id, appliedMinor };
+      } catch (error) {
+        logCheckoutError("gift-coupon-create-failed", error);
+        return NextResponse.json(
+          {
+            message: "Nie udało się zastosować vouchera. Spróbuj ponownie.",
+            code: "gift_coupon_failed",
+          },
+          { status: 502 },
+        );
+      }
+    }
+  }
+
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      ...(giftCoupon
+        ? { discounts: [{ coupon: giftCoupon.couponId }] }
+        : {}),
       // BLIK + Przelewy24 require capability activation in the Stripe
       // dashboard. Once enabled there, switch this to ["card", "p24",
       // "blik"] to expose them at checkout. Until then card-only avoids
@@ -230,6 +294,8 @@ export async function POST(request: Request) {
         user_email: user.email ?? parsed.data.email,
         promo_code: promoRule?.code ?? "",
         affiliate_ref: affiliateCode ?? "",
+        gift_code: giftCodeRow?.code ?? "",
+        gift_code_id: giftCodeRow?.id ?? "",
       },
       line_items: aggregatedItems.map(([productId, quantity]) => {
         const product = productMap.get(productId);

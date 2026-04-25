@@ -2,7 +2,17 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, Check, FlaskConical, Lock, ShieldCheck, Tag, Zap } from "lucide-react";
+import {
+  AlertTriangle,
+  Check,
+  FlaskConical,
+  Gift,
+  Loader2,
+  Lock,
+  ShieldCheck,
+  Tag,
+  Zap,
+} from "lucide-react";
 
 import { useAnalytics } from "@/components/analytics/analytics-provider";
 import { useCart } from "@/components/cart/cart-provider";
@@ -43,12 +53,22 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
   const [promoInput, setPromoInput] = useState("");
   const [promoRule, setPromoRule] = useState<PromoRule | null>(null);
   const [promoMessage, setPromoMessage] = useState<string | null>(null);
+  const [giftInput, setGiftInput] = useState("");
+  const [giftCode, setGiftCode] = useState<{
+    code: string;
+    amountMinor: number;
+  } | null>(null);
+  const [giftMessage, setGiftMessage] = useState<string | null>(null);
+  const [giftBusy, setGiftBusy] = useState(false);
   const [health, setHealth] = useState<CheckoutHealth | null>(null);
   const trackedCheckoutRef = useRef(false);
   const clientStripeStatus = useMemo(() => getClientStripeStatus(), []);
 
   const discountAmount = promoRule ? Math.round(subtotal * (promoRule.percentOff / 100)) : 0;
   const totalAfterPromo = Math.max(subtotal - discountAmount, 0);
+  const giftAmountPln = giftCode ? Math.round(giftCode.amountMinor / 100) : 0;
+  const giftApplied = Math.min(giftAmountPln, totalAfterPromo);
+  const totalAfterGift = Math.max(totalAfterPromo - giftApplied, 0);
 
   function handleApplyPromo() {
     setPromoMessage(null);
@@ -70,6 +90,46 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
     setPromoRule(null);
     setPromoInput("");
     setPromoMessage(null);
+  }
+
+  async function handleApplyGift() {
+    setGiftMessage(null);
+    const code = giftInput.trim();
+    if (!code) {
+      setGiftCode(null);
+      return;
+    }
+    setGiftBusy(true);
+    try {
+      const response = await fetch("/api/gift/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const data = (await response.json().catch(() => null)) as
+        | { ok?: boolean; code?: string; amountMinor?: number; message?: string }
+        | null;
+      if (!response.ok || !data?.ok || !data.code || !data.amountMinor) {
+        setGiftCode(null);
+        setGiftMessage(data?.message ?? "Voucher nie został rozpoznany.");
+        return;
+      }
+      setGiftCode({ code: data.code, amountMinor: data.amountMinor });
+      setGiftMessage(
+        `Voucher na ${Math.round(data.amountMinor / 100)} zł zostanie zastosowany przy płatności.`,
+      );
+    } catch {
+      setGiftCode(null);
+      setGiftMessage("Nie udało się sprawdzić kodu. Spróbuj ponownie.");
+    } finally {
+      setGiftBusy(false);
+    }
+  }
+
+  function handleRemoveGift() {
+    setGiftCode(null);
+    setGiftInput("");
+    setGiftMessage(null);
   }
 
   const lines = useMemo(
@@ -146,6 +206,7 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
             quantity: item.quantity,
           })),
           promoCode: promoRule?.code,
+          giftCode: giftCode?.code,
           affiliateRef: readAffiliateRef()?.code,
         }),
       });
@@ -323,6 +384,50 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
           ) : null}
         </div>
 
+        <div className="space-y-2 rounded-[1.2rem] border border-border/60 bg-background/70 p-4">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Gift className="size-4 text-primary" />
+            Voucher podarunkowy
+          </div>
+          {giftCode ? (
+            <div className="flex items-center justify-between gap-3 rounded-xl bg-primary/10 px-3 py-2 text-sm">
+              <span className="inline-flex items-center gap-2 font-semibold text-primary">
+                <Check className="size-4" />
+                {giftCode.code} · -{formatCurrency(giftAmountPln)}
+              </span>
+              <button
+                type="button"
+                onClick={handleRemoveGift}
+                className="text-xs text-muted-foreground transition hover:text-foreground"
+              >
+                Usuń
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <Input
+                value={giftInput}
+                onChange={(event) => setGiftInput(event.target.value)}
+                placeholder="GIFT-XXXX-XXXX-XXXX"
+                className="uppercase tracking-[0.16em]"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleApplyGift}
+                disabled={giftBusy}
+              >
+                {giftBusy ? <Loader2 className="size-4 animate-spin" /> : "Użyj"}
+              </Button>
+            </div>
+          )}
+          {giftMessage ? (
+            <p className={`text-xs ${giftCode ? "text-primary" : "text-destructive"}`}>
+              {giftMessage}
+            </p>
+          ) : null}
+        </div>
+
         <div className="space-y-2 border-t border-border/60 pt-3 text-sm">
           <div className="flex items-center justify-between text-muted-foreground">
             <span>Suma produktów</span>
@@ -334,9 +439,15 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
               <span>-{formatCurrency(discountAmount)}</span>
             </div>
           ) : null}
+          {giftCode ? (
+            <div className="flex items-center justify-between text-primary">
+              <span>Voucher ({giftCode.code})</span>
+              <span>-{formatCurrency(giftApplied)}</span>
+            </div>
+          ) : null}
           <div className="flex items-center justify-between pt-1 text-base font-semibold text-foreground">
             <span>Do zapłaty</span>
-            <span>{formatCurrency(totalAfterPromo)}</span>
+            <span>{formatCurrency(totalAfterGift)}</span>
           </div>
         </div>
 
