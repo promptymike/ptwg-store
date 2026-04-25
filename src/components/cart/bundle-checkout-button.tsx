@@ -1,10 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LibraryBig, Loader2, ShoppingBag } from "lucide-react";
 
+import { useAnalytics } from "@/components/analytics/analytics-provider";
 import { Button } from "@/components/ui/button";
+import { readAffiliateRef } from "@/lib/affiliate";
+import {
+  BUNDLE_CTA_COPY,
+  BUNDLE_CTA_EXPERIMENT,
+  pickVariant,
+} from "@/lib/experiments";
 
 type BundleCheckoutButtonProps = {
   bundleId: string;
@@ -22,6 +29,20 @@ export function BundleCheckoutButton({
 }: BundleCheckoutButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const variant = pickVariant(BUNDLE_CTA_EXPERIMENT);
+  const { track } = useAnalytics();
+  const reportedRef = useRef(false);
+
+  useEffect(() => {
+    if (reportedRef.current || allOwned) return;
+    reportedRef.current = true;
+    track("page_view", {
+      experiment: BUNDLE_CTA_EXPERIMENT.key,
+      variant,
+      surface: "bundle_cta_impression",
+      bundleId,
+    });
+  }, [track, variant, bundleId, allOwned]);
 
   if (allOwned) {
     return (
@@ -37,10 +58,20 @@ export function BundleCheckoutButton({
   }
 
   async function handleClick() {
+    track("begin_checkout", {
+      experiment: BUNDLE_CTA_EXPERIMENT.key,
+      variant,
+      surface: "bundle_cta_click",
+      bundleId,
+    });
     setError(null);
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/checkout/bundle/${bundleId}`, {
+      const ref = readAffiliateRef()?.code;
+      const url = ref
+        ? `/api/checkout/bundle/${bundleId}?ref=${encodeURIComponent(ref)}`
+        : `/api/checkout/bundle/${bundleId}`;
+      const response = await fetch(url, {
         method: "POST",
       });
       const payload = (await response
@@ -84,7 +115,7 @@ export function BundleCheckoutButton({
         ) : (
           <>
             <ShoppingBag className="size-4" />
-            Kup pakiet
+            {BUNDLE_CTA_COPY[variant]}
           </>
         )}
       </Button>

@@ -486,5 +486,42 @@ export async function fulfillCheckoutSession(
   }
   await sendOrderConfirmationEmail(result, customerName, expandedSession);
 
+  // Affiliate attribution: if checkout metadata carries a code that
+  // matches an active affiliate, log a referral row for admin review.
+  // Best-effort — failure here logs but never rolls back the purchase.
+  const affiliateRef = session.metadata?.affiliate_ref;
+  if (affiliateRef) {
+    try {
+      const { data: affiliate } = await supabase
+        .from("affiliates")
+        .select("id, percent_commission, is_active")
+        .eq("code", affiliateRef)
+        .maybeSingle();
+      if (affiliate?.is_active) {
+        const commission = Math.round(
+          (result.total * Number(affiliate.percent_commission)) / 100,
+        );
+        // Skip if we somehow already logged this order (idempotency).
+        const { data: existing } = await supabase
+          .from("affiliate_referrals")
+          .select("id")
+          .eq("order_id", result.orderId)
+          .maybeSingle();
+        if (!existing) {
+          await supabase.from("affiliate_referrals").insert({
+            affiliate_id: affiliate.id,
+            order_id: result.orderId,
+            customer_email: result.email,
+            gross_amount: result.total,
+            commission,
+            status: "pending",
+          });
+        }
+      }
+    } catch (error) {
+      console.warn("[fulfillment] affiliate referral failed", error);
+    }
+  }
+
   return result;
 }

@@ -30,6 +30,20 @@ export const HERO_CTA_COPY: Record<HeroCtaVariant, string> = {
   build_better_life: "Zacznij budować lepsze życie",
 };
 
+export const BUNDLE_CTA_EXPERIMENT = {
+  key: "bundle_cta_v1",
+  variants: ["buy", "save", "complete"] as const,
+  description: "CTA pakietu — neutralny vs oszczędność vs kompletny system",
+} satisfies Experiment;
+
+export type BundleCtaVariant = (typeof BUNDLE_CTA_EXPERIMENT.variants)[number];
+
+export const BUNDLE_CTA_COPY: Record<BundleCtaVariant, string> = {
+  buy: "Kup pakiet",
+  save: "Zaoszczędź na całym zestawie",
+  complete: "Weź cały system",
+};
+
 const VISITOR_ID_KEY = "templify:visitor-id";
 const VARIANT_PREFIX = "templify:experiment:";
 

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { AffiliateCapture } from "@/components/analytics/affiliate-capture";
 import { PromoStrip } from "@/components/layout/promo-strip";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -45,6 +46,7 @@ export default async function StoreLayout({
           instead and see the product cards work without a modal. */}
       {profileSummary ? <StoreOnboardingTour /> : null}
       {profileSummary ? <WishlistSync /> : null}
+      <AffiliateCapture />
     </div>
   );
 }

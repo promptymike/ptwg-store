@@ -820,6 +820,118 @@ export async function getBundlesSnapshot(): Promise<Bundle[]> {
   });
 }
 
+export type RevenuePoint = {
+  date: string;
+  orders: number;
+  revenue: number;
+};
+
+export type TopProductRow = {
+  productId: string;
+  name: string;
+  slug: string;
+  unitsSold: number;
+  revenue: number;
+};
+
+export type AdminTrendsSnapshot = {
+  daily: RevenuePoint[];
+  topProducts: TopProductRow[];
+};
+
+// Pulls last `days` of order data into per-day buckets and the top
+// best-selling products by units. Single round-trip thanks to the
+// orders → order_items expand. Used by the admin dashboard charts.
+export async function getAdminTrendsSnapshot(
+  days = 30,
+): Promise<AdminTrendsSnapshot> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return { daily: [], topProducts: [] };
+
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const sinceIso = since.toISOString();
+
+  const { data, error } = await supabase
+    .from("orders")
+    .select(
+      "id, total, created_at, order_items(product_id, product_name, quantity, unit_price, products(slug))",
+    )
+    .gte("created_at", sinceIso)
+    .order("created_at", { ascending: true })
+    .limit(2000);
+
+  if (error || !data) return { daily: [], topProducts: [] };
+
+  type ItemRow = {
+    product_id: string;
+    product_name: string;
+    quantity: number;
+    unit_price: number;
+    products?: { slug: string } | { slug: string }[] | null;
+  };
+  type OrderRow = {
+    id: string;
+    total: number;
+    created_at: string;
+    order_items?: ItemRow[];
+  };
+
+  // Build a complete day-by-day series so the chart never has gaps.
+  const dailyMap = new Map<string, RevenuePoint>();
+  for (let offset = days - 1; offset >= 0; offset--) {
+    const day = new Date(Date.now() - offset * 24 * 60 * 60 * 1000);
+    const key = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
+    dailyMap.set(key, { date: key, orders: 0, revenue: 0 });
+  }
+
+  const productAgg = new Map<
+    string,
+    { name: string; slug: string; units: number; revenue: number }
+  >();
+
+  for (const order of (data as OrderRow[]) ?? []) {
+    const day = new Date(order.created_at);
+    const key = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
+    const bucket = dailyMap.get(key);
+    if (bucket) {
+      bucket.orders += 1;
+      bucket.revenue += normalizeNumber(order.total);
+    }
+    for (const item of order.order_items ?? []) {
+      const slug = Array.isArray(item.products)
+        ? item.products[0]?.slug
+        : item.products?.slug;
+      const existing = productAgg.get(item.product_id) ?? {
+        name: item.product_name,
+        slug: slug ?? "",
+        units: 0,
+        revenue: 0,
+      };
+      existing.units += item.quantity;
+      existing.revenue += item.unit_price * item.quantity;
+      existing.name = item.product_name || existing.name;
+      if (slug) existing.slug = slug;
+      productAgg.set(item.product_id, existing);
+    }
+  }
+
+  const topProducts: TopProductRow[] = [...productAgg.entries()]
+    .map(([productId, info]) => ({
+      productId,
+      name: info.name,
+      slug: info.slug,
+      unitsSold: info.units,
+      revenue: info.revenue,
+    }))
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 6);
+
+  return {
+    daily: [...dailyMap.values()],
+    topProducts,
+  };
+}
+
 export type AdminActivityEvent = {
   id: string;
   type: "order" | "review" | "subscriber" | "blog";

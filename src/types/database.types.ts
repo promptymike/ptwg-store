@@ -36,6 +36,122 @@ export type Database = {
         }
         Relationships: []
       }
+      affiliate_referrals: {
+        Row: {
+          affiliate_id: string
+          commission: number
+          created_at: string
+          customer_email: string
+          gross_amount: number
+          id: number
+          order_id: string | null
+          status: string
+        }
+        Insert: {
+          affiliate_id: string
+          commission: number
+          created_at?: string
+          customer_email: string
+          gross_amount: number
+          id?: number
+          order_id?: string | null
+          status?: string
+        }
+        Update: {
+          affiliate_id?: string
+          commission?: number
+          created_at?: string
+          customer_email?: string
+          gross_amount?: number
+          id?: number
+          order_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_referrals_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_referrals_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliates: {
+        Row: {
+          code: string
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string
+          percent_commission: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string
+          percent_commission?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string
+          percent_commission?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      newsletter_sends: {
+        Row: {
+          campaign: string
+          id: number
+          resend_message_id: string | null
+          sent_at: string
+          subscriber_id: string
+        }
+        Insert: {
+          campaign: string
+          id?: number
+          resend_message_id?: string | null
+          sent_at?: string
+          subscriber_id: string
+        }
+        Update: {
+          campaign?: string
+          id?: number
+          resend_message_id?: string | null
+          sent_at?: string
+          subscriber_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_sends_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       analytics_events: {
         Row: {
           amount: number | null

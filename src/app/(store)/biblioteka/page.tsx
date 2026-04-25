@@ -5,6 +5,7 @@ import { Download, LibraryBig } from "lucide-react";
 
 import { LibraryGrid } from "@/components/account/library-grid";
 import { ReadingStreakBadge } from "@/components/account/reading-streak-badge";
+import { StreakRewardCard } from "@/components/account/streak-reward-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -140,6 +141,8 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
           </Badge>
         </div>
       </section>
+
+      <StreakRewardCard />
 
       <div className="flex flex-wrap gap-3">
         <Button variant="outline" render={<Link href="/konto" />}>

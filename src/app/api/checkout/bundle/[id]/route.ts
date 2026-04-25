@@ -34,8 +34,11 @@ type BundleRow = {
   bundle_products: BundleProductRow[];
 };
 
-export async function POST(_request: Request, { params }: RouteProps) {
+export async function POST(request: Request, { params }: RouteProps) {
   const { id: bundleId } = await params;
+  const refRaw = new URL(request.url).searchParams.get("ref")?.trim().toUpperCase();
+  const refCandidate =
+    refRaw && /^[A-Z0-9_-]{3,40}$/.test(refRaw) ? refRaw : null;
 
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
@@ -132,6 +135,19 @@ export async function POST(_request: Request, { params }: RouteProps) {
     );
   }
 
+  // Validate the affiliate ref against the live affiliates table — same
+  // pattern as the cart checkout endpoint. Unknown / inactive codes are
+  // dropped silently rather than blocking the buy.
+  let affiliateCode: string | null = null;
+  if (refCandidate) {
+    const { data: affiliate } = await adminSupabase
+      .from("affiliates")
+      .select("code, is_active")
+      .eq("code", refCandidate)
+      .maybeSingle();
+    if (affiliate?.is_active) affiliateCode = affiliate.code;
+  }
+
   // Bundle is sold as a single Stripe line item with the full bundle price.
   // The metadata trail (bundle_id + product_ids) lets the webhook fulfillment
   // expand the order back into per-product library entries — the buyer ends
@@ -172,6 +188,7 @@ export async function POST(_request: Request, { params }: RouteProps) {
         user_email: user.email ?? "",
         bundle_id: bundle.id,
         bundle_slug: bundle.slug,
+        affiliate_ref: affiliateCode ?? "",
         // Comma-separated list — stays under Stripe's 500-char metadata
         // value limit even with 10+ products since UUIDs are 36 chars.
         bundle_product_ids: products.map((p) => p.id).join(","),

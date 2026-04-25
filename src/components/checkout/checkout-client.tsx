@@ -9,6 +9,7 @@ import { useCart } from "@/components/cart/cart-provider";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { readAffiliateRef } from "@/lib/affiliate";
 import { getClientStripeStatus } from "@/lib/env";
 import { formatCurrency } from "@/lib/format";
 import { findPromoRule, type PromoRule } from "@/lib/promo";
@@ -145,6 +146,7 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
             quantity: item.quantity,
           })),
           promoCode: promoRule?.code,
+          affiliateRef: readAffiliateRef()?.code,
         }),
       });
 

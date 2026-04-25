@@ -35,6 +35,10 @@ export const env = {
   // subscription syncs to that audience so admins can fire broadcasts
   // straight from resend.com/audiences.
   resendAudienceId: process.env.RESEND_AUDIENCE_ID,
+  // Vercel Cron sends Authorization: Bearer <CRON_SECRET>. Required for
+  // /api/cron/* endpoints — without it they 503 so a public hit never
+  // accidentally fires the drip.
+  cronSecret: process.env.CRON_SECRET,
 };
 
 export function hasSupabaseEnv() {

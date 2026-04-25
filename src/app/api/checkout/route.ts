@@ -162,6 +162,22 @@ export async function POST(request: Request) {
 
   const promoRule = findPromoRule(parsed.data.promoCode);
 
+  // Validate the affiliate code against the live `affiliates` table.
+  // Anything unknown / inactive is silently dropped — we never want to
+  // award commission for a fake code, but we also don't want a typo to
+  // block the buyer from completing checkout.
+  let affiliateCode: string | null = null;
+  if (parsed.data.affiliateRef) {
+    const { data: affiliate } = await supabase
+      .from("affiliates")
+      .select("code, is_active")
+      .eq("code", parsed.data.affiliateRef)
+      .maybeSingle();
+    if (affiliate?.is_active) {
+      affiliateCode = affiliate.code;
+    }
+  }
+
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -213,6 +229,7 @@ export async function POST(request: Request) {
         user_id: user.id,
         user_email: user.email ?? parsed.data.email,
         promo_code: promoRule?.code ?? "",
+        affiliate_ref: affiliateCode ?? "",
       },
       line_items: aggregatedItems.map(([productId, quantity]) => {
         const product = productMap.get(productId);
