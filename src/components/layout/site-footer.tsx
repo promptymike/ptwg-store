@@ -27,6 +27,7 @@ const footerGroups = [
     title: "Pomoc",
     links: [
       { href: "/kontakt", label: "Kontakt" },
+      { href: "/partner", label: "Strefa partnera" },
       { href: "/regulamin", label: "Regulamin" },
       { href: "/polityka-prywatnosci", label: "Polityka prywatności" },
       { href: "/polityka-cookies", label: "Polityka cookies" },

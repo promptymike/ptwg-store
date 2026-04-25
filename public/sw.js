@@ -3,7 +3,7 @@
 // Reader content is private (signed URLs) so we deliberately do NOT
 // cache /api/library/*, only the shell.
 
-const CACHE_VERSION = "templify-v1";
+const CACHE_VERSION = "templify-v2";
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
 self.addEventListener("install", (event) => {
@@ -40,6 +40,7 @@ self.addEventListener("fetch", (event) => {
     url.pathname.startsWith("/api/library") ||
     url.pathname.startsWith("/api/admin") ||
     url.pathname.startsWith("/api/analytics") ||
+    url.pathname.startsWith("/api/push") ||
     url.pathname.startsWith("/auth")
   ) {
     return;
@@ -90,3 +91,56 @@ async function networkFirst(request) {
     });
   }
 }
+
+// --- Push notifications --------------------------------------------------
+// Server sends a JSON payload { title, body, url?, tag? }. We display it
+// with our PWA icon and remember `url` so notificationclick can route the
+// user straight into the app.
+
+self.addEventListener("push", (event) => {
+  const fallback = {
+    title: "Templify",
+    body: "Mamy dla Ciebie coś nowego.",
+  };
+  let payload = fallback;
+  try {
+    if (event.data) payload = { ...fallback, ...event.data.json() };
+  } catch {
+    // Some pushes (e.g., test pings) come as plain text; keep the fallback.
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: "/api/pwa-icon",
+      badge: "/api/pwa-icon",
+      tag: payload.tag,
+      data: { url: payload.url || "/biblioteka" },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const targetUrl = event.notification.data?.url || "/biblioteka";
+
+  event.waitUntil(
+    (async () => {
+      const allClients = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      // Reuse a foreground tab if one is already open on our origin.
+      for (const client of allClients) {
+        if (client.url.startsWith(self.location.origin) && "focus" in client) {
+          await client.focus();
+          if ("navigate" in client) {
+            await client.navigate(targetUrl);
+          }
+          return;
+        }
+      }
+      await self.clients.openWindow(targetUrl);
+    })(),
+  );
+});

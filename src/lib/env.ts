@@ -39,6 +39,13 @@ export const env = {
   // /api/cron/* endpoints — without it they 503 so a public hit never
   // accidentally fires the drip.
   cronSecret: process.env.CRON_SECRET,
+  // Web Push (VAPID). Generate once with:
+  //   npx web-push generate-vapid-keys
+  // Public key is exposed to the browser to subscribe; private key only on
+  // the server. Subject is a mailto: URL Apple/Mozilla require for routing.
+  vapidPublicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+  vapidPrivateKey: process.env.VAPID_PRIVATE_KEY,
+  vapidSubject: process.env.VAPID_SUBJECT ?? "mailto:kontakt@templify.pl",
 };
 
 export function hasSupabaseEnv() {

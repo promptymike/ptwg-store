@@ -5,8 +5,10 @@ import { CircleAlert, Receipt } from "lucide-react";
 
 import { AccountQuickLinks } from "@/components/account/account-quick-links";
 import { ContinueReadingHero } from "@/components/account/continue-reading-hero";
+import { PushNotificationsCard } from "@/components/account/push-notifications-card";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { EmptyState } from "@/components/shared/empty-state";
+import { env } from "@/lib/env";
 import {
   formatCurrency,
   formatOrderNumber,
@@ -128,6 +130,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           ) : null}
         </div>
       </section>
+
+      <PushNotificationsCard vapidPublicKey={env.vapidPublicKey} />
 
       <section id="zamowienia" className="surface-panel space-y-5 p-6">
         <div className="space-y-2">

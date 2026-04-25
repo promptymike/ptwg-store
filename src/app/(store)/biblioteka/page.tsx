@@ -4,13 +4,18 @@ import { redirect } from "next/navigation";
 import { Download, LibraryBig } from "lucide-react";
 
 import { LibraryGrid } from "@/components/account/library-grid";
+import { LibraryRecommendations } from "@/components/account/library-recommendations";
 import { ReadingStreakBadge } from "@/components/account/reading-streak-badge";
 import { StreakRewardCard } from "@/components/account/streak-reward-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/session";
-import { getCustomerLibrarySnapshot } from "@/lib/supabase/store";
+import {
+  getCustomerLibrarySnapshot,
+  getOwnedProductIds,
+  getStoreProducts,
+} from "@/lib/supabase/store";
 
 export const metadata: Metadata = {
   title: "Biblioteka",
@@ -60,7 +65,44 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
     redirect("/logowanie?next=/biblioteka");
   }
 
-  const snapshot = await getCustomerLibrarySnapshot(user.id);
+  const [snapshot, allProducts, ownedProductIds] = await Promise.all([
+    getCustomerLibrarySnapshot(user.id),
+    getStoreProducts(),
+    getOwnedProductIds(user.id),
+  ]);
+
+  // Recommend up to 3 unowned products from the buyer's strongest
+  // category (= category they own the most of). Falls back to bestsellers
+  // when the library is too small to derive a top category.
+  const ownedProducts = allProducts.filter((p) => ownedProductIds.has(p.id));
+  const categoryCounts = new Map<string, number>();
+  for (const owned of ownedProducts) {
+    categoryCounts.set(
+      owned.category,
+      (categoryCounts.get(owned.category) ?? 0) + 1,
+    );
+  }
+  const topCategory =
+    [...categoryCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+
+  const recommendations = topCategory
+    ? allProducts
+        .filter(
+          (p) => p.category === topCategory && !ownedProductIds.has(p.id),
+        )
+        .slice(0, 3)
+    : [];
+
+  if (recommendations.length < 3) {
+    const seen = new Set([
+      ...recommendations.map((r) => r.id),
+      ...ownedProductIds,
+    ]);
+    const filler = allProducts
+      .filter((p) => !seen.has(p.id) && p.bestseller)
+      .slice(0, 3 - recommendations.length);
+    recommendations.push(...filler);
+  }
 
   if (snapshot.error) {
     return (
@@ -154,6 +196,12 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
       </div>
 
       <LibraryGrid items={snapshot.items} />
+
+      <LibraryRecommendations
+        recommendations={recommendations}
+        ownedProductIds={ownedProductIds}
+        topCategory={topCategory}
+      />
     </div>
   );
 }

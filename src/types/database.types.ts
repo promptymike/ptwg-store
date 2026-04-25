@@ -595,10 +595,14 @@ export type Database = {
           currency: string
           email: string
           id: string
+          refund_amount: number | null
+          refund_reason: string | null
+          refunded_at: string | null
           status: Database["public"]["Enums"]["order_status"]
           stripe_checkout_session_id: string | null
           stripe_customer_id: string | null
           stripe_payment_intent_id: string | null
+          stripe_refund_id: string | null
           subtotal: number
           total: number
           updated_at: string
@@ -609,10 +613,14 @@ export type Database = {
           currency?: string
           email: string
           id?: string
+          refund_amount?: number | null
+          refund_reason?: string | null
+          refunded_at?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           stripe_checkout_session_id?: string | null
           stripe_customer_id?: string | null
           stripe_payment_intent_id?: string | null
+          stripe_refund_id?: string | null
           subtotal?: number
           total?: number
           updated_at?: string
@@ -623,10 +631,14 @@ export type Database = {
           currency?: string
           email?: string
           id?: string
+          refund_amount?: number | null
+          refund_reason?: string | null
+          refunded_at?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           stripe_checkout_session_id?: string | null
           stripe_customer_id?: string | null
           stripe_payment_intent_id?: string | null
+          stripe_refund_id?: string | null
           subtotal?: number
           total?: number
           updated_at?: string
@@ -919,6 +931,39 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          last_seen_at: string
+          p256dh: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          last_seen_at?: string
+          p256dh: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          last_seen_at?: string
+          p256dh?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       site_sections: {
         Row: {
           body: string
@@ -1081,7 +1126,7 @@ export type Database = {
     }
     Enums: {
       blog_post_status: "draft" | "published" | "archived"
-      order_status: "new" | "paid" | "fulfilled" | "cancelled"
+      order_status: "new" | "paid" | "fulfilled" | "cancelled" | "refunded"
       product_pipeline_status: "working" | "refining" | "ready" | "published"
       product_status: "draft" | "published" | "archived"
       review_status: "pending" | "approved" | "rejected"
@@ -1214,7 +1259,7 @@ export const Constants = {
   public: {
     Enums: {
       blog_post_status: ["draft", "published", "archived"],
-      order_status: ["new", "paid", "fulfilled", "cancelled"],
+      order_status: ["new", "paid", "fulfilled", "cancelled", "refunded"],
       product_pipeline_status: ["working", "refining", "ready", "published"],
       product_status: ["draft", "published", "archived"],
       review_status: ["pending", "approved", "rejected"],

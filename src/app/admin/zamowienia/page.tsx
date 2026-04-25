@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Download } from "lucide-react";
 
+import { AdminRefundButton } from "@/components/admin/admin-refund-button";
 import { AdminStatusNotice } from "@/components/admin/admin-status-notice";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
@@ -74,10 +75,15 @@ export default async function AdminOrdersPage() {
                   </p>
                 </div>
 
-                <div className="min-w-0 shrink-0 text-sm xl:text-right">
+                <div className="flex min-w-0 shrink-0 flex-col gap-2 text-sm xl:items-end xl:text-right">
                   <p className="text-foreground">{formatCurrency(order.amount)}</p>
                   <p className="text-primary">{formatOrderStatus(order.status)}</p>
                   <p className="break-all text-muted-foreground">{order.id}</p>
+                  <AdminRefundButton
+                    orderId={order.id}
+                    total={order.amount}
+                    alreadyRefunded={order.status === "refunded"}
+                  />
                 </div>
               </div>
             </article>

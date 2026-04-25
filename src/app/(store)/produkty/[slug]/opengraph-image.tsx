@@ -1,6 +1,10 @@
 import { ImageResponse } from "next/og";
 
 import { formatCurrency } from "@/lib/format";
+import {
+  getApprovedReviewsForProduct,
+  summariseReviews,
+} from "@/lib/supabase/reviews";
 import { getStoreProductBySlug } from "@/lib/supabase/store";
 
 export const runtime = "nodejs";
@@ -43,6 +47,10 @@ function gradientForSlug(slug: string) {
 export default async function Image({ params }: Props) {
   const { slug } = await params;
   const product = await getStoreProductBySlug(slug).catch(() => null);
+  const reviews = product
+    ? await getApprovedReviewsForProduct(product.id).catch(() => [])
+    : [];
+  const reviewSummary = summariseReviews(reviews);
 
   if (!product) {
     return new ImageResponse(
@@ -157,6 +165,55 @@ export default async function Image({ params }: Props) {
             >
               {product.shortDescription}
             </div>
+            {reviewSummary.count > 0 ? (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    fontSize: 28,
+                    color: "#e2bc72",
+                    letterSpacing: 2,
+                  }}
+                >
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span
+                      key={i}
+                      style={{
+                        display: "flex",
+                        color:
+                          i < Math.round(reviewSummary.average)
+                            ? "#e2bc72"
+                            : "rgba(226, 188, 114, 0.25)",
+                      }}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+                <div
+                  style={{
+                    fontSize: 18,
+                    color: "rgba(245, 241, 234, 0.7)",
+                  }}
+                >
+                  {reviewSummary.average.toFixed(1)} / 5 ·{" "}
+                  {reviewSummary.count}{" "}
+                  {reviewSummary.count === 1
+                    ? "opinia"
+                    : reviewSummary.count < 5
+                      ? "opinie"
+                      : "opinii"}
+                </div>
+              </div>
+            ) : null}
             <div
               style={{
                 display: "flex",
