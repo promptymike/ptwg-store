@@ -165,12 +165,46 @@ export async function POST(request: Request) {
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      // BLIK + Przelewy24 require capability activation in the Stripe
+      // dashboard. Once enabled there, switch this to ["card", "p24",
+      // "blik"] to expose them at checkout. Until then card-only avoids
+      // a Stripe "must enable in dashboard" error.
       payment_method_types: ["card"],
       success_url: `${env.siteUrl}/checkout/sukces?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${env.siteUrl}/checkout/anulowano`,
       customer_email: user.email ?? parsed.data.email,
       client_reference_id: user.id,
       locale: "pl",
+      // Stripe Tax computes Polish VAT (23%) automatically and applies the
+      // EU reverse-charge rule when the buyer provides a verified VAT ID.
+      // Requires the Stripe account to have Tax registrations configured —
+      // when missing, Stripe surfaces a clear error during session creation
+      // rather than charging incorrect tax.
+      automatic_tax: { enabled: true },
+      tax_id_collection: { enabled: true },
+      billing_address_collection: "required",
+      // Persist the resulting customer object so the buyer's address /
+      // VAT ID can be reused across orders (and surfaced in invoices).
+      customer_creation: "always",
+      invoice_creation: {
+        enabled: true,
+        invoice_data: {
+          description: "Templify — produkty cyfrowe",
+          metadata: {
+            user_id: user.id,
+            promo_code: promoRule?.code ?? "",
+          },
+          custom_fields: [
+            {
+              name: "Format",
+              value: "Plik HTML / PDF — natychmiastowy dostęp",
+            },
+          ],
+          rendering_options: {
+            amount_tax_display: "include_inclusive_tax",
+          },
+        },
+      },
       metadata: {
         user_id: user.id,
         user_email: user.email ?? parsed.data.email,
@@ -193,9 +227,16 @@ export async function POST(request: Request) {
           price_data: {
             currency: "pln",
             unit_amount: unitAmount,
+            // Stripe Tax requires a tax_behavior — "inclusive" matches the
+            // way we display gross PLN prices in the storefront. Stripe
+            // splits the VAT out from the line for invoice + reporting.
+            tax_behavior: "inclusive",
             product_data: {
               name: promoRule ? `${product.name} (${promoRule.label})` : product.name,
               description: product.short_description,
+              // Polish VAT for ebooks dropped to 5% (PKWiU 58.11.20).
+              // Tax code below is Stripe's standard for "Books — eBooks".
+              tax_code: "txcd_35010000",
               metadata: {
                 product_id: product.id,
                 product_slug: product.slug,

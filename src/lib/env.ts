@@ -21,6 +21,12 @@ export const env = {
   plausibleDomain: process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN,
   plausibleScriptSrc:
     process.env.NEXT_PUBLIC_PLAUSIBLE_SRC ?? "https://plausible.io/js/script.js",
+  // Resend (transactional email). Optional — when missing, the post-purchase
+  // emails are skipped silently so tests and local dev keep working.
+  resendApiKey: process.env.RESEND_API_KEY,
+  resendFromAddress:
+    process.env.RESEND_FROM_ADDRESS ?? "Templify <noreply@templify.pl>",
+  resendReplyTo: process.env.RESEND_REPLY_TO ?? "kontakt@templify.store",
 };
 
 export function hasSupabaseEnv() {

@@ -2,7 +2,11 @@ import "server-only";
 
 import type Stripe from "stripe";
 
+import { sendEmail } from "@/lib/email/client";
+import { renderOrderConfirmationEmail } from "@/lib/email/templates";
+import { formatOrderNumber } from "@/lib/format";
 import { getStripeServerClient } from "@/lib/stripe";
+import { getCanonicalUrl } from "@/lib/seo";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type { TablesInsert } from "@/types/database.types";
 
@@ -153,6 +157,79 @@ async function getExistingFulfillmentResult(
       unitPrice: item.unit_price,
     })),
   };
+}
+
+async function getCustomerName(
+  supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
+  userId: string,
+) {
+  const { data } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", userId)
+    .maybeSingle();
+  return data?.full_name ?? null;
+}
+
+async function sendOrderConfirmationEmail(
+  result: CheckoutFulfillmentResult,
+  customerName: string | null,
+  session: Stripe.Checkout.Session | null,
+) {
+  // The fulfillment table holds the canonical numbers — Stripe is the
+  // source for the live invoice / receipt URLs since they are generated
+  // asynchronously after the session completes. Both are nullable: the
+  // template gracefully omits them if Stripe Tax / invoice creation is
+  // not yet configured on the account.
+  const invoice = session?.invoice;
+  const invoiceUrl =
+    typeof invoice === "object" && invoice && "hosted_invoice_url" in invoice
+      ? invoice.hosted_invoice_url ?? null
+      : null;
+  // Stripe SDK 22 dropped PaymentIntent.charges in favour of `latest_charge`.
+  // The hosted invoice URL covers the receipt for tax-enabled flows; we
+  // skip the bare-receipt link rather than chase another retrieve() call.
+  const receiptUrl: string | null = null;
+
+  const orderNumber = formatOrderNumber(result.orderId, new Date().toISOString());
+  const message = renderOrderConfirmationEmail({
+    customerName,
+    email: result.email,
+    orderNumber,
+    items: result.items.map((item) => ({
+      productName: item.productName,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+    })),
+    subtotal: result.subtotal,
+    total: result.total,
+    invoiceUrl,
+    receiptUrl,
+    libraryUrl: getCanonicalUrl("/biblioteka"),
+  });
+
+  try {
+    const send = await sendEmail({
+      to: result.email,
+      subject: message.subject,
+      html: message.html,
+      text: message.text,
+      tags: [
+        { name: "type", value: "order-confirmation" },
+        { name: "order_id", value: result.orderId },
+      ],
+    });
+    if (send.skipped) {
+      console.info("[fulfillment] order confirmation email skipped (Resend disabled)");
+    } else if (send.error) {
+      console.warn("[fulfillment] order confirmation email failed", send.error);
+    }
+  } catch (error) {
+    // Email failures must never roll back fulfillment — the customer
+    // already paid and Library access is already provisioned. Log loud,
+    // continue silent.
+    console.error("[fulfillment] order confirmation email crashed", error);
+  }
 }
 
 async function ensureLibraryAccess(
@@ -335,7 +412,7 @@ export async function fulfillCheckoutSession(
 
   await recordWebhookEvent(supabase, options.eventId, options.eventType, session.id);
 
-  return {
+  const result: CheckoutFulfillmentResult = {
     orderId: order.id,
     sessionId: session.id,
     email,
@@ -344,4 +421,21 @@ export async function fulfillCheckoutSession(
     userId,
     items,
   };
+
+  // Best-effort post-purchase email. We re-fetch the session with invoice
+  // + payment_intent expanded so the template can include the hosted
+  // invoice URL and the Stripe receipt link without storing them in our
+  // own database.
+  const customerName = await getCustomerName(supabase, userId);
+  let expandedSession: Stripe.Checkout.Session | null = null;
+  try {
+    expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
+      expand: ["invoice", "payment_intent"],
+    });
+  } catch (error) {
+    console.warn("[fulfillment] could not expand session for email", error);
+  }
+  await sendOrderConfirmationEmail(result, customerName, expandedSession);
+
+  return result;
 }
