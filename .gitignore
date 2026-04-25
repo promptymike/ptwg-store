@@ -53,3 +53,5 @@ node_modules/
 # and the deliverables in Supabase Storage).
 /ebook-staging/
 /screenshots/
+
+.vercel
