@@ -16,7 +16,6 @@ import {
   bestsellerProducts as mockBestsellers,
   bundles,
   faqItems as mockFaqItems,
-  getBundleById,
   getLegalPage,
   getProductBySlug as getMockProductBySlug,
   homeFeaturedProducts as mockFeaturedProducts,
@@ -34,6 +33,7 @@ import {
 } from "@/lib/supabase/server";
 import { createProductCoverSignedUrl } from "@/lib/supabase/storage";
 import type { Tables } from "@/types/database.types";
+import type { Bundle } from "@/types/store";
 
 type CategoryRow = Pick<Tables<"categories">, "id" | "name" | "slug">;
 
@@ -746,6 +746,78 @@ export async function getRelatedStoreProducts(product: Product, limit = 3) {
   return products
     .filter((candidate) => candidate.id !== product.id)
     .slice(0, limit);
+}
+
+// Fetches the live bundle catalogue with each bundle's products fully
+// resolved + ordered. Falls back to the empty list when Supabase env is
+// missing so the BundlesSection can simply skip rendering instead of
+// crashing on a typed null. Caller stays SSR-friendly.
+export async function getBundlesSnapshot(): Promise<Bundle[]> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("bundles")
+    .select(
+      "id, slug, name, description, price, compare_at_price, accent, perks, sort_order, is_active, bundle_products(position, products(id, slug, name, price, categories(name)))",
+    )
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true });
+
+  if (error || !data) return [];
+
+  type BundleRow = {
+    id: string;
+    slug: string;
+    name: string;
+    description: string;
+    price: number;
+    compare_at_price: number | null;
+    accent: string | null;
+    perks: string[] | null;
+    bundle_products?: Array<{
+      position: number;
+      products?: {
+        id: string;
+        slug: string;
+        name: string;
+        price: number;
+        categories?: { name?: string | null } | { name?: string | null }[] | null;
+      } | null;
+    }>;
+  };
+
+  return (data as BundleRow[]).map((row) => {
+    const linked = (row.bundle_products ?? [])
+      .filter((bp) => bp.products)
+      .sort((a, b) => a.position - b.position)
+      .map((bp) => {
+        const product = bp.products!;
+        const categoryRel = Array.isArray(product.categories)
+          ? product.categories[0]
+          : product.categories;
+        return {
+          id: product.id,
+          slug: product.slug,
+          name: product.name,
+          category: normalizeCategory(categoryRel?.name ?? null),
+          price: product.price,
+        };
+      });
+
+    return {
+      id: row.id,
+      slug: row.slug,
+      name: row.name,
+      description: row.description,
+      price: row.price,
+      compareAtPrice: row.compare_at_price ?? row.price,
+      accent: row.accent ?? "from-[#fbf5ea] via-[#f4ead9] to-[#e4c58d]",
+      perks: row.perks ?? [],
+      productIds: linked.map((p) => p.id),
+      products: linked,
+    };
+  });
 }
 
 // Returns the set of product ids owned by `userId` (or empty when the
@@ -2106,13 +2178,21 @@ export async function getStorefrontSnapshot() {
         ? allProducts.slice(0, 3)
         : mockBestsellers;
 
+  // Live bundles come from the DB; fall back to the static mock list when
+  // Supabase env is missing so previews / CI keep rendering something.
+  const liveBundles = await getBundlesSnapshot();
+  const bundlesForUi = liveBundles.length > 0 ? liveBundles : bundles;
+
   return {
     sections,
     featuredProducts: resolvedFeatured.slice(0, featuredLimit),
     bestsellerProducts: resolvedBestsellers,
     newArrivalProducts: deduplicatedNewArrivals,
+    bundles: bundlesForUi,
     recommendedBundle:
-      getBundleById(settings.recommendedBundleId) ?? bundles[0] ?? null,
+      bundlesForUi.find((b) => b.id === settings.recommendedBundleId) ??
+      bundlesForUi[0] ??
+      null,
     faqs,
     testimonials,
   };

@@ -66,6 +66,11 @@ export function OnboardingTour({
     return () => window.clearTimeout(t);
   }, [id, intro, delayMs]);
 
+  const finish = useCallback(() => {
+    markDone(id);
+    setStage("hidden");
+  }, [id]);
+
   // Lock body scroll while the tour is on top of the page.
   useEffect(() => {
     if (stage === "hidden") return;
@@ -84,13 +89,7 @@ export function OnboardingTour({
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stage]);
-
-  const finish = useCallback(() => {
-    markDone(id);
-    setStage("hidden");
-  }, [id]);
+  }, [stage, finish]);
 
   const handleStart = useCallback(() => {
     setStage("step");

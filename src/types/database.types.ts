@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -35,6 +35,84 @@ export type Database = {
           id?: string
           is_active?: boolean
           note?: string
+        }
+        Relationships: []
+      }
+      bundle_products: {
+        Row: {
+          bundle_id: string
+          position: number
+          product_id: string
+        }
+        Insert: {
+          bundle_id: string
+          position?: number
+          product_id: string
+        }
+        Update: {
+          bundle_id?: string
+          position?: number
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bundle_products_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bundle_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bundles: {
+        Row: {
+          accent: string
+          compare_at_price: number | null
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          name: string
+          perks: string[]
+          price: number
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          accent?: string
+          compare_at_price?: number | null
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          perks?: string[]
+          price: number
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          accent?: string
+          compare_at_price?: number | null
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          perks?: string[]
+          price?: number
+          slug?: string
+          sort_order?: number
+          updated_at?: string
         }
         Relationships: []
       }

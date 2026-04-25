@@ -35,6 +35,7 @@ export default async function HomePage() {
     featuredProducts,
     bestsellerProducts,
     newArrivalProducts,
+    bundles,
     recommendedBundle,
     faqs,
   } = await getStorefrontSnapshot();
@@ -127,7 +128,11 @@ export default async function HomePage() {
         content={getSectionOrFallback(sections, "use-cases")}
         categories={categoryHighlights}
       />
-      <BundlesSection recommendedBundle={recommendedBundle} />
+      <BundlesSection
+        bundles={bundles}
+        recommendedBundle={recommendedBundle}
+        ownedProductIds={ownedProductIds}
+      />
       <FaqSection content={getSectionOrFallback(sections, "faq")} faqs={faqs} />
       <CtaSection />
     </>

@@ -1,23 +1,28 @@
 import { CheckCircle2 } from "lucide-react";
 
-import { bundles, getProductById } from "@/data/mock-store";
-import { formatCurrency } from "@/lib/format";
+import { BundleCheckoutButton } from "@/components/cart/bundle-checkout-button";
 import { SectionHeading } from "@/components/shared/section-heading";
+import { formatCurrency } from "@/lib/format";
 import type { Bundle } from "@/types/store";
 
 type BundlesSectionProps = {
+  bundles: Bundle[];
   recommendedBundle?: Bundle | null;
+  ownedProductIds?: Set<string>;
 };
 
 function getDiscountPercent(price: number, compareAt?: number) {
-  if (!compareAt || compareAt <= price) {
-    return null;
-  }
-
+  if (!compareAt || compareAt <= price) return null;
   return Math.round(((compareAt - price) / compareAt) * 100);
 }
 
-export function BundlesSection({ recommendedBundle }: BundlesSectionProps) {
+export function BundlesSection({
+  bundles,
+  recommendedBundle,
+  ownedProductIds,
+}: BundlesSectionProps) {
+  if (bundles.length === 0) return null;
+
   const orderedBundles = recommendedBundle
     ? [
         recommendedBundle,
@@ -30,8 +35,8 @@ export function BundlesSection({ recommendedBundle }: BundlesSectionProps) {
       <div className="space-y-8">
         <SectionHeading
           badge="Pakiety"
-          title="Zestawy, które od razu dają kompletny system pracy"
-          description="Pakiety łączą produkty wokół jednego celu. Kupujesz mniej, wdrażasz szybciej i oszczędzasz w stosunku do pojedynczych zakupów."
+          title="Zestawy z lepszą ceną niż pojedyncze ebooki"
+          description="Pakiety łączą produkty wokół jednego celu. Dorzucasz drugi temat z rabatem, a wszystkie pliki lądują w jednej bibliotece od razu po zakupie."
         />
 
         <div className="grid gap-5 lg:grid-cols-2">
@@ -39,6 +44,10 @@ export function BundlesSection({ recommendedBundle }: BundlesSectionProps) {
             const discount = getDiscountPercent(bundle.price, bundle.compareAtPrice);
             const isRecommended =
               index === 0 && recommendedBundle?.id === bundle.id;
+            const ownedCount = ownedProductIds
+              ? bundle.products.filter((p) => ownedProductIds.has(p.id)).length
+              : 0;
+            const allOwned = ownedCount === bundle.products.length;
 
             return (
               <article key={bundle.id} className="surface-panel p-6 sm:p-8">
@@ -51,7 +60,9 @@ export function BundlesSection({ recommendedBundle }: BundlesSectionProps) {
                       <p className="text-xs uppercase tracking-[0.24em] text-primary/75">
                         {isRecommended ? "Polecany pakiet" : "Pakiet premium"}
                       </p>
-                      <h3 className="mt-2 break-words text-4xl text-foreground">{bundle.name}</h3>
+                      <h3 className="mt-2 break-words text-4xl text-foreground">
+                        {bundle.name}
+                      </h3>
                       <p className="mt-3 break-words text-sm leading-7 text-muted-foreground">
                         {bundle.description}
                       </p>
@@ -81,28 +92,43 @@ export function BundlesSection({ recommendedBundle }: BundlesSectionProps) {
                     </div>
 
                     <div className="space-y-3">
-                      <p className="text-sm font-medium text-foreground">W zestawie znajdziesz</p>
-                      {bundle.productIds.map((productId) => {
-                        const product = getProductById(productId);
-
-                        if (!product) {
-                          return null;
-                        }
-
+                      <p className="text-sm font-medium text-foreground">
+                        W zestawie znajdziesz
+                      </p>
+                      {bundle.products.map((product) => {
+                        const isOwned =
+                          ownedProductIds?.has(product.id) ?? false;
                         return (
                           <div
-                            key={productId}
-                            className="rounded-[1.2rem] border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground"
+                            key={product.id}
+                            className={`rounded-[1.2rem] border px-4 py-3 text-sm transition ${
+                              isOwned
+                                ? "border-emerald-500/30 bg-emerald-500/5 text-muted-foreground"
+                                : "border-border/70 bg-background/70 text-muted-foreground"
+                            }`}
                           >
-                            <span className="block break-words text-foreground">
-                              {product.name}
-                            </span>
+                            <div className="flex items-start justify-between gap-2">
+                              <span className="block break-words text-foreground">
+                                {product.name}
+                              </span>
+                              {isOwned ? (
+                                <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-600">
+                                  W bibliotece
+                                </span>
+                              ) : null}
+                            </div>
                             <span className="mt-0.5 block text-xs uppercase tracking-[0.18em] text-primary/75">
                               {product.category}
                             </span>
                           </div>
                         );
                       })}
+                      {ownedProductIds && ownedCount > 0 && !allOwned ? (
+                        <p className="text-xs text-emerald-700 dark:text-emerald-400">
+                          Masz już {ownedCount} z {bundle.products.length} pozycji.
+                          Kupując pakiet dostajesz pozostałe w lepszej cenie.
+                        </p>
+                      ) : null}
                     </div>
 
                     <ul className="space-y-2 text-sm text-muted-foreground">
@@ -113,6 +139,13 @@ export function BundlesSection({ recommendedBundle }: BundlesSectionProps) {
                         </li>
                       ))}
                     </ul>
+
+                    <BundleCheckoutButton
+                      bundleId={bundle.id}
+                      bundleName={bundle.name}
+                      price={bundle.price}
+                      allOwned={allOwned}
+                    />
                   </div>
                 </div>
               </article>

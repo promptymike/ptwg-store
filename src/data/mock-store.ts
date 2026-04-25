@@ -249,6 +249,7 @@ export const products: Product[] = [
 export const bundles: Bundle[] = [
   {
     id: "bundle-01",
+    slug: "pakiet-finanse-mock",
     name: "Pakiet Finansów Domowych",
     description:
       "Wszystko, co potrzebujesz, by ogarnąć pieniądze raz na zawsze. Budżet domowy + podstawy ekonomii w jednym zestawie.",
@@ -256,6 +257,7 @@ export const bundles: Bundle[] = [
     compareAtPrice: 88,
     accent: "from-stone-900 via-amber-200 to-white",
     productIds: ["template-01", "template-03"],
+    products: [],
     perks: [
       "Praktyczny budżet i wiedza ekonomiczna w jednym pakiecie",
       "Idealne dla osób, które zaczynają porządki w finansach",
@@ -264,6 +266,7 @@ export const bundles: Bundle[] = [
   },
   {
     id: "bundle-02",
+    slug: "pakiet-produktywnosc-mock",
     name: "Pakiet Produktywności i Czasu",
     description:
       "Ogarnij swój dzień, tydzień i miesiąc. Mistrz Czasu + ADHD Planner — dwa narzędzia, które realnie zmieniają codzienność.",
@@ -271,6 +274,7 @@ export const bundles: Bundle[] = [
     compareAtPrice: 138,
     accent: "from-slate-900 via-emerald-200 to-white",
     productIds: ["template-04", "template-05"],
+    products: [],
     perks: [
       "Mniej chaosu, więcej zrobionego",
       "Działa też przy ADHD i trudnościach z koncentracją",

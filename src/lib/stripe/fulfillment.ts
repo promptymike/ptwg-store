@@ -47,22 +47,58 @@ export type CheckoutFulfillmentResult = {
   items: FulfilledLineItem[];
 };
 
-function getProductIdFromLineItem(lineItem: Stripe.LineItem) {
+function getProductMetadataFromLineItem(
+  lineItem: Stripe.LineItem,
+): Record<string, string> | null {
   const product = lineItem.price?.product;
+  if (!product || typeof product === "string") return null;
+  if ("deleted" in product && product.deleted) return null;
+  return product.metadata ?? {};
+}
 
-  if (!product || typeof product === "string") {
-    return null;
+async function expandBundleLineItem(
+  supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
+  bundleId: string,
+  bundlePriceMinor: number,
+  bundleName: string,
+): Promise<FulfilledLineItem[]> {
+  const { data, error } = await supabase
+    .from("bundle_products")
+    .select("position, products(id, name)")
+    .eq("bundle_id", bundleId)
+    .order("position", { ascending: true });
+
+  type Row = { position: number; products: { id: string; name: string } | null };
+  const rows = ((data as Row[]) ?? []).filter((r) => r.products);
+
+  if (error || rows.length === 0) {
+    throw new Error(
+      `Nie udało się rozwinąć pakietu ${bundleId} (${bundleName}) do listy produktów.`,
+    );
   }
 
-  if ("deleted" in product && product.deleted) {
-    return null;
-  }
+  // Distribute the gross price across the bundle's products. Splitting in
+  // grosze and assigning the remainder to the last item keeps the per-item
+  // sum exactly equal to the bundle price — orders.subtotal will match
+  // Stripe.amount_total without a rounding mismatch.
+  const baseShare = Math.floor(bundlePriceMinor / rows.length);
+  const remainder = bundlePriceMinor - baseShare * rows.length;
 
-  return product.metadata.product_id || null;
+  return rows.map((row, idx) => {
+    const product = row.products!;
+    const grosze = baseShare + (idx === rows.length - 1 ? remainder : 0);
+    return {
+      productId: product.id,
+      productName: product.name,
+      quantity: 1,
+      unitPrice: Math.round(grosze / 100),
+    };
+  });
 }
 
 async function getCheckoutLineItems(
   stripe: ReturnType<typeof getStripeServerClient>,
+  supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
   sessionId: string,
 ) {
   if (!stripe) {
@@ -74,26 +110,39 @@ async function getCheckoutLineItems(
     expand: ["data.price.product"],
   });
 
-  const items = response.data
-    .map((lineItem) => {
-      const productId = getProductIdFromLineItem(lineItem);
+  const items: FulfilledLineItem[] = [];
 
-      if (!productId) {
-        return null;
-      }
+  for (const lineItem of response.data) {
+    const metadata = getProductMetadataFromLineItem(lineItem);
+    if (!metadata) continue;
 
-      const quantity = lineItem.quantity ?? 1;
-      const unitAmount =
-        lineItem.price?.unit_amount ?? Math.round(lineItem.amount_subtotal / quantity);
+    // Bundle path — line item represents a pack, expand to per-product
+    // library entries using bundle_products metadata in our DB.
+    if (metadata.bundle_id) {
+      const bundleAmount =
+        lineItem.amount_subtotal ?? lineItem.price?.unit_amount ?? 0;
+      const expanded = await expandBundleLineItem(
+        supabase,
+        metadata.bundle_id,
+        bundleAmount,
+        lineItem.description || "Pakiet Templify",
+      );
+      items.push(...expanded);
+      continue;
+    }
 
-      return {
-        productId,
-        productName: lineItem.description || "Produkt cyfrowy",
-        quantity,
-        unitPrice: Math.round(unitAmount / 100),
-      };
-    })
-    .filter((item): item is FulfilledLineItem => Boolean(item));
+    // Regular per-product path — same shape as before.
+    if (!metadata.product_id) continue;
+    const quantity = lineItem.quantity ?? 1;
+    const unitAmount =
+      lineItem.price?.unit_amount ?? Math.round(lineItem.amount_subtotal / quantity);
+    items.push({
+      productId: metadata.product_id,
+      productName: lineItem.description || "Produkt cyfrowy",
+      quantity,
+      unitPrice: Math.round(unitAmount / 100),
+    });
+  }
 
   if (items.length === 0) {
     throw new Error("Checkout Session nie zawiera żadnych produktów do fulfillmentu.");
@@ -322,7 +371,7 @@ export async function fulfillCheckoutSession(
     throw new Error("Brakuje danych użytkownika wymaganych do fulfillmentu.");
   }
 
-  const items = await getCheckoutLineItems(stripe, sessionId);
+  const items = await getCheckoutLineItems(stripe, supabase, sessionId);
   const subtotal = items.reduce(
     (sum, item) => sum + item.unitPrice * item.quantity,
     0,

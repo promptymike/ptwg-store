@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
-import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Minus, Plus, ShoppingBag, Sparkles, Trash2, X } from "lucide-react";
 
-import { useCart } from "@/components/cart/cart-provider";
+import {
+  type CartProductSnapshot,
+  useCart,
+} from "@/components/cart/cart-provider";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
 
@@ -13,8 +16,17 @@ type MiniCartProps = {
   onClose: () => void;
 };
 
+type Recommendation = CartProductSnapshot;
+
 export function MiniCart({ open, onClose }: MiniCartProps) {
-  const { items, subtotal, totalItems, removeItem, updateQuantity } = useCart();
+  const { items, subtotal, totalItems, removeItem, updateQuantity, addItem } =
+    useCart();
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+
+  const cartProductIds = useMemo(
+    () => items.map((line) => line.productId).join(","),
+    [items],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -29,6 +41,29 @@ export function MiniCart({ open, onClose }: MiniCartProps) {
       document.removeEventListener("keydown", handleKey);
     };
   }, [open, onClose]);
+
+  // Pull cart-aware upsell suggestions whenever the panel opens or the
+  // cart contents change. Server-side filter keeps owned products out so
+  // the buyer never sees "dorzuć" for something already in their library.
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    const params = cartProductIds ? `?ids=${encodeURIComponent(cartProductIds)}` : "";
+    fetch(`/api/cart/recommendations${params}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled) return;
+        setRecommendations(
+          Array.isArray(data?.items) ? (data.items as Recommendation[]) : [],
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setRecommendations([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, cartProductIds]);
 
   if (!open) return null;
 
@@ -165,6 +200,52 @@ export function MiniCart({ open, onClose }: MiniCartProps) {
             </ul>
           )}
         </div>
+
+        {items.length > 0 && recommendations.length > 0 ? (
+          <div className="border-t border-border/60 bg-background/30 px-5 py-4">
+            <div className="mb-3 flex items-center gap-2">
+              <Sparkles className="size-3.5 text-primary" />
+              <p className="text-[11px] uppercase tracking-[0.18em] text-primary/80">
+                Możesz dorzucić
+              </p>
+            </div>
+            <ul className="space-y-2">
+              {recommendations.map((product) => (
+                <li
+                  key={product.id}
+                  className="flex items-center gap-3 rounded-2xl border border-border/60 bg-background/60 px-3 py-2"
+                >
+                  <Link
+                    href={`/produkty/${product.slug}`}
+                    onClick={onClose}
+                    aria-label={product.name}
+                    className={`relative size-12 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br ${product.coverGradient}`}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={`/produkty/${product.slug}`}
+                      onClick={onClose}
+                      className="line-clamp-1 break-words text-sm font-semibold text-foreground transition hover:text-primary"
+                    >
+                      {product.name}
+                    </Link>
+                    <p className="text-xs text-muted-foreground">
+                      {formatCurrency(product.price)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => addItem(product)}
+                    aria-label={`Dorzuć ${product.name}`}
+                    className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary transition hover:bg-primary hover:text-primary-foreground"
+                  >
+                    <Plus className="size-4" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         {items.length > 0 ? (
           <footer className="space-y-3 border-t border-border/60 bg-background/40 px-5 py-4">

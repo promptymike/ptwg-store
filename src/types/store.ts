@@ -89,6 +89,7 @@ export type Product = {
 
 export type Bundle = {
   id: string;
+  slug: string;
   name: string;
   description: string;
   price: number;
@@ -96,6 +97,14 @@ export type Bundle = {
   accent: string;
   productIds: string[];
   perks: string[];
+  /** Fully resolved product summaries in the order they should display. */
+  products: Array<{
+    id: string;
+    slug: string;
+    name: string;
+    category: string;
+    price: number;
+  }>;
 };
 
 export type Testimonial = {
