@@ -9,8 +9,11 @@ export const alt = "Templify — karta produktu";
 export const size = { width: 1200, height: 630 } as const;
 export const contentType = "image/png";
 
+// Next.js 16 makes route segment params async; awaiting `params` is the
+// only way to read `slug` correctly, otherwise the destructure resolves
+// to undefined and every product gets the same "fallback" PNG.
 type Props = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
 const FALLBACK_GRADIENT =
@@ -38,7 +41,7 @@ function gradientForSlug(slug: string) {
 }
 
 export default async function Image({ params }: Props) {
-  const { slug } = params;
+  const { slug } = await params;
   const product = await getStoreProductBySlug(slug).catch(() => null);
 
   if (!product) {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { LogoutButton } from "@/components/auth/logout-button";
+import { AdminOnboardingTour } from "@/components/onboarding/admin-onboarding-tour";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { getCurrentProfile, getCurrentUser } from "@/lib/session";
 
@@ -82,6 +83,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       </div>
 
       {children}
+
+      <AdminOnboardingTour />
     </div>
   );
 }

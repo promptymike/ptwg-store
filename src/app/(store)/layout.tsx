@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { PromoStrip } from "@/components/layout/promo-strip";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { StoreOnboardingTour } from "@/components/onboarding/store-onboarding-tour";
 import { getCurrentProfile } from "@/lib/session";
 
 function deriveInitials(input: string | null | undefined) {
@@ -38,6 +39,10 @@ export default async function StoreLayout({
       <SiteHeader profile={profileSummary} />
       <main className="flex-1">{children}</main>
       <SiteFooter />
+      {/* Store tour fires on the first visit for any logged-in shopper.
+          Skipped for anonymous browsers — they get the slim cookie banner
+          instead and see the product cards work without a modal. */}
+      {profileSummary ? <StoreOnboardingTour /> : null}
     </div>
   );
 }
