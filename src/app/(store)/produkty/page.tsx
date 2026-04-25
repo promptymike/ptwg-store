@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { SearchX } from "lucide-react";
 
 import { CategoryFilterBar } from "@/components/products/category-filter-bar";
+import { FormatFilterBar } from "@/components/products/format-filter-bar";
 import { ProductCard } from "@/components/products/product-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SectionHeading } from "@/components/shared/section-heading";
@@ -24,6 +25,7 @@ export const metadata: Metadata = buildCanonicalMetadata({
 type ProductsPageProps = {
   searchParams: Promise<{
     kategoria?: string;
+    typ?: string;
   }>;
 };
 
@@ -43,9 +45,18 @@ export default async function ProductsPage({
   ]);
   const ownedProductIds = await getOwnedProductIds(user?.id ?? null);
 
-  const products = category
-    ? allProducts.filter((p) => p.category === category)
-    : allProducts;
+  const formatOptions = Array.from(
+    new Set(allProducts.map((p) => p.format).filter(Boolean) as string[]),
+  ).sort();
+  const format = formatOptions.includes(resolvedSearchParams.typ ?? "")
+    ? resolvedSearchParams.typ
+    : undefined;
+
+  const products = allProducts.filter(
+    (p) =>
+      (!category || p.category === category) &&
+      (!format || p.format === format),
+  );
   const populatedCategories = new Set(allProducts.map((p) => p.category));
   const categories = allCategories.filter((c) => populatedCategories.has(c));
 
@@ -60,13 +71,45 @@ export default async function ProductsPage({
         description="Templify grupuje ebooki według dziedziny: finanse, zdrowie, fitness, macierzyństwo, produktywność, mindset, praca i podróże."
       />
 
-      <div className="surface-panel space-y-6 p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <CategoryFilterBar activeCategory={category} categories={categories} />
-          <p className="text-sm text-muted-foreground">
-            Wyniki: <span className="text-foreground">{products.length}</span>
+      <div className="surface-panel space-y-5 p-6">
+        <div className="space-y-1">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-primary/75">
+            Kategorie
           </p>
+          <CategoryFilterBar
+            activeCategory={category}
+            categories={categories}
+            preserveFormat={format}
+          />
         </div>
+
+        {formatOptions.length > 1 ? (
+          <div className="space-y-1">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-primary/75">
+              Typ
+            </p>
+            <FormatFilterBar
+              activeFormat={format}
+              formats={formatOptions}
+              preserveCategory={category}
+            />
+          </div>
+        ) : null}
+
+        <p className="text-sm text-muted-foreground">
+          Wyniki: <span className="text-foreground">{products.length}</span>
+          {category || format ? (
+            <>
+              {" "}— filtry:{" "}
+              {[category, format].filter(Boolean).map((label, idx, arr) => (
+                <span key={label}>
+                  <span className="text-foreground">{label}</span>
+                  {idx < arr.length - 1 ? ", " : ""}
+                </span>
+              ))}
+            </>
+          ) : null}
+        </p>
 
         {products.length === 0 ? (
           <EmptyState

@@ -2,38 +2,38 @@ import Link from "next/link";
 
 import { cn } from "@/lib/utils";
 
-type CategoryFilterBarProps = {
-  activeCategory?: string;
-  categories?: string[];
-  preserveFormat?: string;
+type FormatFilterBarProps = {
+  activeFormat?: string;
+  formats: string[];
+  baseHref?: string;
+  preserveCategory?: string;
 };
 
-export function CategoryFilterBar({
-  activeCategory,
-  categories = [],
-  preserveFormat,
-}: CategoryFilterBarProps) {
-  function buildHref(category?: string) {
+export function FormatFilterBar({
+  activeFormat,
+  formats,
+  baseHref = "/produkty",
+  preserveCategory,
+}: FormatFilterBarProps) {
+  if (formats.length <= 1) return null;
+
+  function buildHref(format?: string) {
     const params = new URLSearchParams();
-    if (category) params.set("kategoria", category);
-    if (preserveFormat) params.set("typ", preserveFormat);
+    if (preserveCategory) params.set("kategoria", preserveCategory);
+    if (format) params.set("typ", format);
     const query = params.toString();
-    return query ? `/produkty?${query}` : "/produkty";
+    return query ? `${baseHref}?${query}` : baseHref;
   }
 
   const filters = [
-    { label: "Wszystkie", value: undefined },
-    ...categories.map((category) => ({ label: category, value: category })),
+    { label: "Wszystkie typy", value: undefined },
+    ...formats.map((format) => ({ label: format, value: format })),
   ];
 
   return (
     <div className="-mx-1 flex flex-nowrap gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible sm:pb-0">
       {filters.map((filter) => {
-        const isActive =
-          filter.value === undefined
-            ? !activeCategory
-            : activeCategory === filter.value;
-
+        const isActive = (filter.value ?? "") === (activeFormat ?? "");
         return (
           <Link
             key={filter.label}

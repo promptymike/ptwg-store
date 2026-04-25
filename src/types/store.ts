@@ -77,6 +77,14 @@ export type Product = {
   featured?: boolean;
   coverImageUrl?: string | null;
   previews?: ProductPreview[];
+  /**
+   * Storage path of the uploaded ebook (HTML zip / PDF). Exposed on the
+   * public Product type so storefront pages can decide whether to surface
+   * features that need the file to exist (e.g. the free sample preview).
+   * Never the file content itself — the path is only ever consumed
+   * server-side via createProductFileSignedUrl.
+   */
+  filePath?: string | null;
 };
 
 export type Bundle = {

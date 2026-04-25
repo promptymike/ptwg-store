@@ -50,8 +50,15 @@ export function ProductCard({
         <div
           className={`relative min-h-64 overflow-hidden border-b border-border/70 bg-gradient-to-br ${product.coverGradient} p-6 transition duration-500 group-hover:brightness-105`}
         >
-          <div className="hero-orb right-5 top-5 size-20 bg-white/35 transition duration-700 group-hover:bg-white/45" />
-          <div className="hero-orb bottom-6 left-6 size-16 bg-primary/18 transition duration-700 group-hover:bg-primary/30" />
+          {/* Decorative orbs only when there's no cover image — once a real
+              cover is uploaded we let the artwork speak instead of stacking
+              orbs on top of it. */}
+          {!product.coverImageUrl ? (
+            <>
+              <div className="hero-orb right-5 top-5 size-20 bg-white/35 transition duration-700 group-hover:bg-white/45" />
+              <div className="hero-orb bottom-6 left-6 size-16 bg-primary/18 transition duration-700 group-hover:bg-primary/30" />
+            </>
+          ) : null}
 
           {product.coverImageUrl && coverOverlayOpacity > 0 ? (
             <div
@@ -66,13 +73,17 @@ export function ProductCard({
             />
           ) : null}
 
-          {/* Soft dark gradient at the bottom so the product title always
-              passes contrast against the pastel cover background, in both
-              light and dark themes (foreground colour flips per theme but
-              the cover gradient stays pastel either way). */}
+          {/* Title-contrast overlay tuned per state: stronger when a real
+              cover is present so the title cleanly reads against any photo,
+              softer over the stylised gradient so it doesn't muddy the
+              pastel palette. */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-stone-950/35 via-stone-950/10 to-transparent"
+            className={`pointer-events-none absolute inset-x-0 bottom-0 ${
+              product.coverImageUrl
+                ? "h-1/2 bg-gradient-to-t from-stone-950/55 via-stone-950/15 to-transparent"
+                : "h-1/2 bg-gradient-to-t from-stone-950/20 via-stone-950/5 to-transparent"
+            }`}
           />
 
           {discountPercent ? (

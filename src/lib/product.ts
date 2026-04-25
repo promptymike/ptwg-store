@@ -5,7 +5,11 @@
  * can import from the same source of truth.
  */
 
-export const DEFAULT_COVER_IMAGE_OPACITY = 40;
+// 80 means the uploaded cover image dominates the card with the
+// gradient peeking through only at the edges — closer to "bookstore"
+// aesthetic than "abstract panel". Admins can still dial it down per
+// product to favour the gradient when no cover artwork is ready yet.
+export const DEFAULT_COVER_IMAGE_OPACITY = 80;
 
 export const MIN_COVER_IMAGE_OPACITY = 0;
 export const MAX_COVER_IMAGE_OPACITY = 100;

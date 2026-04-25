@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CheckCircle2, Download, LibraryBig, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { BookOpen, CheckCircle2, Download, LibraryBig, ShieldCheck, Sparkles, Zap } from "lucide-react";
 
 import { AnalyticsProductView } from "@/components/analytics/analytics-product-view";
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
@@ -401,18 +401,36 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 </Button>
               </>
             ) : (
-              <AddToCartButton
-                product={{
-                  id: product.id,
-                  slug: product.slug,
-                  name: product.name,
-                  category: product.category,
-                  shortDescription: product.shortDescription,
-                  price: product.price,
-                  coverGradient: product.coverGradient,
-                }}
-                fullWidth
-              />
+              <>
+                <AddToCartButton
+                  product={{
+                    id: product.id,
+                    slug: product.slug,
+                    name: product.name,
+                    category: product.category,
+                    shortDescription: product.shortDescription,
+                    price: product.price,
+                    coverGradient: product.coverGradient,
+                  }}
+                  fullWidth
+                />
+                {product.filePath ? (
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    render={
+                      <a
+                        href={`/api/produkty/${product.slug}/probka`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      />
+                    }
+                  >
+                    <BookOpen className="size-4" />
+                    Pokaż bezpłatną próbkę
+                  </Button>
+                ) : null}
+              </>
             )}
             <Button variant="outline" size="lg" render={<Link href="/produkty" />}>
               Wróć do katalogu

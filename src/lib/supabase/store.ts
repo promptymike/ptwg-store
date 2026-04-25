@@ -450,6 +450,7 @@ async function mapProductRow(
     featured: normalizeBoolean(row.featured),
     coverImageUrl,
     previews: mappedPreviews,
+    filePath: normalizeNullableText(row.file_path),
   };
 }
 
