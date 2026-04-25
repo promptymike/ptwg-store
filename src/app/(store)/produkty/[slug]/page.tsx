@@ -18,6 +18,7 @@ import {
   getFaqSnapshot,
   getCustomerOwnedProductAccess,
   getOwnedProductBySlug,
+  getOwnedProductIds,
   getRelatedStoreProducts,
   getStoreProductBySlug,
   getTestimonialsSnapshot,
@@ -94,12 +95,16 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const [relatedProducts, faqs, testimonials, ownedAccess] = await Promise.all([
-    getRelatedStoreProducts(product),
-    getFaqSnapshot(),
-    getTestimonialsSnapshot(),
-    user ? getCustomerOwnedProductAccess(user.id, product.id) : Promise.resolve(null),
-  ]);
+  const [relatedProducts, faqs, testimonials, ownedAccess, ownedProductIds] =
+    await Promise.all([
+      getRelatedStoreProducts(product),
+      getFaqSnapshot(),
+      getTestimonialsSnapshot(),
+      user
+        ? getCustomerOwnedProductAccess(user.id, product.id)
+        : Promise.resolve(null),
+      getOwnedProductIds(user?.id ?? null),
+    ]);
   const hasOwnedAccess = Boolean(ownedAccess);
   const ownedDownloadHref =
     hasOwnedAccess && ownedAccess?.filePath
@@ -478,7 +483,11 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
           <div className="grid gap-5 lg:grid-cols-3">
             {relatedProducts.map((relatedProduct) => (
-              <ProductCard key={relatedProduct.id} product={relatedProduct} />
+              <ProductCard
+                key={relatedProduct.id}
+                product={relatedProduct}
+                isOwned={ownedProductIds.has(relatedProduct.id)}
+              />
             ))}
           </div>
         </section>

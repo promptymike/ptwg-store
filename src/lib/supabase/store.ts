@@ -745,6 +745,46 @@ export async function getRelatedStoreProducts(product: Product, limit = 3) {
     .slice(0, limit);
 }
 
+// Returns the set of product ids owned by `userId` (or empty when the
+// user is anonymous / Supabase env is missing). Cheap single-column
+// query — meant to be called once per server render and passed down
+// into ProductCard as `isOwned` so the card can swap its CTA.
+export async function getOwnedProductIds(
+  userId: string | null | undefined,
+): Promise<Set<string>> {
+  if (!userId) return new Set();
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return new Set();
+  const { data, error } = await supabase
+    .from("library_items")
+    .select("product_id")
+    .eq("user_id", userId);
+  if (error || !data) return new Set();
+  return new Set(data.map((row) => row.product_id));
+}
+
+// Cross-sell helper for the post-purchase page: return up to `limit`
+// products that share a category with anything the buyer just paid for,
+// excluding products they already own. Falls back to the latest
+// products if no category match is left.
+export async function getRecommendedProducts(
+  ownedIds: Set<string>,
+  basisProductIds: string[],
+  limit = 3,
+): Promise<Product[]> {
+  const all = await getStoreProducts();
+  const basis = all.filter((p) => basisProductIds.includes(p.id));
+  const categories = new Set(basis.map((p) => p.category));
+  const sameCategory = all.filter(
+    (p) => categories.has(p.category) && !ownedIds.has(p.id),
+  );
+  if (sameCategory.length >= limit) return sameCategory.slice(0, limit);
+  // Top up with anything else we don't own yet, preserving uniqueness.
+  const seen = new Set(sameCategory.map((p) => p.id));
+  const fillers = all.filter((p) => !ownedIds.has(p.id) && !seen.has(p.id));
+  return [...sameCategory, ...fillers].slice(0, limit);
+}
+
 export async function getSiteSectionsSnapshot() {
   return sortSections(mockSiteSections);
 }

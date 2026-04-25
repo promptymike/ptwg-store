@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, BookOpen, CheckCircle2 } from "lucide-react";
 
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
 import { getCoverImageOverlayOpacity } from "@/lib/product";
 import { type Product } from "@/types/store";
@@ -10,6 +11,7 @@ import { type Product } from "@/types/store";
 type ProductCardProps = {
   product: Product;
   priority?: "default" | "featured";
+  isOwned?: boolean;
 };
 
 function getBadgeLabel(product: Product) {
@@ -31,6 +33,7 @@ function getBadgeLabel(product: Product) {
 export function ProductCard({
   product,
   priority = "default",
+  isOwned = false,
 }: ProductCardProps) {
   const badgeLabel = getBadgeLabel(product);
   const discountPercent =
@@ -85,7 +88,15 @@ export function ProductCard({
               >
                 {product.category}
               </Badge>
-              {badgeLabel ? (
+              {isOwned ? (
+                <Badge
+                  variant="outline"
+                  className="border-emerald-700/30 bg-emerald-50/95 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-900"
+                >
+                  <CheckCircle2 className="mr-1 size-3" />
+                  W bibliotece
+                </Badge>
+              ) : badgeLabel ? (
                 <Badge
                   variant="outline"
                   className="border-stone-950/15 bg-stone-50/95 text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-900"
@@ -134,18 +145,35 @@ export function ProductCard({
             </Link>
           </div>
 
-          <AddToCartButton
-            product={{
-              id: product.id,
-              slug: product.slug,
-              name: product.name,
-              category: product.category,
-              shortDescription: product.shortDescription,
-              price: product.price,
-              coverGradient: product.coverGradient,
-            }}
-            fullWidth={priority === "featured" || priority === "default"}
-          />
+          {isOwned ? (
+            <Button
+              size="lg"
+              className="w-full"
+              render={
+                <Link
+                  href={`/api/library/${product.id}/read`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                />
+              }
+            >
+              <BookOpen className="size-4" />
+              Otwórz w bibliotece
+            </Button>
+          ) : (
+            <AddToCartButton
+              product={{
+                id: product.id,
+                slug: product.slug,
+                name: product.name,
+                category: product.category,
+                shortDescription: product.shortDescription,
+                price: product.price,
+                coverGradient: product.coverGradient,
+              }}
+              fullWidth={priority === "featured" || priority === "default"}
+            />
+          )}
         </div>
       </div>
     </article>

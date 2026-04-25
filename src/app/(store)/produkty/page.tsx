@@ -8,8 +8,10 @@ import { SectionHeading } from "@/components/shared/section-heading";
 import { CATEGORY_OPTIONS } from "@/types/store";
 import {
   getCategoryFilterOptions,
+  getOwnedProductIds,
   getStoreProducts,
 } from "@/lib/supabase/store";
+import { getCurrentUser } from "@/lib/session";
 import { buildCanonicalMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildCanonicalMetadata({
@@ -34,10 +36,12 @@ export default async function ProductsPage({
   )
     ? resolvedSearchParams.kategoria
     : undefined;
-  const [allProducts, allCategories] = await Promise.all([
+  const [allProducts, allCategories, user] = await Promise.all([
     getStoreProducts(),
     getCategoryFilterOptions(),
+    getCurrentUser(),
   ]);
+  const ownedProductIds = await getOwnedProductIds(user?.id ?? null);
 
   const products = category
     ? allProducts.filter((p) => p.category === category)
@@ -76,7 +80,11 @@ export default async function ProductsPage({
         ) : (
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                isOwned={ownedProductIds.has(product.id)}
+              />
             ))}
           </div>
         )}

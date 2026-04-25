@@ -8,11 +8,13 @@ import type { Product, SiteSectionContent } from "@/types/store";
 type BestsellersSectionProps = {
   content: SiteSectionContent;
   products: Product[];
+  ownedProductIds?: Set<string>;
 };
 
 export function BestsellersSection({
   content,
   products,
+  ownedProductIds,
 }: BestsellersSectionProps) {
   return (
     <section id="featured" className="shell section-space">
@@ -25,7 +27,12 @@ export function BestsellersSection({
 
         <div className="grid gap-5 lg:grid-cols-3">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} priority="featured" />
+            <ProductCard
+              key={product.id}
+              product={product}
+              priority="featured"
+              isOwned={ownedProductIds?.has(product.id)}
+            />
           ))}
         </div>
 

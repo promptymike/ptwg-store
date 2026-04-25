@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { CheckoutSuccessClient } from "@/components/checkout/checkout-success-client";
+import { ProductCard } from "@/components/products/product-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { formatCurrency, formatOrderNumber } from "@/lib/format";
 import { getCurrentUser } from "@/lib/session";
@@ -9,6 +10,10 @@ import {
   fulfillCheckoutSession,
   type CheckoutFulfillmentResult,
 } from "@/lib/stripe/fulfillment";
+import {
+  getOwnedProductIds,
+  getRecommendedProducts,
+} from "@/lib/supabase/store";
 
 export const metadata: Metadata = {
   title: "Dziękujemy za zakup",
@@ -83,8 +88,15 @@ export default async function CheckoutSuccessPage({
     redirect("/konto");
   }
 
+  const ownedIds = await getOwnedProductIds(user.id);
+  const recommended = await getRecommendedProducts(
+    ownedIds,
+    result.items.map((item) => item.productId),
+    3,
+  );
+
   return (
-    <div className="shell section-space">
+    <div className="shell section-space space-y-10">
       <CheckoutSuccessClient
         orderId={result.orderId}
         orderNumber={formatOrderNumber(result.orderId)}
@@ -92,6 +104,32 @@ export default async function CheckoutSuccessPage({
         email={result.email}
         itemCount={result.items.length}
       />
+
+      {recommended.length > 0 ? (
+        <section className="space-y-6">
+          <div className="space-y-2">
+            <p className="text-xs uppercase tracking-[0.24em] text-primary/75">
+              Polecane przez nas
+            </p>
+            <h2 className="text-3xl text-foreground sm:text-4xl">
+              Klienci dokupują też te ebooki
+            </h2>
+            <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
+              Dobrane do tego, co już masz w bibliotece. Dorzucisz do koszyka
+              jednym kliknięciem — wszystkie pliki trafiają tam, gdzie reszta.
+            </p>
+          </div>
+          <div className="grid gap-5 lg:grid-cols-3">
+            {recommended.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                isOwned={ownedIds.has(product.id)}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

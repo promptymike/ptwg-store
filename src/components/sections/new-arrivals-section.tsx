@@ -8,6 +8,7 @@ import type { Product } from "@/types/store";
 
 type NewArrivalsSectionProps = {
   products: Product[];
+  ownedProductIds?: Set<string>;
 };
 
 /**
@@ -18,7 +19,10 @@ type NewArrivalsSectionProps = {
  * snapshot returns nothing to promote — better a tight layout than an empty
  * strip with a heading and no cards.
  */
-export function NewArrivalsSection({ products }: NewArrivalsSectionProps) {
+export function NewArrivalsSection({
+  products,
+  ownedProductIds,
+}: NewArrivalsSectionProps) {
   if (products.length === 0) {
     return null;
   }
@@ -34,7 +38,12 @@ export function NewArrivalsSection({ products }: NewArrivalsSectionProps) {
 
         <div className="grid gap-5 lg:grid-cols-3">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} priority="featured" />
+            <ProductCard
+              key={product.id}
+              product={product}
+              priority="featured"
+              isOwned={ownedProductIds?.has(product.id)}
+            />
           ))}
         </div>
 

@@ -9,7 +9,11 @@ import { HeroSection } from "@/components/sections/hero-section";
 import { NewArrivalsSection } from "@/components/sections/new-arrivals-section";
 import { categoryHighlights, storeStats } from "@/data/mock-store";
 import { buildCanonicalMetadata, getCanonicalUrl } from "@/lib/seo";
-import { getStorefrontSnapshot } from "@/lib/supabase/store";
+import { getCurrentUser } from "@/lib/session";
+import {
+  getOwnedProductIds,
+  getStorefrontSnapshot,
+} from "@/lib/supabase/store";
 
 function getSectionOrFallback(
   sections: Awaited<ReturnType<typeof getStorefrontSnapshot>>["sections"],
@@ -34,6 +38,9 @@ export default async function HomePage() {
     recommendedBundle,
     faqs,
   } = await getStorefrontSnapshot();
+
+  const user = await getCurrentUser();
+  const ownedProductIds = await getOwnedProductIds(user?.id ?? null);
 
   const organizationStructuredData = {
     "@context": "https://schema.org",
@@ -110,8 +117,12 @@ export default async function HomePage() {
       <BestsellersSection
         content={getSectionOrFallback(sections, "featured")}
         products={bestsellerProducts.length > 0 ? bestsellerProducts : featuredProducts}
+        ownedProductIds={ownedProductIds}
       />
-      <NewArrivalsSection products={newArrivalProducts} />
+      <NewArrivalsSection
+        products={newArrivalProducts}
+        ownedProductIds={ownedProductIds}
+      />
       <CatalogSection
         content={getSectionOrFallback(sections, "use-cases")}
         categories={categoryHighlights}
