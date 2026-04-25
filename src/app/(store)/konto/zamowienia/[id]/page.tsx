@@ -50,18 +50,18 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
       <div className="mb-5">
         <Button variant="outline" render={<Link href="/konto#zamowienia" />}>
           <ArrowLeft className="size-4" />
-          Wroc do konta
+          Wróć do konta
         </Button>
       </div>
 
       <section className="surface-panel space-y-6 p-5 sm:p-7">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-3">
-            <span className="eyebrow">Zamowienie</span>
+            <span className="eyebrow">Zamówienie</span>
             <div>
               <h1 className="text-3xl text-foreground sm:text-5xl">{orderNumber}</h1>
               <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
-                Szczegoly zakupu, lista produktow i szybkie przejscie do pobierania.
+                Szczegóły zakupu, lista produktów i szybkie przejście do pobierania.
               </p>
             </div>
           </div>
@@ -97,9 +97,9 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
         {order.items.length === 0 ? (
           <EmptyState
             badge="Produkty"
-            title="Nie znaleziono pozycji zamowienia"
-            description="Zamowienie istnieje, ale nie ma jeszcze widocznych pozycji. Jesli to swiezy zakup, odswiez strone za chwile."
-            action={{ href: "/biblioteka", label: "Przejdz do biblioteki" }}
+            title="Nie znaleziono pozycji zamówienia"
+            description="Zamówienie istnieje, ale nie ma jeszcze widocznych pozycji. Jeśli to świeży zakup, odśwież stronę za chwilę."
+            action={{ href: "/biblioteka", label: "Przejdź do biblioteki" }}
           />
         ) : (
           <div className="grid gap-3">

@@ -856,7 +856,7 @@ export async function getLibrarySnapshot(userId: string): Promise<LibrarySnapsho
   const { data, error } = await supabase
     .from("library_items")
     .select(
-      "id, created_at, download_count, last_downloaded_at, products!inner(id, slug, name, short_description, format, file_path, cover_path, cover_gradient, cover_image_opacity, updated_at, categories(name, slug))",
+      "id, created_at, download_count, last_downloaded_at, products!inner(id, slug, name, short_description, format, file_path, cover_path, cover_gradient, updated_at, categories(name, slug))",
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
@@ -1006,7 +1006,7 @@ export async function getCustomerLibrarySnapshot(
     const { data: products, error: productsError } = await adminSupabase
       .from("products")
       .select(
-        "id, slug, name, short_description, format, file_path, cover_path, cover_gradient, cover_image_opacity, updated_at, categories(name, slug)",
+        "id, slug, name, short_description, format, file_path, cover_path, cover_gradient, updated_at, categories(name, slug)",
       )
       .in("id", orderedProductIds);
 
@@ -1316,7 +1316,7 @@ async function getAdminProductsSnapshotLegacy() {
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id, slug, name, short_description, description, price, compare_at_price, format, pages, tags, rating, sales_label, accent, cover_gradient, cover_image_opacity, includes, hero_note, badge, status, pipeline_status, bestseller, featured, sort_order, featured_order, is_active, cover_path, file_path, categories(id, name, slug)",
+      "id, slug, name, short_description, description, price, compare_at_price, format, pages, tags, rating, sales_label, accent, cover_gradient, includes, hero_note, badge, status, pipeline_status, bestseller, featured, sort_order, featured_order, is_active, cover_path, file_path, categories(id, name, slug)",
     )
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
@@ -1407,7 +1407,7 @@ async function getAdminProductsSnapshotUnsafe(filters?: {
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id, slug, name, short_description, description, price, compare_at_price, format, pages, tags, rating, sales_label, accent, cover_gradient, cover_image_opacity, includes, hero_note, badge, status, pipeline_status, bestseller, featured, sort_order, featured_order, is_active, cover_path, file_path, categories(id, name, slug)",
+      "id, slug, name, short_description, description, price, compare_at_price, format, pages, tags, rating, sales_label, accent, cover_gradient, includes, hero_note, badge, status, pipeline_status, bestseller, featured, sort_order, featured_order, is_active, cover_path, file_path, categories(id, name, slug)",
     )
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
@@ -1448,7 +1448,9 @@ async function getAdminProductsSnapshotUnsafe(filters?: {
         salesLabel: product.sales_label,
         accent: product.accent,
         coverGradient: product.cover_gradient,
-        coverImageOpacity: normalizeCoverImageOpacity(product.cover_image_opacity),
+        coverImageOpacity: normalizeCoverImageOpacity(
+          (product as { cover_image_opacity?: number | null }).cover_image_opacity,
+        ),
         includes: product.includes ?? [],
         heroNote: product.hero_note,
         badge: (product.badge as ProductBadge | null) ?? null,

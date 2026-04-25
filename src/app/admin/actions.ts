@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { DEFAULT_COVER_IMAGE_OPACITY } from "@/lib/product";
 import { getCurrentProfile } from "@/lib/session";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import {
@@ -23,6 +24,17 @@ import {
   siteSettingsFormSchema,
   testimonialFormSchema,
 } from "@/lib/validations/admin";
+
+// Skip the cover_image_opacity column when the value matches the default the
+// migration assigns (40). This keeps create/update working in environments
+// where 20260422130000_add_cover_image_opacity.sql has not been applied yet —
+// admins still get a working flow, only non-default opacity values require
+// the migration to be run.
+function pickCoverImageOpacityPatch(value: number | null | undefined) {
+  if (value === undefined || value === null) return {};
+  if (value === DEFAULT_COVER_IMAGE_OPACITY) return {};
+  return { cover_image_opacity: value };
+}
 
 function slugifyFilename(filename: string) {
   const normalized = filename
@@ -527,9 +539,7 @@ export async function createProductAction(formData: FormData) {
         hero_note: parsed.data.heroNote,
         accent: parsed.data.accent,
         cover_gradient: parsed.data.coverGradient,
-        ...(parsed.data.coverImageOpacity !== undefined
-          ? { cover_image_opacity: parsed.data.coverImageOpacity }
-          : {}),
+        ...pickCoverImageOpacityPatch(parsed.data.coverImageOpacity),
         badge: parsed.data.badge ?? null,
         status: parsed.data.status,
         pipeline_status: parsed.data.pipelineStatus,
@@ -780,9 +790,7 @@ export async function updateProductAction(formData: FormData) {
         hero_note: parsed.data.heroNote,
         accent: parsed.data.accent,
         cover_gradient: parsed.data.coverGradient,
-        ...(parsed.data.coverImageOpacity !== undefined
-          ? { cover_image_opacity: parsed.data.coverImageOpacity }
-          : {}),
+        ...pickCoverImageOpacityPatch(parsed.data.coverImageOpacity),
         badge: parsed.data.badge ?? null,
         status: parsed.data.status,
         pipeline_status: parsed.data.pipelineStatus,

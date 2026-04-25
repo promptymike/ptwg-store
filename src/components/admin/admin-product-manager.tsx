@@ -261,11 +261,11 @@ function PreviewManager({ product }: { product: ProductRecord }) {
         <FileDropzone
           name="previewFile"
           accept="image/png,image/jpeg,image/webp"
-          label="Upusc zrzut preview"
+          label="Upuść zrzut preview"
           hint="Jeden obraz PNG, JPG lub WEBP, do 8 MB"
           maxSizeMb={8}
           statusLabel="Opcjonalne"
-          emptyState="Dodaj pojedynczy zrzut, jesli chcesz pokazac wnetrze produktu."
+          emptyState="Dodaj pojedynczy zrzut, jeśli chcesz pokazać wnętrze produktu."
         />
         <AdminSubmitButton idleLabel="Dodaj preview" pendingLabel="Dodawanie..." />
       </form>
@@ -308,7 +308,7 @@ function PreviewManager({ product }: { product: ProductRecord }) {
               <form action={deleteProductPreviewAction} className="self-start">
                 <input type="hidden" name="previewId" value={preview.id} />
                 <AdminSubmitButton
-                  idleLabel="Usun"
+                  idleLabel="Usuń"
                   pendingLabel="Usuwanie..."
                   variant="destructive"
                 />
@@ -334,9 +334,9 @@ export function AdminProductManager({
       <section className="surface-panel space-y-5 p-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="space-y-2">
-            <h2 className="text-2xl text-foreground">Operacyjny katalog produktow</h2>
+            <h2 className="text-2xl text-foreground">Operacyjny katalog produktów</h2>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Filtruj pipeline publikacji, sprawdzaj kompletnosc assetow i szybko przechodz do
+              Filtruj pipeline publikacji, sprawdzaj kompletność assetów i szybko przechodź do
               edycji lub publikacji produktu.
             </p>
           </div>
@@ -344,7 +344,7 @@ export function AdminProductManager({
             href="/admin/import"
             className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm text-foreground transition hover:border-primary/30"
           >
-            Import / Zrodla produktow
+            Import / Źródła produktów
           </Link>
         </div>
 
@@ -353,7 +353,7 @@ export function AdminProductManager({
           <SummaryCard label="Draft" value={String(summary.draftCount ?? 0)} detail="zapisane, ale jeszcze niepublikowane" />
           <SummaryCard label="Gotowe" value={String(summary.readyCount ?? 0)} detail="pipeline gotowy do publikacji" />
           <SummaryCard label="Opublikowane" value={String(summary.publishedCount ?? 0)} detail="produkty ze statusem sklepu published" />
-          <SummaryCard label="Bez zrodla" value={String(summary.missingSourceCount ?? 0)} detail="produkty bez podpietego materialu roboczego" />
+          <SummaryCard label="Bez źródła" value={String(summary.missingSourceCount ?? 0)} detail="produkty bez podpiętego materiału roboczego" />
         </div>
 
         <form className="grid gap-3 rounded-[1.3rem] border border-border/70 bg-background/70 p-4 lg:grid-cols-[1fr_1fr_1fr_auto_auto]">
@@ -432,16 +432,16 @@ export function AdminProductManager({
 
       <section className="surface-panel space-y-5 p-6">
         <div className="space-y-2">
-          <h2 className="text-2xl text-foreground">Lista produktow</h2>
+          <h2 className="text-2xl text-foreground">Lista produktów</h2>
           <p className="text-sm text-muted-foreground">
-            Operacyjny widok statusu produktu: sklep, pipeline, zrodlo, assety i widocznosc na
+            Operacyjny widok statusu produktu: sklep, pipeline, źródło, assety i widoczność na
             storefront.
           </p>
         </div>
 
         {safeProducts.length === 0 ? (
           <p className="rounded-[1.2rem] border border-dashed border-border/70 px-4 py-5 text-sm text-muted-foreground">
-            Brak produktow dla wybranych filtrow. Zmien filtry albo dodaj pierwszy produkt.
+            Brak produktów dla wybranych filtrów. Zmień filtry albo dodaj pierwszy produkt.
           </p>
         ) : (
           <div className="grid gap-4">
@@ -510,7 +510,7 @@ export function AdminProductManager({
                               <input type="hidden" name="productId" value={product.id} />
                               <input type="hidden" name="returnPath" value="/admin/produkty" />
                               <AdminSubmitButton
-                                idleLabel="Opublikuj i pokaz na storefront"
+                                idleLabel="Opublikuj i pokaż na storefront"
                                 pendingLabel="Publikowanie..."
                               />
                             </form>
@@ -593,7 +593,7 @@ export function AdminProductManager({
                         <form action={deleteProductAction}>
                           <input type="hidden" name="productId" value={product.id} />
                           <AdminSubmitButton
-                            idleLabel="Usun produkt"
+                            idleLabel="Usuń produkt"
                             pendingLabel="Usuwanie..."
                             variant="destructive"
                           />

@@ -57,12 +57,12 @@ async function requestSignedUpload(input: {
     throw new Error(
       payload && "error" in payload && typeof payload.error === "string"
         ? payload.error
-        : "Nie udalo sie przygotowac uploadu.",
+        : "Nie udało się przygotować uploadu.",
     );
   }
 
   if (!payload || !("bucket" in payload) || !payload.token || !payload.path) {
-    throw new Error("Serwer zwrocil niepoprawna odpowiedz uploadu.");
+    throw new Error("Serwer zwrócił niepoprawną odpowiedź uploadu.");
   }
 
   return payload;
