@@ -7,6 +7,7 @@ import { CheckCircle2, Download, LibraryBig, ShieldCheck, Sparkles, Zap } from "
 import { AnalyticsProductView } from "@/components/analytics/analytics-product-view";
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
 import { ProductCard } from "@/components/products/product-card";
+import { ProductTestimonials } from "@/components/products/product-testimonials";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
@@ -19,6 +20,7 @@ import {
   getOwnedProductBySlug,
   getRelatedStoreProducts,
   getStoreProductBySlug,
+  getTestimonialsSnapshot,
 } from "@/lib/supabase/store";
 
 type ProductPageProps = {
@@ -68,14 +70,13 @@ export async function generateMetadata({
       description: product.shortDescription,
       url: getCanonicalUrl(`/produkty/${product.slug}`),
       siteName: "Templify",
+      locale: "pl_PL",
       type: "website",
-      images: product.coverImageUrl
-        ? [
-            {
-              url: product.coverImageUrl,
-            },
-          ]
-        : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.name} | Templify`,
+      description: product.shortDescription,
     },
   };
 }
@@ -93,9 +94,10 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const [relatedProducts, faqs, ownedAccess] = await Promise.all([
+  const [relatedProducts, faqs, testimonials, ownedAccess] = await Promise.all([
     getRelatedStoreProducts(product),
     getFaqSnapshot(),
+    getTestimonialsSnapshot(),
     user ? getCustomerOwnedProductAccess(user.id, product.id) : Promise.resolve(null),
   ]);
   const hasOwnedAccess = Boolean(ownedAccess);
@@ -104,24 +106,87 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       ? `/api/library/${product.id}/download`
       : null;
 
+  const productUrl = getCanonicalUrl(`/produkty/${product.slug}`);
+  const aggregateRating =
+    testimonials.length > 0
+      ? {
+          ratingValue: (
+            testimonials.reduce(
+              (sum, item) => sum + (Number.parseFloat(item.score ?? "5") || 5),
+              0,
+            ) / testimonials.length
+          ).toFixed(1),
+          reviewCount: testimonials.length,
+        }
+      : null;
+
   const productStructuredData = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
     description: product.description,
     category: product.category,
-    image: product.coverImageUrl ? [product.coverImageUrl] : undefined,
+    sku: product.slug,
+    productID: product.id,
+    ...(product.coverImageUrl ? { image: [product.coverImageUrl] } : {}),
+    url: productUrl,
     brand: {
       "@type": "Brand",
       name: "Templify",
+      url: getCanonicalUrl("/"),
     },
+    ...(aggregateRating
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: aggregateRating.ratingValue,
+            reviewCount: aggregateRating.reviewCount,
+            bestRating: "5",
+            worstRating: "1",
+          },
+        }
+      : {}),
     offers: {
       "@type": "Offer",
       priceCurrency: "PLN",
       price: String(product.price),
+      ...(product.compareAtPrice && product.compareAtPrice > product.price
+        ? { highPrice: String(product.compareAtPrice) }
+        : {}),
       availability: "https://schema.org/InStock",
-      url: getCanonicalUrl(`/produkty/${product.slug}`),
+      itemCondition: "https://schema.org/NewCondition",
+      url: productUrl,
+      seller: {
+        "@type": "Organization",
+        name: "Templify",
+        url: getCanonicalUrl("/"),
+      },
     },
+  };
+
+  const breadcrumbStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Strona główna",
+        item: getCanonicalUrl("/"),
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Produkty",
+        item: getCanonicalUrl("/produkty"),
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: product.name,
+        item: productUrl,
+      },
+    ],
   };
 
   return (
@@ -137,6 +202,12 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(productStructuredData),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbStructuredData),
         }}
       />
 
@@ -389,13 +460,20 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         </section>
       ) : null}
 
+      <ProductTestimonials
+        testimonials={testimonials}
+        productName={product.name}
+      />
+
       {relatedProducts.length > 0 ? (
         <section className="space-y-6">
           <div className="space-y-2">
             <p className="text-xs uppercase tracking-[0.24em] text-primary/75">
-              Podobne produkty
+              Polecane razem
             </p>
-            <h2 className="text-4xl text-foreground">Zobacz też w tej kategorii</h2>
+            <h2 className="text-4xl text-foreground">
+              Klienci kupują też te ebooki
+            </h2>
           </div>
 
           <div className="grid gap-5 lg:grid-cols-3">

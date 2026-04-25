@@ -8,7 +8,7 @@ import { FaqSection } from "@/components/sections/faq-section";
 import { HeroSection } from "@/components/sections/hero-section";
 import { NewArrivalsSection } from "@/components/sections/new-arrivals-section";
 import { categoryHighlights, storeStats } from "@/data/mock-store";
-import { buildCanonicalMetadata } from "@/lib/seo";
+import { buildCanonicalMetadata, getCanonicalUrl } from "@/lib/seo";
 import { getStorefrontSnapshot } from "@/lib/supabase/store";
 
 function getSectionOrFallback(
@@ -35,8 +35,77 @@ export default async function HomePage() {
     faqs,
   } = await getStorefrontSnapshot();
 
+  const organizationStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Templify",
+    url: getCanonicalUrl("/"),
+    logo: getCanonicalUrl("/opengraph-image"),
+    sameAs: [],
+    contactPoint: [
+      {
+        "@type": "ContactPoint",
+        contactType: "customer support",
+        email: "kontakt@templify.store",
+        availableLanguage: ["Polish"],
+      },
+    ],
+  };
+
+  const websiteStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Templify",
+    url: getCanonicalUrl("/"),
+    inLanguage: "pl-PL",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${getCanonicalUrl("/produkty")}?kategoria={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
+
+  const faqStructuredData =
+    faqs.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((faq) => ({
+            "@type": "Question",
+            name: faq.question,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: faq.answer,
+            },
+          })),
+        }
+      : null;
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(organizationStructuredData),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(websiteStructuredData),
+        }}
+      />
+      {faqStructuredData ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(faqStructuredData),
+          }}
+        />
+      ) : null}
       <HeroSection content={getSectionOrFallback(sections, "hero")} stats={storeStats} />
       <BestsellersSection
         content={getSectionOrFallback(sections, "featured")}

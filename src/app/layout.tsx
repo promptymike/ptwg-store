@@ -3,11 +3,13 @@ import { Geist_Mono, Cormorant_Garamond, Manrope } from "next/font/google";
 import { cookies } from "next/headers";
 
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
+import { PlausibleAnalytics } from "@/components/analytics/plausible-analytics";
 import { CookieConsentBanner } from "@/components/compliance/cookie-consent";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { ThemeProvider, ThemeScript } from "@/components/theme/theme-provider";
 import { CursorGlow } from "@/components/ui/cursor-glow";
 import { CONSENT_COOKIE_KEY } from "@/lib/consent";
+import { env } from "@/lib/env";
 import "./globals.css";
 
 const geistMono = Geist_Mono({
@@ -27,13 +29,21 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://templify.store"),
+  metadataBase: new URL(env.siteUrl),
   title: {
     default: "Templify | Praktyczne ebooki i planery dla codziennego życia",
     template: "%s | Templify",
   },
   description:
     "Templify to sklep z praktycznymi ebookami i planerami: finanse, zdrowie, macierzyństwo, produktywność, kariera. Pobierz natychmiast po zakupie.",
+  openGraph: {
+    type: "website",
+    siteName: "Templify",
+    locale: "pl_PL",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default async function RootLayout({
@@ -59,6 +69,7 @@ export default async function RootLayout({
               <CookieConsentBanner initialHasConsent={initialHasConsent} />
               <CursorGlow />
             </CartProvider>
+            <PlausibleAnalytics />
           </AnalyticsProvider>
         </ThemeProvider>
       </body>

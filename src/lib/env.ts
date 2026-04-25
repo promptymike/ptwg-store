@@ -16,6 +16,11 @@ export const env = {
   stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   stripeSecretKey: process.env.STRIPE_SECRET_KEY,
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+  // Plausible (privacy-friendly analytics). Only loaded after the user
+  // grants analytics consent — see plausible-analytics.tsx.
+  plausibleDomain: process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN,
+  plausibleScriptSrc:
+    process.env.NEXT_PUBLIC_PLAUSIBLE_SRC ?? "https://plausible.io/js/script.js",
 };
 
 export function hasSupabaseEnv() {
