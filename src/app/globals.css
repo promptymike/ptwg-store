@@ -117,17 +117,21 @@
 
   body {
     @apply min-h-screen bg-background font-sans text-foreground antialiased;
+    background-color: #fdf9f1;
     background-image:
-      radial-gradient(circle at top left, rgba(180, 142, 88, 0.12), transparent 28%),
-      radial-gradient(circle at 80% 0%, rgba(166, 150, 132, 0.12), transparent 24%),
-      linear-gradient(180deg, rgba(255, 252, 247, 0.75), rgba(247, 242, 234, 0.98));
+      radial-gradient(80% 60% at 12% 0%, rgba(180, 142, 88, 0.14), transparent 60%),
+      radial-gradient(70% 50% at 88% 4%, rgba(166, 150, 132, 0.10), transparent 60%);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
   }
 
   .dark body {
+    background-color: #0a0807;
     background-image:
-      radial-gradient(circle at top, rgba(202, 160, 86, 0.2), transparent 30%),
-      radial-gradient(circle at 80% 20%, rgba(97, 76, 40, 0.2), transparent 28%),
-      linear-gradient(180deg, #120f0b 0%, #0b0907 44%, #070605 100%);
+      radial-gradient(85% 55% at 18% 0%, rgba(218, 175, 96, 0.16), transparent 65%),
+      radial-gradient(75% 45% at 86% 8%, rgba(146, 110, 58, 0.12), transparent 60%);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
   }
 
   h1,
@@ -157,8 +161,8 @@
   }
 
   .surface-panel {
-    @apply relative rounded-[2.25rem] border border-border/35 bg-card/80 shadow-[0_28px_90px_-40px_rgba(82,57,31,0.22)];
-    backdrop-filter: blur(28px);
+    @apply relative rounded-[2.25rem] border border-border/35 bg-card/55 shadow-[0_28px_90px_-40px_rgba(82,57,31,0.22)];
+    backdrop-filter: blur(36px) saturate(1.05);
   }
 
   .surface-panel::before {
