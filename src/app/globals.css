@@ -341,3 +341,111 @@ a {
   }
 }
 
+/* iOS / macOS-style thin warm scrollbar. Firefox via scrollbar-color,
+   WebKit/Blink via ::-webkit-scrollbar. The thumb is bronze-tinted,
+   sits inside a transparent track with 3px padding so it floats. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(190, 150, 90, 0.32) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(190, 150, 90, 0.28);
+  background-clip: content-box;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  transition: background-color 200ms ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(190, 150, 90, 0.55);
+  background-clip: content-box;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(226, 188, 114, 0.22);
+  background-clip: content-box;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(226, 188, 114, 0.45);
+  background-clip: content-box;
+}
+
+/* Scroll-driven reveal for non-hero sections. Each section past the
+   first fades + slides + un-blurs as it enters the viewport. Works on
+   Chromium 115+, Edge, Brave; Safari quietly falls back to no animation
+   so the content is always visible. */
+@supports (animation-timeline: view()) {
+  main > section:not(:first-of-type) {
+    animation: section-reveal-in 1ms linear both;
+    animation-timeline: view();
+    animation-range: entry 5% cover 22%;
+  }
+
+  @keyframes section-reveal-in {
+    from {
+      opacity: 0;
+      transform: translateY(36px);
+      filter: blur(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    main > section:not(:first-of-type) {
+      animation: none;
+    }
+  }
+}
+
+/* Spring hover-lift for any surface-panel that is — or contains — an
+   interactive element. Subtle floating effect mimics iOS card press
+   preview. Non-interactive panels stay still. */
+.surface-panel:is(a, button, [role="link"]),
+.surface-panel:has(a[href], button:not([disabled]), [role="link"]) {
+  transition:
+    transform 460ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 220ms ease;
+}
+
+.surface-panel:is(a, button, [role="link"]):hover,
+.surface-panel:has(a[href], button:not([disabled]), [role="link"]):hover {
+  transform: translateY(-4px);
+  box-shadow: 0 44px 110px -42px rgba(82, 57, 31, 0.34);
+}
+
+.dark .surface-panel:is(a, button, [role="link"]):hover,
+.dark .surface-panel:has(a[href], button:not([disabled]), [role="link"]):hover {
+  box-shadow:
+    0 46px 120px -42px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(226, 188, 114, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surface-panel:is(a, button, [role="link"]):hover,
+  .surface-panel:has(a[href], button:not([disabled]), [role="link"]):hover {
+    transform: none;
+  }
+}
+
+/* Cursor glow gets a touch warmer + stronger when hovering interactive
+   elements — matches the bronze accent everywhere else. */
+.cursor-glow[data-active="true"] {
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--primary) 70%, transparent) 0%,
+    color-mix(in oklab, var(--primary) 30%, transparent) 45%,
+    transparent 75%
+  );
+}
+
