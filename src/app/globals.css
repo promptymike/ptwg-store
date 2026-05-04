@@ -279,3 +279,33 @@ a {
   border-color: rgba(139, 94, 52, 0.22) !important;
 }
 
+/* iOS-style page transition. Each route change re-keys the wrapper so
+   the new page mounts with a soft fade + upward slide + tiny blur — the
+   feel premium navigation has on iOS without dragging in framer-motion.
+   The browser's native View Transitions API would be cleaner, but in
+   Next.js 16.2.4 + React 19.2.4 stable it requires the canary
+   <ViewTransition> component to actually fire. */
+.page-transition-enter {
+  animation: page-transition-enter 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: opacity, transform, filter;
+}
+
+@keyframes page-transition-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-transition-enter {
+    animation: none;
+  }
+}
+

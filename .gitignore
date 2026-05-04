@@ -61,3 +61,7 @@ node_modules/
 # Local helper scripts pull secrets from Vercel into this temp file —
 # keep it out of git so a stray commit never publishes a JWT.
 .env.vercel.tmp
+
+# Claude Code preview server config — local dev convenience, varies per
+# developer. settings.local.json is similar.
+.claude/launch.json

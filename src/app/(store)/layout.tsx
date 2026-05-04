@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { AffiliateCapture } from "@/components/analytics/affiliate-capture";
 import { CampaignAttributionCapture } from "@/components/analytics/campaign-attribution-capture";
+import { PageTransition } from "@/components/layout/page-transition";
 import { PromoStrip } from "@/components/layout/promo-strip";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -40,7 +41,7 @@ export default async function StoreLayout({
     <div className="relative flex min-h-screen flex-col overflow-x-clip">
       <PromoStrip />
       <SiteHeader profile={profileSummary} />
-      <main className="flex-1">{children}</main>
+      <PageTransition>{children}</PageTransition>
       <SiteFooter />
       {/* Store tour fires on the first visit for any logged-in shopper.
           Skipped for anonymous browsers — they get the slim cookie banner
