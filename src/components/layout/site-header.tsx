@@ -165,7 +165,7 @@ export function SiteHeader({ profile }: SiteHeaderProps) {
               {isAccountOpen ? (
                 <div
                   role="menu"
-                  className="absolute right-0 mt-2 w-72 origin-top-right rounded-2xl border border-border/80 bg-card/95 p-2 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.45)] backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-150"
+                  className="absolute right-0 mt-2 w-72 origin-top-right rounded-3xl border border-border/30 bg-card/55 p-2 shadow-[0_36px_100px_-32px_rgba(0,0,0,0.55)] backdrop-blur-[40px] backdrop-saturate-150 animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-220 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
                 >
                   <div className="flex items-center gap-3 rounded-xl px-3 py-2">
                     <span className="inline-flex size-9 items-center justify-center rounded-full bg-foreground text-xs font-semibold uppercase tracking-[0.14em] text-background">

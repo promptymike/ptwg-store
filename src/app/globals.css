@@ -146,8 +146,24 @@
   }
 
   ::selection {
-    background: rgba(139, 94, 52, 0.18);
+    background: rgba(218, 175, 96, 0.32);
     color: var(--foreground);
+    text-shadow: none;
+  }
+
+  .dark ::selection {
+    background: rgba(218, 175, 96, 0.42);
+    color: #fff;
+  }
+
+  /* iOS-style focus ring: a tight halo with a 2px offset, glowing in the
+     warm bronze accent. Outline-based so it never affects layout, and
+     respects rounded shapes via inherit. */
+  :focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--ring) 78%, transparent);
+    outline-offset: 2px;
+    border-radius: inherit;
+    transition: outline-offset 160ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
@@ -281,19 +297,21 @@
   }
 }
 
+/* iOS-style tactile press: scale-down on active gives a haptic-like
+   response on tap/click. Spring curve overshoots subtly on release. */
 button:not(:disabled):active,
 a:active {
-  transform: translateY(1px);
+  transform: scale(0.97);
 }
 
 button,
 a {
   transition:
-    transform 140ms cubic-bezier(0.22, 1, 0.36, 1),
-    background-color 180ms ease,
-    color 180ms ease,
-    border-color 180ms ease,
-    box-shadow 220ms ease;
+    transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 200ms ease,
+    color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 260ms ease;
 }
 
 .light .text-white,
@@ -451,5 +469,64 @@ a {
     color-mix(in oklab, var(--primary) 30%, transparent) 45%,
     transparent 75%
   );
+}
+
+/* iOS-style shimmer for skeleton loaders: any panel that's pulsing
+   gets an additional bronze-tinted gradient sweep traversing left
+   to right. Combines with Tailwind's opacity pulse for a richer
+   "loading" feel — mirrors SwiftUI .redacted(reason: .placeholder). */
+.surface-panel.animate-pulse {
+  position: relative;
+  overflow: hidden;
+}
+
+.surface-panel.animate-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(218, 175, 96, 0.08) 50%,
+    transparent 70%
+  );
+  animation: skeleton-shimmer-sweep 1.8s ease-in-out infinite;
+  border-radius: inherit;
+}
+
+@keyframes skeleton-shimmer-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surface-panel.animate-pulse::after {
+    animation: none;
+  }
+}
+
+/* Hero parallax: text moves slower than the scroll, creating depth.
+   Browser-native via scroll-driven animations; falls back to no
+   movement on Safari and older Chromium. */
+@supports (animation-timeline: scroll()) {
+  .hero-parallax {
+    animation: hero-parallax linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 90vh;
+    will-change: transform;
+  }
+
+  @keyframes hero-parallax {
+    to {
+      transform: translateY(-14%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-parallax {
+      animation: none;
+    }
+  }
 }
 

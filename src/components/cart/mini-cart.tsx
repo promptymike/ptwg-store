@@ -70,16 +70,19 @@ export function MiniCart({ open, onClose }: MiniCartProps) {
   return (
     <div className="fixed inset-0 z-50">
       <div
-        className="absolute inset-0 bg-stone-950/40 backdrop-blur-sm animate-in fade-in duration-200"
+        className="absolute inset-0 bg-stone-950/45 backdrop-blur-sm animate-in fade-in duration-200"
         onClick={onClose}
         aria-hidden
       />
       <aside
         role="dialog"
         aria-label="Mini koszyk"
-        className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col border-l border-border/60 bg-card shadow-[0_0_60px_-10px_rgba(0,0,0,0.4)] animate-in slide-in-from-right duration-300"
+        className="absolute inset-x-0 bottom-0 flex max-h-[92vh] flex-col rounded-t-[28px] border-t border-border/30 bg-card/80 shadow-[0_-24px_90px_-10px_rgba(0,0,0,0.55)] backdrop-blur-2xl backdrop-saturate-150 animate-in slide-in-from-bottom duration-320 ease-[cubic-bezier(0.32,0.72,0,1)] sm:bottom-auto sm:right-0 sm:top-0 sm:left-auto sm:h-full sm:max-h-none sm:w-full sm:max-w-md sm:rounded-none sm:border-t-0 sm:border-l sm:duration-300 sm:slide-in-from-right"
       >
-        <header className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
+        <div className="flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="h-1 w-10 rounded-full bg-foreground/20" aria-hidden />
+        </div>
+        <header className="flex items-center justify-between gap-3 border-b border-border/30 px-5 py-4">
           <div className="flex items-center gap-3">
             <span className="inline-flex size-9 items-center justify-center rounded-full bg-primary/15 text-primary">
               <ShoppingBag className="size-4" />
