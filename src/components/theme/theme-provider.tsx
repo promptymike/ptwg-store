@@ -34,13 +34,13 @@ function getSystemTheme(): ResolvedTheme {
 
 function getStoredTheme(): ThemeMode {
   if (typeof window === "undefined") {
-    return "system";
+    return "light";
   }
 
   const stored = window.localStorage.getItem(STORAGE_KEY);
   return stored === "light" || stored === "dark" || stored === "system"
     ? stored
-    : "system";
+    : "light";
 }
 
 function resolveTheme(theme: ThemeMode): ResolvedTheme {
@@ -120,7 +120,7 @@ export function ThemeScript() {
       try {
         var storageKey = "${STORAGE_KEY}";
         var stored = localStorage.getItem(storageKey);
-        var theme = stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
+        var theme = stored === "light" || stored === "dark" || stored === "system" ? stored : "light";
         var systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
         var resolved = theme === "system" ? (systemDark ? "dark" : "light") : theme;
         var root = document.documentElement;
