@@ -51,6 +51,25 @@ export function CheckoutSuccessClient({
       return;
     }
 
+    // Server-side fulfillment is idempotent on stripe_checkout_session_id,
+    // but trackedPurchaseRef resets when the success page is hard-refreshed,
+    // which would refire the purchase event into analytics_events and the
+    // dataLayer (GA4/Meta Pixel). Persist a per-order marker so a refresh
+    // is a no-op for analytics too.
+    const storageKey = `templify:purchase-fired:${orderId}`;
+    if (typeof window !== "undefined") {
+      try {
+        if (window.sessionStorage.getItem(storageKey)) {
+          trackedPurchaseRef.current = true;
+          return;
+        }
+        window.sessionStorage.setItem(storageKey, new Date().toISOString());
+      } catch {
+        // sessionStorage may be blocked (private mode / ITP). Fall through
+        // and accept a possible duplicate over a hard skip of the event.
+      }
+    }
+
     track("purchase", {
       orderId,
       order_id: orderId,
