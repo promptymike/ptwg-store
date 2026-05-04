@@ -180,9 +180,6 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       "@type": "Offer",
       priceCurrency: "PLN",
       price: String(product.price),
-      ...(product.compareAtPrice && product.compareAtPrice > product.price
-        ? { highPrice: String(product.compareAtPrice) }
-        : {}),
       availability: "https://schema.org/InStock",
       itemCondition: "https://schema.org/NewCondition",
       url: productUrl,
@@ -394,11 +391,6 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="text-4xl text-foreground">{formatCurrency(product.price)}</p>
-                {product.compareAtPrice ? (
-                  <p className="text-sm text-muted-foreground line-through">
-                    {formatCurrency(product.compareAtPrice)}
-                  </p>
-                ) : null}
               </div>
               <p className="max-w-xs text-sm text-muted-foreground">
                 {hasOwnedAccess

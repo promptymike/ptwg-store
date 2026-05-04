@@ -231,18 +231,6 @@ export default async function Image({ params }: Props) {
               >
                 {formatCurrency(product.price)}
               </div>
-              {product.compareAtPrice &&
-              product.compareAtPrice > product.price ? (
-                <div
-                  style={{
-                    fontSize: 24,
-                    color: "rgba(245, 241, 234, 0.5)",
-                    textDecoration: "line-through",
-                  }}
-                >
-                  {formatCurrency(product.compareAtPrice)}
-                </div>
-              ) : null}
             </div>
           </div>
 

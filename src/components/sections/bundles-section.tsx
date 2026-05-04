@@ -11,11 +11,6 @@ type BundlesSectionProps = {
   ownedProductIds?: Set<string>;
 };
 
-function getDiscountPercent(price: number, compareAt?: number) {
-  if (!compareAt || compareAt <= price) return null;
-  return Math.round(((compareAt - price) / compareAt) * 100);
-}
-
 export function BundlesSection({
   bundles,
   recommendedBundle,
@@ -41,7 +36,6 @@ export function BundlesSection({
 
         <div className="grid gap-5 lg:grid-cols-2">
           {orderedBundles.map((bundle, index) => {
-            const discount = getDiscountPercent(bundle.price, bundle.compareAtPrice);
             const isRecommended =
               index === 0 && recommendedBundle?.id === bundle.id;
             const ownedCount = ownedProductIds
@@ -75,16 +69,6 @@ export function BundlesSection({
                         <p className="text-3xl text-foreground">
                           {formatCurrency(bundle.price)}
                         </p>
-                        {bundle.compareAtPrice ? (
-                          <p className="text-sm text-muted-foreground line-through">
-                            {formatCurrency(bundle.compareAtPrice)}
-                          </p>
-                        ) : null}
-                        {discount ? (
-                          <span className="rounded-full bg-primary/15 px-2.5 py-1 text-xs font-medium text-primary">
-                            −{discount}%
-                          </span>
-                        ) : null}
                       </div>
                       <p className="mt-2 text-xs text-muted-foreground">
                         Jednorazowy zakup. Dostęp bezterminowy.

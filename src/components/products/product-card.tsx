@@ -37,10 +37,6 @@ export function ProductCard({
   isOwned = false,
 }: ProductCardProps) {
   const badgeLabel = getBadgeLabel(product);
-  const discountPercent =
-    product.compareAtPrice && product.compareAtPrice > product.price
-      ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
-      : null;
 
   const productHref = `/produkty/${product.slug}`;
   const coverOverlayOpacity = getCoverImageOverlayOpacity(product);
@@ -86,12 +82,6 @@ export function ProductCard({
                 : "h-1/2 bg-gradient-to-t from-stone-950/20 via-stone-950/5 to-transparent"
             }`}
           />
-
-          {discountPercent ? (
-            <span className="absolute left-1/2 top-0 z-10 inline-flex -translate-x-1/2 translate-y-3 items-center gap-1 rounded-full bg-destructive px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-white shadow-[0_10px_30px_-10px_rgba(185,76,66,0.65)]">
-              -{discountPercent}%
-            </span>
-          ) : null}
 
           {!isOwned ? (
             <div className="absolute right-3 top-3 z-10">
@@ -146,13 +136,6 @@ export function ProductCard({
               <p className="text-2xl font-semibold text-foreground">
                 {formatCurrency(product.price)}
               </p>
-              {product.compareAtPrice ? (
-                <div className="mt-0.5 flex items-center gap-2">
-                  <p className="text-sm text-muted-foreground line-through">
-                    {formatCurrency(product.compareAtPrice)}
-                  </p>
-                </div>
-              ) : null}
             </div>
             <Link
               href={productHref}
