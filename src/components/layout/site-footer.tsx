@@ -45,7 +45,7 @@ export async function SiteFooter() {
   );
 
   return (
-    <footer className="border-t border-border/60">
+    <footer className="relative bg-gradient-to-b from-transparent via-background to-background before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-border/30 before:to-transparent">
       <div className="shell section-space grid gap-10 xl:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
         <div className="space-y-5">
           <span className="eyebrow">Templify</span>
@@ -105,7 +105,7 @@ export async function SiteFooter() {
         ))}
       </div>
 
-      <div className="border-t border-border/50">
+      <div className="relative before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-border/25 before:to-transparent">
         <div className="shell flex flex-col gap-3 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>© {currentYear} Templify. Wszystkie prawa zastrzeżone.</p>
           <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
