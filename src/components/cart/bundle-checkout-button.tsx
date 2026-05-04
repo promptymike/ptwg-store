@@ -7,6 +7,7 @@ import { LibraryBig, Loader2, ShoppingBag } from "lucide-react";
 import { useAnalytics } from "@/components/analytics/analytics-provider";
 import { Button } from "@/components/ui/button";
 import { readAffiliateRef } from "@/lib/affiliate";
+import { readAttribution } from "@/lib/attribution";
 import {
   BUNDLE_CTA_COPY,
   BUNDLE_CTA_EXPERIMENT,
@@ -63,6 +64,9 @@ export function BundleCheckoutButton({
       variant,
       surface: "bundle_cta_click",
       bundleId,
+      bundle_id: bundleId,
+      bundle_name: bundleName,
+      currency: "PLN",
     });
     setError(null);
     setIsLoading(true);
@@ -73,6 +77,10 @@ export function BundleCheckoutButton({
         : `/api/checkout/bundle/${bundleId}`;
       const response = await fetch(url, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          attribution: readAttribution() ?? undefined,
+        }),
       });
       const payload = (await response
         .json()

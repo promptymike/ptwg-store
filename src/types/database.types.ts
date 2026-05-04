@@ -442,6 +442,100 @@ export type Database = {
         }
         Relationships: []
       }
+      coupon_codes: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          label: string
+          max_redemptions: number | null
+          percent_off: number
+          redemption_count: number
+          starts_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          max_redemptions?: number | null
+          percent_off: number
+          redemption_count?: number
+          starts_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          max_redemptions?: number | null
+          percent_off?: number
+          redemption_count?: number
+          starts_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      coupon_redemptions: {
+        Row: {
+          coupon_id: string
+          created_at: string
+          discount_amount: number
+          id: string
+          order_id: string
+          stripe_checkout_session_id: string
+          user_id: string
+        }
+        Insert: {
+          coupon_id: string
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          order_id: string
+          stripe_checkout_session_id: string
+          user_id: string
+        }
+        Update: {
+          coupon_id?: string
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          order_id?: string
+          stripe_checkout_session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_redemptions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupon_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_redemptions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_redemptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       faq_items: {
         Row: {
           answer: string
@@ -675,13 +769,19 @@ export type Database = {
       }
       orders: {
         Row: {
+          coupon_code: string | null
+          coupon_discount_amount: number
           created_at: string
           currency: string
           email: string
           id: string
+          landing_page: string | null
+          order_bump_discount_amount: number
+          order_bump_product_id: string | null
           refund_amount: number | null
           refund_reason: string | null
           refunded_at: string | null
+          referrer: string | null
           status: Database["public"]["Enums"]["order_status"]
           stripe_checkout_session_id: string | null
           stripe_customer_id: string | null
@@ -691,15 +791,26 @@ export type Database = {
           total: number
           updated_at: string
           user_id: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
         }
         Insert: {
+          coupon_code?: string | null
+          coupon_discount_amount?: number
           created_at?: string
           currency?: string
           email: string
           id?: string
+          landing_page?: string | null
+          order_bump_discount_amount?: number
+          order_bump_product_id?: string | null
           refund_amount?: number | null
           refund_reason?: string | null
           refunded_at?: string | null
+          referrer?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           stripe_checkout_session_id?: string | null
           stripe_customer_id?: string | null
@@ -709,15 +820,26 @@ export type Database = {
           total?: number
           updated_at?: string
           user_id: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
         }
         Update: {
+          coupon_code?: string | null
+          coupon_discount_amount?: number
           created_at?: string
           currency?: string
           email?: string
           id?: string
+          landing_page?: string | null
+          order_bump_discount_amount?: number
+          order_bump_product_id?: string | null
           refund_amount?: number | null
           refund_reason?: string | null
           refunded_at?: string | null
+          referrer?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           stripe_checkout_session_id?: string | null
           stripe_customer_id?: string | null
@@ -727,8 +849,20 @@ export type Database = {
           total?: number
           updated_at?: string
           user_id?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "orders_order_bump_product_id_fkey"
+            columns: ["order_bump_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "orders_user_id_fkey"
             columns: ["user_id"]
@@ -912,6 +1046,8 @@ export type Database = {
           price: number
           rating: number
           sales_label: string
+          seo_description: string | null
+          seo_title: string | null
           short_description: string
           slug: string
           sort_order: number
@@ -946,6 +1082,8 @@ export type Database = {
           price: number
           rating?: number
           sales_label?: string
+          seo_description?: string | null
+          seo_title?: string | null
           short_description: string
           slug: string
           sort_order?: number
@@ -980,6 +1118,8 @@ export type Database = {
           price?: number
           rating?: number
           sales_label?: string
+          seo_description?: string | null
+          seo_title?: string | null
           short_description?: string
           slug?: string
           sort_order?: number
@@ -1237,6 +1377,16 @@ export type Database = {
     }
     Functions: {
       is_admin: { Args: never; Returns: boolean }
+      record_coupon_redemption: {
+        Args: {
+          p_code: string
+          p_order_id: string
+          p_user_id: string
+          p_session_id: string
+          p_discount_amount: number
+        }
+        Returns: Json
+      }
     }
     Enums: {
       blog_post_status: "draft" | "published" | "archived"

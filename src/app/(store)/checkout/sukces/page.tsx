@@ -101,8 +101,10 @@ export default async function CheckoutSuccessPage({
         orderId={result.orderId}
         orderNumber={formatOrderNumber(result.orderId)}
         amount={formatCurrency(result.total)}
+        orderTotal={result.total}
         email={result.email}
         itemCount={result.items.length}
+        items={result.items}
       />
 
       {recommended.length > 0 ? (

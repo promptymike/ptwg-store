@@ -43,6 +43,10 @@ export async function createProductCoverSignedUrl(
   coverPath: string,
   expiresIn = 3600,
 ) {
+  if (/^https?:\/\//i.test(coverPath)) {
+    return coverPath;
+  }
+
   const supabase = createSupabaseAdminClient();
 
   if (!supabase || !coverPath) {

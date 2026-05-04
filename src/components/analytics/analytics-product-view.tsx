@@ -24,10 +24,14 @@ export function AnalyticsProductView({
   useEffect(() => {
     track("view_product", {
       productId: id,
+      product_id: id,
       slug,
+      product_slug: slug,
       name,
+      product_name: name,
       category,
       price,
+      currency: "PLN",
     });
   }, [category, id, name, price, slug, track]);
 

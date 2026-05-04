@@ -14,11 +14,14 @@ import {
 } from "lucide-react";
 import type { ComponentType } from "react";
 
+import { AdminRevenueDashboard } from "@/components/admin/admin-revenue-dashboard";
 import { AdminTrends } from "@/components/admin/admin-trends";
+import { getMissingLaunchCriticalEnv } from "@/lib/env";
 import { formatAdminDate } from "@/lib/format";
 import {
   getAdminDashboardSnapshot,
   getAdminRecentActivity,
+  getAdminRevenueSnapshot,
   getAdminTrendsSnapshot,
 } from "@/lib/supabase/store";
 
@@ -32,10 +35,12 @@ const ACTIVITY_ICONS: Record<string, ComponentType<ActivityIconProps>> = {
 };
 
 export default async function AdminDashboardPage() {
-  const [snapshot, activity, trends] = await Promise.all([
+  const missingLaunchEnv = getMissingLaunchCriticalEnv();
+  const [snapshot, activity, trends, revenueSnapshot] = await Promise.all([
     getAdminDashboardSnapshot(),
     getAdminRecentActivity(12),
     getAdminTrendsSnapshot(30),
+    getAdminRevenueSnapshot(30),
   ]);
 
   const heroCards = [
@@ -166,6 +171,8 @@ export default async function AdminDashboardPage() {
 
       <AdminTrends daily={trends.daily} topProducts={trends.topProducts} />
 
+      <AdminRevenueDashboard snapshot={revenueSnapshot} />
+
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <section className="surface-panel space-y-4 p-6">
           <div className="flex items-center justify-between">
@@ -258,6 +265,16 @@ export default async function AdminDashboardPage() {
               <li>
                 Pliki, RLS i Stripe webhook chronią mutacje od strony klienta.
               </li>
+              {missingLaunchEnv.length > 0 ? (
+                <li>
+                  Brakuje envów launch:{" "}
+                  <code className="rounded bg-background/70 px-1">
+                    {missingLaunchEnv.join(", ")}
+                  </code>
+                </li>
+              ) : (
+                <li>Krytyczne envy launch są skonfigurowane.</li>
+              )}
             </ul>
           </div>
         </section>

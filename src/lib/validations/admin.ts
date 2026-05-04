@@ -168,6 +168,29 @@ export const allowlistFormSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+export const couponFormSchema = z.object({
+  couponId: z.preprocess(normalizeOptionalString, z.string().uuid().optional()),
+  code: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .min(3, "Kod jest za krotki.")
+    .max(40, "Kod jest za dlugi.")
+    .regex(/^[A-Z0-9_-]+$/, "Kod moze zawierac litery, cyfry, _ i -."),
+  label: z.string().trim().min(3, "Dodaj etykiete kodu.").max(120),
+  percentOff: z.coerce
+    .number()
+    .int()
+    .min(1, "Rabat musi byc wiekszy od zera.")
+    .max(95, "Rabat jest za duzy."),
+  maxRedemptions: z.preprocess(
+    normalizeOptionalNumberInput,
+    z.coerce.number().int().min(1).optional(),
+  ),
+  expiresAt: z.preprocess(normalizeOptionalString, z.string().optional()),
+  isActive: z.boolean().optional(),
+});
+
 export const siteSettingsFormSchema = z.object({
   recommendedBundleId: z.string().min(1, "Wybierz rekomendowany bundle."),
   homepageFeaturedLimit: z.coerce
@@ -175,6 +198,14 @@ export const siteSettingsFormSchema = z.object({
     .int()
     .min(1, "Limit featured musi byc wiekszy od zera.")
     .max(12, "Limit featured jest za duzy."),
+  orderBumpEnabled: z.boolean().optional(),
+  orderBumpProductId: z
+    .preprocess(normalizeOptionalString, z.string().uuid().optional()),
+  orderBumpPercentOff: z.coerce
+    .number()
+    .int()
+    .min(1, "Rabat order bump musi byc wiekszy od zera.")
+    .max(80, "Rabat order bump jest za duzy."),
   businessName: z.string().max(120, "Nazwa firmy jest zbyt dluga.").optional(),
   businessTaxId: z.string().max(32, "NIP jest zbyt dlugi.").optional(),
   businessAddress: z.string().max(240, "Adres jest zbyt dlugi.").optional(),

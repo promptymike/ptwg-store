@@ -10,6 +10,7 @@ import {
   Loader2,
   Lock,
   ShieldCheck,
+  Sparkles,
   Tag,
   Zap,
 } from "lucide-react";
@@ -20,9 +21,10 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { readAffiliateRef } from "@/lib/affiliate";
+import { readAttribution } from "@/lib/attribution";
 import { getClientStripeStatus } from "@/lib/env";
 import { formatCurrency } from "@/lib/format";
-import { findPromoRule, type PromoRule } from "@/lib/promo";
+import type { PromoRule } from "@/lib/promo";
 
 type CheckoutResponse = {
   url?: string;
@@ -40,11 +42,36 @@ type CheckoutHealth = {
   webhookConfigured: boolean;
 };
 
-type CheckoutClientProps = {
-  initialEmail: string;
+type OrderBumpSnapshot = {
+  product: {
+    id: string;
+    slug: string;
+    name: string;
+    category: string;
+    shortDescription: string;
+    price: number;
+    coverGradient: string;
+  };
+  discountPercent: number;
+  originalPrice: number;
+  discountedPrice: number;
 };
 
-export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
+type CheckoutClientProps = {
+  initialEmail: string;
+  orderBump?: OrderBumpSnapshot | null;
+};
+
+type CouponValidationResponse = {
+  ok?: boolean;
+  code?: string;
+  label?: string;
+  percentOff?: number;
+  discountAmount?: number;
+  message?: string;
+};
+
+export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps) {
   const { items, subtotal, isReady } = useCart();
   const { track } = useAnalytics();
   const [email, setEmail] = useState(initialEmail);
@@ -53,6 +80,8 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
   const [promoInput, setPromoInput] = useState("");
   const [promoRule, setPromoRule] = useState<PromoRule | null>(null);
   const [promoMessage, setPromoMessage] = useState<string | null>(null);
+  const [promoBusy, setPromoBusy] = useState(false);
+  const [orderBumpAccepted, setOrderBumpAccepted] = useState(false);
   const [giftInput, setGiftInput] = useState("");
   const [giftCode, setGiftCode] = useState<{
     code: string;
@@ -64,25 +93,60 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
   const trackedCheckoutRef = useRef(false);
   const clientStripeStatus = useMemo(() => getClientStripeStatus(), []);
 
-  const discountAmount = promoRule ? Math.round(subtotal * (promoRule.percentOff / 100)) : 0;
-  const totalAfterPromo = Math.max(subtotal - discountAmount, 0);
+  const orderBumpAlreadyInCart = Boolean(
+    orderBump && items.some((item) => item.productId === orderBump.product.id),
+  );
+  const orderBumpAvailable = Boolean(orderBump && !orderBumpAlreadyInCart);
+  const appliedOrderBump =
+    orderBumpAvailable && orderBumpAccepted && orderBump ? orderBump : null;
+  const orderBumpPrice = appliedOrderBump?.discountedPrice ?? 0;
+  const orderBumpSavings = appliedOrderBump
+    ? Math.max(appliedOrderBump.originalPrice - appliedOrderBump.discountedPrice, 0)
+    : 0;
+  const checkoutSubtotal = subtotal + orderBumpPrice;
+  const discountAmount = promoRule
+    ? Math.round(checkoutSubtotal * (promoRule.percentOff / 100))
+    : 0;
+  const totalAfterPromo = Math.max(checkoutSubtotal - discountAmount, 0);
   const giftAmountPln = giftCode ? Math.round(giftCode.amountMinor / 100) : 0;
   const giftApplied = Math.min(giftAmountPln, totalAfterPromo);
   const totalAfterGift = Math.max(totalAfterPromo - giftApplied, 0);
 
-  function handleApplyPromo() {
+  async function handleApplyPromo() {
     setPromoMessage(null);
     if (!promoInput.trim()) {
       setPromoRule(null);
       return;
     }
-    const rule = findPromoRule(promoInput);
-    if (rule) {
-      setPromoRule(rule);
-      setPromoMessage(`Zastosowano: ${rule.label}`);
-    } else {
+
+    setPromoBusy(true);
+    try {
+      const response = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoInput, subtotal: checkoutSubtotal }),
+      });
+      const data = (await response.json().catch(() => null)) as
+        | CouponValidationResponse
+        | null;
+
+      if (!response.ok || !data?.ok || !data.code || !data.percentOff) {
+        setPromoRule(null);
+        setPromoMessage(data?.message ?? "Ten kod nie dziala lub wygasl.");
+        return;
+      }
+
+      setPromoRule({
+        code: data.code,
+        label: data.label ?? `Kod ${data.code}`,
+        percentOff: data.percentOff,
+      });
+      setPromoMessage(`Zastosowano: ${data.label ?? data.code}`);
+    } catch {
       setPromoRule(null);
-      setPromoMessage("Ten kod nie działa lub wygasł.");
+      setPromoMessage("Nie udalo sie sprawdzic kodu. Sprobuj ponownie.");
+    } finally {
+      setPromoBusy(false);
     }
   }
 
@@ -132,6 +196,28 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
     setGiftMessage(null);
   }
 
+  function handleOrderBumpToggle(nextValue: boolean) {
+    setOrderBumpAccepted(nextValue);
+
+    if (nextValue && orderBump) {
+      track("add_to_cart", {
+        productId: orderBump.product.id,
+        product_id: orderBump.product.id,
+        slug: orderBump.product.slug,
+        product_slug: orderBump.product.slug,
+        name: orderBump.product.name,
+        product_name: orderBump.product.name,
+        category: orderBump.product.category,
+        price: orderBump.discountedPrice,
+        original_price: orderBump.originalPrice,
+        discount_percent: orderBump.discountPercent,
+        currency: "PLN",
+        quantity: 1,
+        surface: "checkout_order_bump",
+      });
+    }
+  }
+
   const lines = useMemo(
     () =>
       items
@@ -149,13 +235,20 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
 
     track("begin_checkout", {
       itemCount: lines.length,
-      subtotal,
+      subtotal: checkoutSubtotal,
+      order_total: totalAfterGift,
+      currency: "PLN",
+      order_bump_available: orderBumpAvailable,
       items: lines.map((line) =>
         line
           ? {
               productId: line.id,
+              product_id: line.id,
               slug: line.slug,
+              product_slug: line.slug,
               name: line.name,
+              product_name: line.name,
+              category: line.category,
               quantity: line.quantity,
               price: line.price,
             }
@@ -164,7 +257,14 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
     });
 
     trackedCheckoutRef.current = true;
-  }, [isReady, lines, subtotal, track]);
+  }, [
+    checkoutSubtotal,
+    isReady,
+    lines,
+    orderBumpAvailable,
+    totalAfterGift,
+    track,
+  ]);
 
   useEffect(() => {
     let cancelled = false;
@@ -206,8 +306,10 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
             quantity: item.quantity,
           })),
           promoCode: promoRule?.code,
+          orderBumpProductId: appliedOrderBump?.product.id,
           giftCode: giftCode?.code,
           affiliateRef: readAffiliateRef()?.code,
+          attribution: readAttribution() ?? undefined,
         }),
       });
 
@@ -345,6 +447,44 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
           )}
         </div>
 
+        {orderBumpAvailable && orderBump ? (
+          <div
+            className={`rounded-[1.2rem] border p-4 transition ${
+              orderBumpAccepted
+                ? "border-primary/40 bg-primary/10"
+                : "border-border/60 bg-background/70"
+            }`}
+          >
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                checked={orderBumpAccepted}
+                onChange={(event) => handleOrderBumpToggle(event.target.checked)}
+                className="mt-1 size-4 shrink-0 accent-[var(--color-foreground)]"
+              />
+              <span className="min-w-0 flex-1 space-y-2">
+                <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                  <Sparkles className="size-4" />
+                  Oferta przy checkout
+                </span>
+                <span className="block text-sm font-semibold text-foreground">
+                  Dodaj {orderBump.product.name}
+                </span>
+                <span className="block text-xs leading-5 text-muted-foreground">
+                  Jednorazowa cena w tym zamowieniu:{" "}
+                  <span className="font-medium text-foreground">
+                    {formatCurrency(orderBump.discountedPrice)}
+                  </span>{" "}
+                  zamiast {formatCurrency(orderBump.originalPrice)}.
+                </span>
+              </span>
+              <span className="shrink-0 rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
+                -{orderBump.discountPercent}%
+              </span>
+            </label>
+          </div>
+        ) : null}
+
         <div className="space-y-2 rounded-[1.2rem] border border-border/60 bg-background/70 p-4">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
             <Tag className="size-4 text-primary" />
@@ -372,7 +512,12 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
                 placeholder="np. TEMPLIFY15"
                 className="uppercase tracking-[0.16em]"
               />
-              <Button type="button" variant="outline" onClick={handleApplyPromo}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleApplyPromo}
+                disabled={promoBusy}
+              >
                 Użyj
               </Button>
             </div>
@@ -431,8 +576,17 @@ export function CheckoutClient({ initialEmail }: CheckoutClientProps) {
         <div className="space-y-2 border-t border-border/60 pt-3 text-sm">
           <div className="flex items-center justify-between text-muted-foreground">
             <span>Suma produktów</span>
-            <span>{formatCurrency(subtotal)}</span>
+            <span>{formatCurrency(checkoutSubtotal)}</span>
           </div>
+          {appliedOrderBump ? (
+            <div className="flex items-center justify-between text-primary">
+              <span>Oferta checkout ({appliedOrderBump.discountPercent}%)</span>
+              <span>
+                {formatCurrency(appliedOrderBump.discountedPrice)}
+                {orderBumpSavings > 0 ? `, oszczędzasz ${formatCurrency(orderBumpSavings)}` : ""}
+              </span>
+            </div>
+          ) : null}
           {promoRule ? (
             <div className="flex items-center justify-between text-primary">
               <span>Rabat ({promoRule.code})</span>

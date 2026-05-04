@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 
 import { DEFAULT_COVER_IMAGE_OPACITY } from "@/lib/product";
+import { normalizeAssetReference } from "@/lib/product-master";
 import {
   announcePriceDrop,
   announceProductPublished,
@@ -22,12 +24,14 @@ import {
   categoryFormSchema,
   contentPageFormSchema,
   contentSectionFormSchema,
+  couponFormSchema,
   faqFormSchema,
   previewFormSchema,
   productFormSchema,
   siteSettingsFormSchema,
   testimonialFormSchema,
 } from "@/lib/validations/admin";
+import { PRODUCT_BADGES, PRODUCT_STATUSES } from "@/types/store";
 
 // Skip the cover_image_opacity column when the value matches the default the
 // migration assigns (40). This keeps create/update working in environments
@@ -341,6 +345,44 @@ function revalidateStorefront(productSlug?: string) {
   if (productSlug) {
     revalidatePath(`/produkty/${productSlug}`);
   }
+}
+
+const productMasterImportRowSchema = z.object({
+  name: z.string().trim().min(3),
+  slug: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/),
+  shortDescription: z.string().trim().min(12),
+  longDescription: z.string().trim().min(20),
+  category: z.string().trim().min(1),
+  price: z.coerce.number().int().min(1),
+  compareAtPrice: z.preprocess(
+    (value) => (value === "" || value === undefined ? null : value),
+    z.coerce.number().int().min(0).nullable(),
+  ),
+  badge: z.enum(PRODUCT_BADGES).nullable().optional(),
+  status: z.enum(PRODUCT_STATUSES),
+  seoTitle: z.string().trim().min(1),
+  seoDescription: z.string().trim().min(1),
+  coverImagePath: z.string().trim().nullable().optional(),
+  productFilePath: z.string().trim().nullable().optional(),
+  previewImages: z.array(z.string().trim()).optional().default([]),
+});
+
+function matchCategoryId(
+  categoryValue: string,
+  categories: Array<{ id: string; name: string; slug: string }>,
+) {
+  const normalized = categoryValue.trim().toLowerCase();
+  return (
+    categories.find(
+      (category) =>
+        category.slug.trim().toLowerCase() === normalized ||
+        category.name.trim().toLowerCase() === normalized,
+    )?.id ?? null
+  );
 }
 
 export async function createCategoryAction(formData: FormData) {
@@ -1050,6 +1092,167 @@ export async function deleteProductAction(formData: FormData) {
   redirectWithMessage("/admin/produkty", redirectType, redirectMessage);
 }
 
+export async function importProductMasterAction(formData: FormData) {
+  let redirectType: "success" | "error" = "success";
+  let redirectMessage = "Product Master został zaimportowany.";
+  const returnPath = "/admin/product-master";
+
+  try {
+    const { supabase } = await ensureAdmin();
+    const confirmNoOverwrite = parseCheckbox(formData.get("confirmNoOverwrite"));
+    const rowsJson = getOptionalString(formData, "rowsJson", { trim: false });
+
+    if (!confirmNoOverwrite) {
+      throw new Error("Potwierdź, że import ma tworzyć tylko nowe produkty.");
+    }
+
+    if (!rowsJson) {
+      throw new Error("Brak danych CSV do importu.");
+    }
+
+    const rawRows = JSON.parse(rowsJson) as unknown;
+    const rows = z.array(productMasterImportRowSchema).max(500).parse(rawRows);
+
+    if (rows.length === 0) {
+      throw new Error("Brak poprawnych wierszy do importu.");
+    }
+
+    const [{ data: categories }, { data: existingProducts }] = await Promise.all([
+      supabase.from("categories").select("id, name, slug"),
+      supabase.from("products").select("slug"),
+    ]);
+
+    const categoryRows = categories ?? [];
+    const existingSlugs = new Set((existingProducts ?? []).map((product) => product.slug));
+    let importedCount = 0;
+    let skippedCount = 0;
+    const skippedMessages: string[] = [];
+
+    for (const [index, row] of rows.entries()) {
+      if (existingSlugs.has(row.slug)) {
+        skippedCount += 1;
+        skippedMessages.push(`${row.slug}: slug już istnieje`);
+        continue;
+      }
+
+      const categoryId = matchCategoryId(row.category, categoryRows);
+
+      if (!categoryId) {
+        skippedCount += 1;
+        skippedMessages.push(`${row.slug}: brak kategorii`);
+        continue;
+      }
+
+      const coverPath = row.coverImagePath
+        ? normalizeAssetReference(row.coverImagePath, "product-covers")
+        : null;
+      const filePath = row.productFilePath
+        ? normalizeAssetReference(row.productFilePath, "product-files")
+        : null;
+
+      if (row.productFilePath && !filePath) {
+        skippedCount += 1;
+        skippedMessages.push(`${row.slug}: plik produktu musi być ścieżką product-files`);
+        continue;
+      }
+
+      if (row.status === "published" && (!coverPath || !filePath)) {
+        skippedCount += 1;
+        skippedMessages.push(`${row.slug}: published wymaga covera i pliku`);
+        continue;
+      }
+
+      const badge = row.badge ?? null;
+      const { data: product, error } = await supabase
+        .from("products")
+        .insert({
+          name: row.name,
+          slug: row.slug,
+          category_id: categoryId,
+          price: row.price,
+          compare_at_price: row.compareAtPrice ?? null,
+          short_description: row.shortDescription,
+          description: row.longDescription,
+          seo_title: row.seoTitle,
+          seo_description: row.seoDescription,
+          format: "Produkt cyfrowy",
+          pages: 0,
+          sales_label: badge ? `Tag: ${badge}` : "Nowy produkt",
+          hero_note: "Gotowy system do wdrożenia",
+          accent: "from-stone-950 via-stone-800 to-amber-500",
+          cover_gradient: "from-[#f8f2ea] via-[#efe0c8] to-[#d8c09a]",
+          badge,
+          status: row.status,
+          pipeline_status: row.status === "published" ? "published" : "working",
+          sort_order: 1000 + index,
+          featured_order: badge === "featured" ? 1000 + index : 0,
+          tags: [],
+          includes: [],
+          bestseller: badge === "bestseller",
+          featured: badge === "featured",
+          is_active: row.status === "published",
+          cover_path: coverPath,
+          file_path: filePath,
+        })
+        .select("id, slug")
+        .single();
+
+      if (error || !product) {
+        skippedCount += 1;
+        skippedMessages.push(`${row.slug}: ${error?.message ?? "insert failed"}`);
+        continue;
+      }
+
+      existingSlugs.add(row.slug);
+      importedCount += 1;
+
+      const previewRows = row.previewImages
+        .map((previewPath, previewIndex) => {
+          const storagePath = normalizeAssetReference(previewPath, "product-covers");
+          return storagePath
+            ? {
+                product_id: product.id,
+                storage_path: storagePath,
+                alt_text: `${row.name} preview ${previewIndex + 1}`,
+                sort_order: previewIndex,
+              }
+            : null;
+        })
+        .filter((preview): preview is NonNullable<typeof preview> => Boolean(preview));
+
+      if (previewRows.length > 0) {
+        const { error: previewsError } = await supabase
+          .from("product_previews")
+          .insert(previewRows);
+
+        if (previewsError) {
+          skippedMessages.push(`${row.slug}: preview images nie zostały zapisane`);
+        }
+      }
+
+      revalidateStorefront(product.slug);
+    }
+
+    if (importedCount === 0) {
+      throw new Error(
+        skippedMessages.length > 0
+          ? `Nie zaimportowano żadnych produktów. ${skippedMessages.slice(0, 3).join("; ")}`
+          : "Nie zaimportowano żadnych produktów.",
+      );
+    }
+
+    revalidatePath(returnPath);
+    revalidatePath("/admin/produkty");
+    redirectMessage = `Zaimportowano ${importedCount} produktów. Pominięto ${skippedCount}.`;
+  } catch (error) {
+    redirectType = "error";
+    redirectMessage =
+      error instanceof Error ? error.message : "Nie udało się zaimportować CSV.";
+  }
+
+  redirectWithMessage(returnPath, redirectType, redirectMessage);
+}
+
 export async function createProductPreviewAction(formData: FormData) {
   let redirectType: "success" | "error" = "success";
   let redirectMessage = "Preview został dodany.";
@@ -1718,6 +1921,93 @@ export async function deleteAllowlistEntryAction(formData: FormData) {
   redirectWithMessage(returnPath, redirectType, redirectMessage);
 }
 
+export async function upsertCouponAction(formData: FormData) {
+  let redirectType: "success" | "error" = "success";
+  let redirectMessage = "Kod rabatowy został zapisany.";
+  const returnPath = "/admin/kupony";
+
+  try {
+    const { supabase } = await ensureAdmin();
+    const parsed = couponFormSchema.safeParse({
+      couponId: getOptionalString(formData, "couponId"),
+      code: formData.get("code"),
+      label: formData.get("label"),
+      percentOff: formData.get("percentOff"),
+      maxRedemptions: formData.get("maxRedemptions"),
+      expiresAt: getOptionalString(formData, "expiresAt"),
+      isActive: parseCheckbox(formData.get("isActive")),
+    });
+
+    if (!parsed.success) {
+      throw new Error(parsed.error.issues[0]?.message ?? "Niepoprawne dane kuponu.");
+    }
+
+    const payload = {
+      code: parsed.data.code,
+      label: parsed.data.label,
+      percent_off: parsed.data.percentOff,
+      max_redemptions: parsed.data.maxRedemptions ?? null,
+      expires_at: parsed.data.expiresAt
+        ? new Date(parsed.data.expiresAt).toISOString()
+        : null,
+      is_active: parsed.data.isActive ?? false,
+    };
+
+    const query = parsed.data.couponId
+      ? supabase.from("coupon_codes").update(payload).eq("id", parsed.data.couponId)
+      : supabase.from("coupon_codes").insert(payload);
+
+    const { error } = await query;
+
+    if (error) {
+      throw error;
+    }
+
+    revalidatePath(returnPath);
+    revalidatePath("/checkout");
+  } catch (error) {
+    redirectType = "error";
+    redirectMessage =
+      error instanceof Error ? error.message : "Nie udało się zapisać kodu.";
+  }
+
+  redirectWithMessage(returnPath, redirectType, redirectMessage);
+}
+
+export async function toggleCouponAction(formData: FormData) {
+  let redirectType: "success" | "error" = "success";
+  let redirectMessage = "Status kodu został zmieniony.";
+  const returnPath = "/admin/kupony";
+
+  try {
+    const { supabase } = await ensureAdmin();
+    const couponId = getOptionalString(formData, "couponId");
+    const isActive = parseCheckbox(formData.get("isActive"));
+
+    if (!couponId) {
+      throw new Error("Brak identyfikatora kuponu.");
+    }
+
+    const { error } = await supabase
+      .from("coupon_codes")
+      .update({ is_active: isActive })
+      .eq("id", couponId);
+
+    if (error) {
+      throw error;
+    }
+
+    revalidatePath(returnPath);
+    revalidatePath("/checkout");
+  } catch (error) {
+    redirectType = "error";
+    redirectMessage =
+      error instanceof Error ? error.message : "Nie udało się zmienić statusu kodu.";
+  }
+
+  redirectWithMessage(returnPath, redirectType, redirectMessage);
+}
+
 export async function updateSiteSettingsAction(formData: FormData) {
   let redirectType: "success" | "error" = "success";
   let redirectMessage = "Ustawienia merchandisingu zostały zapisane.";
@@ -1728,6 +2018,9 @@ export async function updateSiteSettingsAction(formData: FormData) {
     const parsed = siteSettingsFormSchema.safeParse({
       recommendedBundleId: formData.get("recommendedBundleId"),
       homepageFeaturedLimit: formData.get("homepageFeaturedLimit"),
+      orderBumpEnabled: parseCheckbox(formData.get("orderBumpEnabled")),
+      orderBumpProductId: getOptionalString(formData, "orderBumpProductId"),
+      orderBumpPercentOff: formData.get("orderBumpPercentOff") ?? "20",
       businessName: parseNullableString(formData.get("businessName")) ?? "",
       businessTaxId: parseNullableString(formData.get("businessTaxId")) ?? "",
       businessAddress: parseNullableString(formData.get("businessAddress")) ?? "",
@@ -1748,6 +2041,18 @@ export async function updateSiteSettingsAction(formData: FormData) {
         {
           key: "homepage_featured_limit",
           value: String(parsed.data.homepageFeaturedLimit),
+        },
+        {
+          key: "order_bump_enabled",
+          value: String(parsed.data.orderBumpEnabled ?? false),
+        },
+        {
+          key: "order_bump_product_id",
+          value: parsed.data.orderBumpProductId ?? "",
+        },
+        {
+          key: "order_bump_percent_off",
+          value: String(parsed.data.orderBumpPercentOff),
         },
         {
           key: "business_name",

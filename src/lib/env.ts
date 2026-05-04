@@ -25,6 +25,11 @@ export const env = {
   plausibleDomain: process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN,
   plausibleScriptSrc:
     process.env.NEXT_PUBLIC_PLAUSIBLE_SRC ?? "https://plausible.io/js/script.js",
+  // Optional future paid-media tooling. Do not load these scripts directly:
+  // wire them through the consent-aware analytics layer first.
+  gtmId: process.env.NEXT_PUBLIC_GTM_ID,
+  gaMeasurementId: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
+  metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID,
   // Resend (transactional email). Optional — when missing, the post-purchase
   // emails are skipped silently so tests and local dev keep working.
   resendApiKey: process.env.RESEND_API_KEY,
@@ -93,6 +98,18 @@ export function getMissingStripeWebhookEnv() {
     !env.stripeSecretKey ? "STRIPE_SECRET_KEY" : null,
     !env.stripeWebhookSecret ? "STRIPE_WEBHOOK_SECRET" : null,
   ].filter(Boolean);
+}
+
+export function getMissingLaunchCriticalEnv() {
+  return [
+    ...getMissingSupabaseEnv(),
+    !env.siteUrl ? "NEXT_PUBLIC_SITE_URL" : null,
+    !env.stripePublishableKey ? "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY" : null,
+    !env.stripeSecretKey ? "STRIPE_SECRET_KEY" : null,
+    !env.stripeWebhookSecret ? "STRIPE_WEBHOOK_SECRET" : null,
+  ].filter((value, index, values): value is string => {
+    return Boolean(value) && values.indexOf(value) === index;
+  });
 }
 
 /**

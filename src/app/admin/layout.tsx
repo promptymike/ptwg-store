@@ -11,6 +11,7 @@ import { getCurrentProfile, getCurrentUser } from "@/lib/session";
 const adminLinks = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/produkty", label: "Produkty" },
+  { href: "/admin/product-master", label: "Product Master" },
   { href: "/admin/pakiety", label: "Pakiety" },
   { href: "/admin/import", label: "Import / Źródła produktów" },
   { href: "/admin/kategorie", label: "Kategorie" },
@@ -21,6 +22,7 @@ const adminLinks = [
   { href: "/admin/eksperymenty", label: "A/B testy" },
   { href: "/admin/afiliacja", label: "Afiliacja" },
   { href: "/admin/podarunki", label: "Vouchery" },
+  { href: "/admin/kupony", label: "Kupony" },
   { href: "/admin/push", label: "Push" },
   { href: "/admin/content", label: "Content / Strony" },
   { href: "/admin/admini", label: "Użytkownicy / Admini" },

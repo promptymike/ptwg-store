@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { env, getMissingStripeCheckoutEnv } from "@/lib/env";
 import { getStripeServerClient } from "@/lib/stripe";
@@ -8,6 +9,27 @@ import {
 } from "@/lib/supabase/server";
 
 const isDev = process.env.NODE_ENV !== "production";
+
+const attributionSchema = z.object({
+  utm_source: z.string().trim().max(120).optional(),
+  utm_medium: z.string().trim().max(120).optional(),
+  utm_campaign: z.string().trim().max(160).optional(),
+  utm_content: z.string().trim().max(160).optional(),
+  utm_term: z.string().trim().max(160).optional(),
+  referrer: z.string().trim().max(300).optional(),
+  landing_page: z.string().trim().max(300).optional(),
+  captured_at: z.string().trim().max(80).optional(),
+});
+
+const checkoutBodySchema = z
+  .object({
+    attribution: attributionSchema.optional(),
+  })
+  .optional();
+
+function trimMetadata(value: string | null | undefined, max = 300) {
+  return value?.trim().slice(0, max) ?? "";
+}
 
 type RouteProps = {
   params: Promise<{ id: string }>;
@@ -39,6 +61,9 @@ export async function POST(request: Request, { params }: RouteProps) {
   const refRaw = new URL(request.url).searchParams.get("ref")?.trim().toUpperCase();
   const refCandidate =
     refRaw && /^[A-Z0-9_-]{3,40}$/.test(refRaw) ? refRaw : null;
+  const body = await request.json().catch(() => null);
+  const parsedBody = checkoutBodySchema.safeParse(body);
+  const attribution = parsedBody.success ? parsedBody.data?.attribution : undefined;
 
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
@@ -177,6 +202,9 @@ export async function POST(request: Request, { params }: RouteProps) {
             user_id: user.id,
             bundle_id: bundle.id,
             bundle_slug: bundle.slug,
+            utm_source: trimMetadata(attribution?.utm_source, 120),
+            utm_medium: trimMetadata(attribution?.utm_medium, 120),
+            utm_campaign: trimMetadata(attribution?.utm_campaign, 160),
           },
           rendering_options: env.stripeTaxEnabled
             ? { amount_tax_display: "include_inclusive_tax" }
@@ -189,6 +217,13 @@ export async function POST(request: Request, { params }: RouteProps) {
         bundle_id: bundle.id,
         bundle_slug: bundle.slug,
         affiliate_ref: affiliateCode ?? "",
+        utm_source: trimMetadata(attribution?.utm_source, 120),
+        utm_medium: trimMetadata(attribution?.utm_medium, 120),
+        utm_campaign: trimMetadata(attribution?.utm_campaign, 160),
+        utm_content: trimMetadata(attribution?.utm_content, 160),
+        utm_term: trimMetadata(attribution?.utm_term, 160),
+        referrer: trimMetadata(attribution?.referrer, 300),
+        landing_page: trimMetadata(attribution?.landing_page, 300),
         // Comma-separated list — stays under Stripe's 500-char metadata
         // value limit even with 10+ products since UUIDs are 36 chars.
         bundle_product_ids: products.map((p) => p.id).join(","),

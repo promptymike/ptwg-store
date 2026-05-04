@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 
+import { resolveCouponCode } from "@/lib/coupons";
 import { getMissingStripeCheckoutEnv, env } from "@/lib/env";
 import { lookupGiftCode } from "@/lib/gift-codes";
-import { applyPromoPercent, findPromoRule } from "@/lib/promo";
+import { applyPromoPercent } from "@/lib/promo";
 import { getStripeServerClient } from "@/lib/stripe";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { checkoutSchema } from "@/lib/validations/catalog";
@@ -26,6 +27,37 @@ function logCheckoutError(event: string, error: unknown) {
   };
 
   console.error(`[checkout] ${event}`, payload);
+}
+
+function trimMetadata(value: string | null | undefined, max = 300) {
+  return value?.trim().slice(0, max) ?? "";
+}
+
+function parsePercent(value: string | null | undefined, fallback = 20) {
+  const parsed = Number.parseInt(value ?? "", 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(Math.max(parsed, 1), 80);
+}
+
+async function getOrderBumpConfig(
+  supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
+) {
+  const { data } = await supabase
+    .from("site_settings")
+    .select("key, value")
+    .in("key", [
+      "order_bump_enabled",
+      "order_bump_product_id",
+      "order_bump_percent_off",
+    ]);
+
+  const settings = new Map((data ?? []).map((entry) => [entry.key, entry.value]));
+
+  return {
+    enabled: settings.get("order_bump_enabled") !== "false",
+    productId: trimMetadata(settings.get("order_bump_product_id"), 80),
+    percentOff: parsePercent(settings.get("order_bump_percent_off"), 20),
+  };
 }
 
 export async function POST(request: Request) {
@@ -124,11 +156,43 @@ export async function POST(request: Request) {
   );
 
   const productIds = aggregatedItems.map(([productId]) => productId);
+  const orderBumpConfig = await getOrderBumpConfig(supabase);
+  const requestedOrderBumpProductId = parsed.data.orderBumpProductId?.trim() || null;
+  const orderBumpAlreadyInCart =
+    requestedOrderBumpProductId && productIds.includes(requestedOrderBumpProductId);
+
+  if (
+    requestedOrderBumpProductId &&
+    (!orderBumpConfig.enabled ||
+      orderBumpAlreadyInCart ||
+      (orderBumpConfig.productId &&
+        orderBumpConfig.productId !== requestedOrderBumpProductId))
+  ) {
+    logCheckout("order-bump-unavailable", {
+      userId: user.id,
+      requestedOrderBumpProductId,
+      configuredProductId: orderBumpConfig.productId || null,
+      orderBumpAlreadyInCart,
+    });
+    return NextResponse.json(
+      {
+        message:
+          "Oferta dodatkowa jest już nieaktualna. Odśwież checkout i spróbuj ponownie.",
+        code: "order_bump_unavailable",
+      },
+      { status: 400 },
+    );
+  }
+
+  const orderBumpProductId = requestedOrderBumpProductId;
+  const checkoutProductIds = Array.from(
+    new Set([...productIds, ...(orderBumpProductId ? [orderBumpProductId] : [])]),
+  );
 
   const { data: products, error } = await supabase
     .from("products")
     .select("id, slug, name, short_description, price, is_active, status")
-    .in("id", productIds)
+    .in("id", checkoutProductIds)
     .eq("is_active", true);
 
   if (error || !products) {
@@ -143,7 +207,7 @@ export async function POST(request: Request) {
   }
 
   const productMap = new Map(products.map((product) => [product.id, product]));
-  const missingProducts = productIds.filter((productId) => !productMap.has(productId));
+  const missingProducts = checkoutProductIds.filter((productId) => !productMap.has(productId));
   const unpublishedProducts = products.filter((product) => product.status !== "published");
 
   if (missingProducts.length > 0 || unpublishedProducts.length > 0) {
@@ -161,7 +225,84 @@ export async function POST(request: Request) {
     );
   }
 
-  const promoRule = findPromoRule(parsed.data.promoCode);
+  const promoRule = await resolveCouponCode(parsed.data.promoCode);
+
+  if (parsed.data.promoCode?.trim() && !promoRule) {
+    return NextResponse.json(
+      {
+        message: "Kod rabatowy jest nieaktywny albo wygasł.",
+        code: "coupon_invalid",
+      },
+      { status: 400 },
+    );
+  }
+
+  const orderBumpProduct = orderBumpProductId
+    ? productMap.get(orderBumpProductId)
+    : null;
+  const orderBumpBaseUnitMinor = orderBumpProduct
+    ? orderBumpProduct.price * 100
+    : 0;
+  const orderBumpDiscountMinor = orderBumpProduct
+    ? Math.max(
+        orderBumpBaseUnitMinor -
+          applyPromoPercent(orderBumpBaseUnitMinor, orderBumpConfig.percentOff),
+        0,
+      )
+    : 0;
+  const orderBumpUnitBeforeCoupon = Math.max(
+    orderBumpBaseUnitMinor - orderBumpDiscountMinor,
+    0,
+  );
+
+  const checkoutLines = [
+    ...aggregatedItems.map(([productId, quantity]) => {
+      const product = productMap.get(productId);
+
+      if (!product) {
+        throw new Error(`Brak produktu ${productId} w mapie checkoutu.`);
+      }
+
+      const unitBeforeCoupon = product.price * 100;
+      const unitAmount = promoRule
+        ? applyPromoPercent(unitBeforeCoupon, promoRule.percentOff)
+        : unitBeforeCoupon;
+
+      return {
+        product,
+        quantity,
+        unitBeforeCoupon,
+        unitAmount,
+        kind: "regular" as const,
+      };
+    }),
+    ...(orderBumpProduct
+      ? [
+          {
+            product: orderBumpProduct,
+            quantity: 1,
+            unitBeforeCoupon: orderBumpUnitBeforeCoupon,
+            unitAmount: promoRule
+              ? applyPromoPercent(orderBumpUnitBeforeCoupon, promoRule.percentOff)
+              : orderBumpUnitBeforeCoupon,
+            kind: "order_bump" as const,
+          },
+        ]
+      : []),
+  ];
+
+  const subtotalBeforeCouponMinor = checkoutLines.reduce(
+    (sum, line) => sum + line.unitBeforeCoupon * line.quantity,
+    0,
+  );
+  const subtotalAfterCouponMinor = checkoutLines.reduce(
+    (sum, line) => sum + line.unitAmount * line.quantity,
+    0,
+  );
+  const couponDiscountMinor = Math.max(
+    subtotalBeforeCouponMinor - subtotalAfterCouponMinor,
+    0,
+  );
 
   // Resolve the gift voucher (if any). Vouchers are stacked AFTER the
   // percentage promo: we shave dollars off the discounted total. If the
@@ -200,22 +341,14 @@ export async function POST(request: Request) {
       affiliateCode = affiliate.code;
     }
   }
+  const attribution = parsed.data.attribution;
 
   // Compute the discount amount the gift code grants. Capped at the
   // post-promo subtotal because Stripe rejects coupons larger than the
   // order. We create a single-use Stripe coupon below — never reuse it.
   let giftCoupon: { couponId: string; appliedMinor: number } | null = null;
   if (giftCodeRow) {
-    const subtotalMinor = aggregatedItems.reduce((sum, [productId, quantity]) => {
-      const product = productMap.get(productId);
-      if (!product) return sum;
-      const baseUnit = product.price * 100;
-      const discountedUnit = promoRule
-        ? applyPromoPercent(baseUnit, promoRule.percentOff)
-        : baseUnit;
-      return sum + discountedUnit * quantity;
-    }, 0);
-    const appliedMinor = Math.min(giftCodeRow.amountMinor, subtotalMinor);
+    const appliedMinor = Math.min(giftCodeRow.amountMinor, subtotalAfterCouponMinor);
     if (appliedMinor > 0) {
       try {
         const coupon = await stripe.coupons.create({
@@ -276,7 +409,12 @@ export async function POST(request: Request) {
           description: "Templify — produkty cyfrowe",
           metadata: {
             user_id: user.id,
+            coupon_code: promoRule?.code ?? "",
             promo_code: promoRule?.code ?? "",
+            order_bump_product_id: orderBumpProduct?.id ?? "",
+            utm_source: trimMetadata(attribution?.utm_source),
+            utm_medium: trimMetadata(attribution?.utm_medium),
+            utm_campaign: trimMetadata(attribution?.utm_campaign),
           },
           custom_fields: [
             {
@@ -292,41 +430,51 @@ export async function POST(request: Request) {
       metadata: {
         user_id: user.id,
         user_email: user.email ?? parsed.data.email,
+        coupon_code: promoRule?.code ?? "",
+        coupon_discount_amount: String(Math.round(couponDiscountMinor / 100)),
         promo_code: promoRule?.code ?? "",
+        order_bump_product_id: orderBumpProduct?.id ?? "",
+        order_bump_percent_off: orderBumpProduct
+          ? String(orderBumpConfig.percentOff)
+          : "",
+        order_bump_discount_amount: String(Math.round(orderBumpDiscountMinor / 100)),
         affiliate_ref: affiliateCode ?? "",
         gift_code: giftCodeRow?.code ?? "",
         gift_code_id: giftCodeRow?.id ?? "",
+        utm_source: trimMetadata(attribution?.utm_source),
+        utm_medium: trimMetadata(attribution?.utm_medium),
+        utm_campaign: trimMetadata(attribution?.utm_campaign),
+        utm_content: trimMetadata(attribution?.utm_content),
+        utm_term: trimMetadata(attribution?.utm_term),
+        referrer: trimMetadata(attribution?.referrer),
+        landing_page: trimMetadata(attribution?.landing_page),
       },
-      line_items: aggregatedItems.map(([productId, quantity]) => {
-        const product = productMap.get(productId);
-
-        if (!product) {
-          throw new Error(`Brak produktu ${productId} w mapie checkoutu.`);
-        }
-
-        const baseUnitAmount = product.price * 100;
-        const unitAmount = promoRule
-          ? applyPromoPercent(baseUnitAmount, promoRule.percentOff)
-          : baseUnitAmount;
-
+      line_items: checkoutLines.map((line) => {
         return {
-          quantity,
+          quantity: line.quantity,
           price_data: {
             currency: "pln",
-            unit_amount: unitAmount,
+            unit_amount: line.unitAmount,
             // tax_behavior + tax_code are only meaningful when Stripe Tax
             // is active on the account; sending them otherwise is a no-op
             // but keeps the code path consistent for when Tax is enabled.
             ...(env.stripeTaxEnabled ? { tax_behavior: "inclusive" as const } : {}),
             product_data: {
-              name: promoRule ? `${product.name} (${promoRule.label})` : product.name,
-              description: product.short_description,
+              name: [
+                line.product.name,
+                line.kind === "order_bump" ? "oferta checkout" : null,
+                promoRule?.label ?? null,
+              ]
+                .filter(Boolean)
+                .join(" - "),
+              description: line.product.short_description,
               ...(env.stripeTaxEnabled
                 ? { tax_code: "txcd_35010000" }
                 : {}),
               metadata: {
-                product_id: product.id,
-                product_slug: product.slug,
+                product_id: line.product.id,
+                product_slug: line.product.slug,
+                checkout_line_kind: line.kind,
               },
             },
           },
@@ -350,6 +498,7 @@ export async function POST(request: Request) {
       sessionId: session.id,
       items: aggregatedItems.length,
       promoCode: promoRule?.code ?? null,
+      orderBumpProductId: orderBumpProduct?.id ?? null,
     });
 
     return NextResponse.json({

@@ -29,10 +29,14 @@ export function AddToCartButton({
     addItem(product, quantity);
     track("add_to_cart", {
       productId: product.id,
+      product_id: product.id,
       slug: product.slug,
+      product_slug: product.slug,
       name: product.name,
+      product_name: product.name,
       category: product.category,
       price: product.price,
+      currency: "PLN",
       quantity,
     });
     setAdded(true);

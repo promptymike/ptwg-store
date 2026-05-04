@@ -12,16 +12,25 @@ type CheckoutSuccessClientProps = {
   orderId: string;
   orderNumber: string;
   amount: string;
+  orderTotal: number;
   email: string;
   itemCount: number;
+  items: Array<{
+    productId: string;
+    productName: string;
+    quantity: number;
+    unitPrice: number;
+  }>;
 };
 
 export function CheckoutSuccessClient({
   orderId,
   orderNumber,
   amount,
+  orderTotal,
   email,
   itemCount,
+  items,
 }: CheckoutSuccessClientProps) {
   const { clearCart } = useCart();
   const { track } = useAnalytics();
@@ -44,13 +53,25 @@ export function CheckoutSuccessClient({
 
     track("purchase", {
       orderId,
+      order_id: orderId,
+      transaction_id: orderId,
       amount,
+      order_total: orderTotal,
+      currency: "PLN",
       email,
       itemCount,
+      items: items.map((item) => ({
+        productId: item.productId,
+        product_id: item.productId,
+        productName: item.productName,
+        product_name: item.productName,
+        quantity: item.quantity,
+        price: item.unitPrice,
+      })),
     });
 
     trackedPurchaseRef.current = true;
-  }, [amount, email, itemCount, orderId, track]);
+  }, [amount, email, itemCount, items, orderId, orderTotal, track]);
 
   return (
     <section className="surface-panel space-y-6 p-6 sm:p-8">

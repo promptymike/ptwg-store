@@ -3,7 +3,11 @@ import { AdminStatusNotice } from "@/components/admin/admin-status-notice";
 import { AdminSubmitButton } from "@/components/admin/admin-submit-button";
 import { Input } from "@/components/ui/input";
 import { bundles } from "@/data/mock-store";
-import { getSiteSettingsSnapshot } from "@/lib/supabase/store";
+import {
+  getBundlesSnapshot,
+  getSiteSettingsSnapshot,
+  getStoreProducts,
+} from "@/lib/supabase/store";
 
 type AdminSettingsPageProps = {
   searchParams: Promise<{
@@ -15,10 +19,13 @@ type AdminSettingsPageProps = {
 export default async function AdminSettingsPage({
   searchParams,
 }: AdminSettingsPageProps) {
-  const [settings, status] = await Promise.all([
+  const [settings, liveBundles, products, status] = await Promise.all([
     getSiteSettingsSnapshot(),
+    getBundlesSnapshot(),
+    getStoreProducts(),
     searchParams,
   ]);
+  const bundleOptions = liveBundles.length > 0 ? liveBundles : bundles;
 
   return (
     <div className="space-y-6">
@@ -71,7 +78,7 @@ export default async function AdminSettingsPage({
               defaultValue={settings.recommendedBundleId}
               className="flex h-12 w-full rounded-2xl border border-border bg-input px-4 text-sm text-foreground"
             >
-              {bundles.map((bundle) => (
+              {bundleOptions.map((bundle) => (
                 <option key={bundle.id} value={bundle.id}>
                   {bundle.name}
                 </option>
@@ -87,6 +94,51 @@ export default async function AdminSettingsPage({
               min="1"
               max="12"
               defaultValue={settings.homepageFeaturedLimit}
+            />
+          </label>
+
+          <label className="flex items-start gap-3 rounded-2xl border border-border/70 bg-background/70 p-4 text-sm lg:col-span-2">
+            <input
+              type="checkbox"
+              name="orderBumpEnabled"
+              defaultChecked={settings.orderBumpEnabled}
+              className="mt-1 size-4 shrink-0 accent-[var(--color-foreground)]"
+            />
+            <span>
+              <span className="block font-medium text-foreground">
+                Włącz order bump w checkout
+              </span>
+              <span className="text-muted-foreground">
+                Checkout pokaże jedną dodatkową propozycję z rabatem. Cena jest
+                przeliczana po stronie serwera przy tworzeniu sesji Stripe.
+              </span>
+            </span>
+          </label>
+
+          <label className="space-y-2">
+            <span className="text-sm text-foreground">Produkt order bump</span>
+            <select
+              name="orderBumpProductId"
+              defaultValue={settings.orderBumpProductId}
+              className="flex h-12 w-full rounded-2xl border border-border bg-input px-4 text-sm text-foreground"
+            >
+              <option value="">Automatycznie: bestseller / featured</option>
+              {products.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {product.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="space-y-2">
+            <span className="text-sm text-foreground">Rabat order bump (%)</span>
+            <Input
+              name="orderBumpPercentOff"
+              type="number"
+              min="1"
+              max="80"
+              defaultValue={settings.orderBumpPercentOff}
             />
           </label>
 

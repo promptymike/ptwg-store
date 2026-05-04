@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { AffiliateCapture } from "@/components/analytics/affiliate-capture";
+import { CampaignAttributionCapture } from "@/components/analytics/campaign-attribution-capture";
 import { PromoStrip } from "@/components/layout/promo-strip";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -47,6 +48,7 @@ export default async function StoreLayout({
       {profileSummary ? <StoreOnboardingTour /> : null}
       {profileSummary ? <WishlistSync /> : null}
       <AffiliateCapture />
+      <CampaignAttributionCapture />
     </div>
   );
 }

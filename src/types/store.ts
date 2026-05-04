@@ -50,6 +50,8 @@ export type Product = {
   category: Category;
   shortDescription: string;
   description: string;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
   price: number;
   compareAtPrice?: number;
   format: string;

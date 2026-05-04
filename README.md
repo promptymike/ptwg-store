@@ -149,6 +149,16 @@ W `Produkty` edytujesz:
   - `purchase`
 - Eventy trafiają do lokalnej kolejki `window.templifyAnalyticsQueue` oraz do `window.dataLayer`, jeśli istnieje.
 
+## Revenue dashboard i UTM
+
+- `/admin` pokazuje revenue dashboard oparty o `orders`, `order_items` i `analytics_events`.
+- UTM/referrer attribution zapisuje się tylko po zgodzie analytics lub marketing.
+- Checkout dołącza attribution do Stripe Session metadata, a fulfillment zapisuje je na `orders`.
+- Jeżeli brakuje eventów lub UTM, dashboard pokazuje pusty stan zamiast zgadywać.
+- Szczegóły: `REVENUE_ANALYTICS.md`.
+- Security przed launchem: `SECURITY_LAUNCH_CHECKLIST.md`.
+- Opcjonalne przyszłe envy trackingowe: `NEXT_PUBLIC_GTM_ID`, `NEXT_PUBLIC_GA_MEASUREMENT_ID`, `NEXT_PUBLIC_META_PIXEL_ID`.
+
 ## SEO i soft launch
 
 - Homepage, listing, produkt i legal pages mają osobne metadata i canonical URLs.

@@ -183,6 +183,28 @@ type AdminProductSourceSnapshot = {
     | null;
 };
 
+export type AdminCouponSnapshot = {
+  id: string;
+  code: string;
+  label: string;
+  percentOff: number;
+  isActive: boolean;
+  redemptionCount: number;
+  maxRedemptions: number | null;
+  expiresAt: string | null;
+  createdAt: string;
+};
+
+export type AdminProductMasterSnapshot = {
+  existingProducts: Array<{
+    id: string;
+    slug: string;
+    name: string;
+    status: ProductStatus;
+  }>;
+  error: string | null;
+};
+
 export type LibraryItemSnapshot = {
   id: string;
   createdAt: string;
@@ -237,6 +259,21 @@ export type AccountOrderDetailsSnapshot = {
     category: Category;
     filePath: string | null;
   }>;
+};
+
+export type CheckoutOrderBumpSnapshot = {
+  product: {
+    id: string;
+    slug: string;
+    name: string;
+    category: string;
+    shortDescription: string;
+    price: number;
+    coverGradient: string;
+  };
+  discountPercent: number;
+  originalPrice: number;
+  discountedPrice: number;
 };
 
 const SECTION_ORDER = [
@@ -426,6 +463,8 @@ async function mapProductRow(
       polishOverride?.shortDescription ??
       normalizeText(row.short_description, "Brak krótkiego opisu."),
     description: polishOverride?.description ?? normalizeText(row.description),
+    seoTitle: normalizeNullableText(row.seo_title),
+    seoDescription: normalizeNullableText(row.seo_description),
     price: normalizeNumber(row.price),
     compareAtPrice: normalizeNullableText(String(row.compare_at_price ?? "")) === null
       ? undefined
@@ -654,6 +693,61 @@ export async function getNewArrivalStoreProducts(limit = 3) {
     .slice(0, limit);
 }
 
+function clampOrderBumpPercent(value: unknown, fallback = 20) {
+  const parsed =
+    typeof value === "number"
+      ? value
+      : Number.parseInt(typeof value === "string" ? value : "", 10);
+
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(Math.max(Math.trunc(parsed), 1), 80);
+}
+
+export async function getCheckoutOrderBumpSnapshot(): Promise<CheckoutOrderBumpSnapshot | null> {
+  const [settings, products] = await Promise.all([
+    getSiteSettingsSnapshot(),
+    getStoreProducts(),
+  ]);
+
+  if (!settings.orderBumpEnabled || products.length === 0) {
+    return null;
+  }
+
+  const configuredProduct = settings.orderBumpProductId
+    ? products.find((product) => product.id === settings.orderBumpProductId)
+    : null;
+  const fallbackProduct =
+    products.find((product) => product.bestseller || product.featured) ??
+    products[0] ??
+    null;
+  const product = configuredProduct ?? fallbackProduct;
+
+  if (!product || product.price <= 0) {
+    return null;
+  }
+
+  const discountPercent = clampOrderBumpPercent(settings.orderBumpPercentOff);
+  const discountedPrice = Math.max(
+    Math.round(product.price * (1 - discountPercent / 100)),
+    0,
+  );
+
+  return {
+    product: {
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      category: product.category,
+      shortDescription: product.shortDescription,
+      price: product.price,
+      coverGradient: product.coverGradient,
+    },
+    discountPercent,
+    originalPrice: product.price,
+    discountedPrice,
+  };
+}
+
 export async function getStoreProductsByCategory(
   category: string,
   limit = 3,
@@ -839,6 +933,71 @@ export type AdminTrendsSnapshot = {
   topProducts: TopProductRow[];
 };
 
+const REVENUE_FUNNEL_EVENTS = [
+  "page_view",
+  "view_product",
+  "add_to_cart",
+  "begin_checkout",
+  "purchase",
+] as const;
+
+export type RevenueFunnelEventName = (typeof REVENUE_FUNNEL_EVENTS)[number];
+
+export type RevenueFunnelMetric = {
+  eventName: RevenueFunnelEventName;
+  label: string;
+  events: number;
+  uniqueVisitors: number;
+  conversionFromPrevious: number | null;
+};
+
+export type RevenueByProductRow = {
+  productId: string;
+  name: string;
+  slug: string;
+  unitsSold: number;
+  purchases: number;
+  revenue: number;
+  views: number;
+  addToCart: number;
+  conversionRate: number | null;
+};
+
+export type CampaignRevenueRow = {
+  source: string;
+  medium: string | null;
+  campaign: string | null;
+  orders: number;
+  revenue: number;
+  aov: number;
+};
+
+export type ViewsWithoutPurchaseRow = {
+  productId: string;
+  name: string;
+  slug: string;
+  views: number;
+  addToCart: number;
+};
+
+export type AdminRevenueSnapshot = {
+  days: number;
+  totalRevenue: number;
+  orderCount: number;
+  purchaseCount: number;
+  aov: number;
+  refundCount: number;
+  refundRate: number | null;
+  revenueByProduct: RevenueByProductRow[];
+  topProducts: RevenueByProductRow[];
+  productsWithViewsNoPurchases: ViewsWithoutPurchaseRow[];
+  funnel: RevenueFunnelMetric[];
+  revenueByCampaign: CampaignRevenueRow[];
+  analyticsAvailable: boolean;
+  attributionAvailable: boolean;
+  notes: string[];
+};
+
 // Pulls last `days` of order data into per-day buckets and the top
 // best-selling products by units. Single round-trip thanks to the
 // orders → order_items expand. Used by the admin dashboard charts.
@@ -929,6 +1088,423 @@ export async function getAdminTrendsSnapshot(
   return {
     daily: [...dailyMap.values()],
     topProducts,
+  };
+}
+
+function getEmptyRevenueSnapshot(
+  days: number,
+  notes: string[] = [],
+): AdminRevenueSnapshot {
+  const funnel = REVENUE_FUNNEL_EVENTS.map((eventName) => ({
+    eventName,
+    label: getFunnelLabel(eventName),
+    events: 0,
+    uniqueVisitors: 0,
+    conversionFromPrevious: null,
+  }));
+
+  return {
+    days,
+    totalRevenue: 0,
+    orderCount: 0,
+    purchaseCount: 0,
+    aov: 0,
+    refundCount: 0,
+    refundRate: null,
+    revenueByProduct: [],
+    topProducts: [],
+    productsWithViewsNoPurchases: [],
+    funnel,
+    revenueByCampaign: [],
+    analyticsAvailable: false,
+    attributionAvailable: false,
+    notes,
+  };
+}
+
+function getFunnelLabel(eventName: RevenueFunnelEventName) {
+  switch (eventName) {
+    case "page_view":
+      return "Wejścia";
+    case "view_product":
+      return "Widoki produktu";
+    case "add_to_cart":
+      return "Dodania do koszyka";
+    case "begin_checkout":
+      return "Start checkoutu";
+    case "purchase":
+      return "Zakupy";
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getRecordString(
+  input: Record<string, unknown> | null | undefined,
+  keys: string[],
+) {
+  for (const key of keys) {
+    const value = input?.[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return "";
+}
+
+function getProductSlugFromRelation(
+  relation: { slug: string | null } | Array<{ slug: string | null }> | null | undefined,
+) {
+  if (Array.isArray(relation)) return relation[0]?.slug ?? "";
+  return relation?.slug ?? "";
+}
+
+export async function getAdminRevenueSnapshot(
+  days = 30,
+): Promise<AdminRevenueSnapshot> {
+  const supabase = createSupabaseAdminClient();
+  const notes: string[] = [];
+
+  if (!supabase) {
+    return getEmptyRevenueSnapshot(days, [
+      "Brak konfiguracji Supabase admin, więc dashboard przychodów jest pusty.",
+    ]);
+  }
+
+  const sinceIso = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const baseOrderSelect =
+    "id, total, status, created_at, refund_amount, order_items(product_id, product_name, quantity, unit_price, products(slug))";
+  const attributionOrderSelect =
+    "id, total, status, created_at, refund_amount, utm_source, utm_medium, utm_campaign, utm_content, utm_term, referrer, landing_page, order_items(product_id, product_name, quantity, unit_price, products(slug))";
+
+  const attributionOrdersResult = await supabase
+    .from("orders")
+    .select(attributionOrderSelect)
+    .gte("created_at", sinceIso)
+    .order("created_at", { ascending: false })
+    .limit(5000);
+
+  let ordersData: unknown[] | null = attributionOrdersResult.data as unknown[] | null;
+  let ordersError = attributionOrdersResult.error;
+
+  if (ordersError) {
+    console.warn("[admin-revenue] order attribution query failed", {
+      message: ordersError.message,
+    });
+    notes.push(
+      "Brakuje kolumn attribution na orders albo migracja nie została jeszcze uruchomiona.",
+    );
+    const fallbackOrdersResult = await supabase
+      .from("orders")
+      .select(baseOrderSelect)
+      .gte("created_at", sinceIso)
+      .order("created_at", { ascending: false })
+      .limit(5000);
+    ordersData = fallbackOrdersResult.data as unknown[] | null;
+    ordersError = fallbackOrdersResult.error;
+  }
+
+  if (ordersError || !ordersData) {
+    console.warn("[admin-revenue] orders query failed", {
+      message: ordersError?.message,
+    });
+    return getEmptyRevenueSnapshot(days, [
+      ...notes,
+      "Nie udało się wczytać zamówień do dashboardu przychodów.",
+    ]);
+  }
+
+  const eventsResult = await supabase
+    .from("analytics_events")
+    .select("event_name, visitor_id, product_id, amount, properties, created_at")
+    .gte("created_at", sinceIso)
+    .in("event_name", [...REVENUE_FUNNEL_EVENTS])
+    .order("created_at", { ascending: false })
+    .limit(50000);
+
+  const analyticsAvailable = !eventsResult.error;
+  if (eventsResult.error) {
+    console.warn("[admin-revenue] analytics query failed", {
+      message: eventsResult.error.message,
+    });
+    notes.push(
+      "Brak danych analytics_events. Lejek i produkty z widokami bez zakupów pozostają puste.",
+    );
+  }
+
+  type RevenueItemRow = {
+    product_id: string;
+    product_name: string;
+    quantity: number;
+    unit_price: number;
+    products?: { slug: string | null } | Array<{ slug: string | null }> | null;
+  };
+  type RevenueOrderRow = {
+    id: string;
+    total: number | string | null;
+    status: string | null;
+    created_at: string;
+    refund_amount?: number | string | null;
+    utm_source?: string | null;
+    utm_medium?: string | null;
+    utm_campaign?: string | null;
+    utm_content?: string | null;
+    utm_term?: string | null;
+    referrer?: string | null;
+    landing_page?: string | null;
+    order_items?: RevenueItemRow[] | null;
+  };
+  type AnalyticsEventRow = {
+    event_name: string;
+    visitor_id: string;
+    product_id: string | null;
+    amount: number | null;
+    properties: unknown;
+    created_at: string;
+  };
+
+  const orders = (ordersData as RevenueOrderRow[]) ?? [];
+  const events = analyticsAvailable
+    ? ((eventsResult.data as AnalyticsEventRow[]) ?? [])
+    : [];
+
+  const productAgg = new Map<
+    string,
+    {
+      name: string;
+      slug: string;
+      unitsSold: number;
+      purchases: number;
+      revenue: number;
+      views: number;
+      addToCart: number;
+    }
+  >();
+  const eventProductAgg = new Map<
+    string,
+    { name: string; slug: string; views: number; addToCart: number }
+  >();
+  const campaignAgg = new Map<
+    string,
+    { source: string; medium: string | null; campaign: string | null; orders: number; revenue: number }
+  >();
+  const funnelAgg = new Map<
+    RevenueFunnelEventName,
+    { events: number; visitors: Set<string> }
+  >();
+
+  for (const eventName of REVENUE_FUNNEL_EVENTS) {
+    funnelAgg.set(eventName, { events: 0, visitors: new Set() });
+  }
+
+  for (const event of events) {
+    if (!REVENUE_FUNNEL_EVENTS.includes(event.event_name as RevenueFunnelEventName)) {
+      continue;
+    }
+    const eventName = event.event_name as RevenueFunnelEventName;
+    const bucket = funnelAgg.get(eventName);
+    if (bucket) {
+      bucket.events += 1;
+      bucket.visitors.add(event.visitor_id);
+    }
+
+    const properties = isRecord(event.properties) ? event.properties : null;
+    const productId =
+      event.product_id ||
+      getRecordString(properties, ["product_id", "productId", "id"]);
+
+    if (!productId) continue;
+
+    const existing = eventProductAgg.get(productId) ?? {
+      name: getRecordString(properties, ["product_name", "productName", "name"]) ||
+        "Produkt cyfrowy",
+      slug: getRecordString(properties, ["product_slug", "productSlug", "slug"]),
+      views: 0,
+      addToCart: 0,
+    };
+
+    existing.name =
+      getRecordString(properties, ["product_name", "productName", "name"]) ||
+      existing.name;
+    existing.slug =
+      getRecordString(properties, ["product_slug", "productSlug", "slug"]) ||
+      existing.slug;
+    if (eventName === "view_product") existing.views += 1;
+    if (eventName === "add_to_cart") existing.addToCart += 1;
+    eventProductAgg.set(productId, existing);
+  }
+
+  let totalRevenue = 0;
+  let orderCount = 0;
+  let purchaseCount = 0;
+  let refundCount = 0;
+  let attributionAvailable = false;
+
+  for (const order of orders) {
+    if (order.status === "cancelled") continue;
+
+    const total = normalizeNumber(order.total);
+    const explicitRefund = normalizeNumber(order.refund_amount);
+    const refundAmount =
+      order.status === "refunded" && explicitRefund === 0 ? total : explicitRefund;
+    const netRevenue = Math.max(0, total - refundAmount);
+    const isRefunded = order.status === "refunded" || refundAmount > 0;
+
+    orderCount += 1;
+    totalRevenue += netRevenue;
+    if (isRefunded) refundCount += 1;
+
+    const hasAttribution = Boolean(
+      order.utm_source ||
+        order.utm_medium ||
+        order.utm_campaign ||
+        order.utm_content ||
+        order.utm_term ||
+        order.referrer ||
+        order.landing_page,
+    );
+    attributionAvailable ||= hasAttribution;
+
+    if (hasAttribution) {
+      const referrerHost = (() => {
+        try {
+          return order.referrer ? new URL(order.referrer).hostname : "";
+        } catch {
+          return "";
+        }
+      })();
+      const source = order.utm_source || referrerHost || "direct / unknown";
+      const medium = order.utm_medium || null;
+      const campaign = order.utm_campaign || null;
+      const key = `${source}|${medium ?? ""}|${campaign ?? ""}`;
+      const campaignBucket = campaignAgg.get(key) ?? {
+        source,
+        medium,
+        campaign,
+        orders: 0,
+        revenue: 0,
+      };
+      campaignBucket.orders += 1;
+      campaignBucket.revenue += netRevenue;
+      campaignAgg.set(key, campaignBucket);
+    }
+
+    if (netRevenue <= 0) continue;
+
+    for (const item of order.order_items ?? []) {
+      const quantity = normalizeInteger(item.quantity, 1);
+      const itemRevenue = normalizeNumber(item.unit_price) * quantity;
+      const existing = productAgg.get(item.product_id) ?? {
+        name: item.product_name || "Produkt cyfrowy",
+        slug: getProductSlugFromRelation(item.products),
+        unitsSold: 0,
+        purchases: 0,
+        revenue: 0,
+        views: 0,
+        addToCart: 0,
+      };
+
+      existing.name = item.product_name || existing.name;
+      existing.slug = getProductSlugFromRelation(item.products) || existing.slug;
+      existing.unitsSold += quantity;
+      existing.purchases += 1;
+      existing.revenue += itemRevenue;
+      productAgg.set(item.product_id, existing);
+      purchaseCount += quantity;
+    }
+  }
+
+  for (const [productId, eventInfo] of eventProductAgg.entries()) {
+    const existing = productAgg.get(productId) ?? {
+      name: eventInfo.name,
+      slug: eventInfo.slug,
+      unitsSold: 0,
+      purchases: 0,
+      revenue: 0,
+      views: 0,
+      addToCart: 0,
+    };
+    existing.views = eventInfo.views;
+    existing.addToCart = eventInfo.addToCart;
+    existing.name = existing.name || eventInfo.name;
+    existing.slug = existing.slug || eventInfo.slug;
+    productAgg.set(productId, existing);
+  }
+
+  const revenueByProduct = [...productAgg.entries()]
+    .map(([productId, info]) => ({
+      productId,
+      name: info.name,
+      slug: info.slug,
+      unitsSold: info.unitsSold,
+      purchases: info.purchases,
+      revenue: info.revenue,
+      views: info.views,
+      addToCart: info.addToCart,
+      conversionRate: info.views > 0 ? info.purchases / info.views : null,
+    }))
+    .sort((a, b) => b.revenue - a.revenue);
+
+  const productsWithViewsNoPurchases = revenueByProduct
+    .filter((product) => product.views > 0 && product.purchases === 0)
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 8)
+    .map((product) => ({
+      productId: product.productId,
+      name: product.name,
+      slug: product.slug,
+      views: product.views,
+      addToCart: product.addToCart,
+    }));
+
+  const funnel: RevenueFunnelMetric[] = [];
+  let previousVisitors: number | null = null;
+  for (const eventName of REVENUE_FUNNEL_EVENTS) {
+    const bucket = funnelAgg.get(eventName);
+    const uniqueVisitors = bucket?.visitors.size ?? 0;
+    funnel.push({
+      eventName,
+      label: getFunnelLabel(eventName),
+      events: bucket?.events ?? 0,
+      uniqueVisitors,
+      conversionFromPrevious:
+        previousVisitors && previousVisitors > 0
+          ? uniqueVisitors / previousVisitors
+          : null,
+    });
+    previousVisitors = uniqueVisitors;
+  }
+
+  const revenueByCampaign = [...campaignAgg.values()]
+    .map((campaign) => ({
+      ...campaign,
+      aov: campaign.orders > 0 ? campaign.revenue / campaign.orders : 0,
+    }))
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 8);
+
+  if (!attributionAvailable) {
+    notes.push(
+      "Brak zapisanej atrybucji UTM/referrer na zamówieniach w wybranym okresie.",
+    );
+  }
+
+  return {
+    days,
+    totalRevenue,
+    orderCount,
+    purchaseCount,
+    aov: orderCount > 0 ? totalRevenue / orderCount : 0,
+    refundCount,
+    refundRate: orderCount > 0 ? refundCount / orderCount : null,
+    revenueByProduct,
+    topProducts: revenueByProduct.slice(0, 6),
+    productsWithViewsNoPurchases,
+    funnel,
+    revenueByCampaign,
+    analyticsAvailable,
+    attributionAvailable,
+    notes,
   };
 }
 
@@ -2137,6 +2713,39 @@ export async function getAdminProductSourcesSnapshot() {
   }
 }
 
+export async function getAdminProductMasterSnapshot(): Promise<AdminProductMasterSnapshot> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return {
+      existingProducts: [],
+      error: "Brak konfiguracji Supabase.",
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("products")
+    .select("id, slug, name, status")
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    return {
+      existingProducts: [],
+      error: error?.message ?? "Nie udało się pobrać listy produktów.",
+    };
+  }
+
+  return {
+    existingProducts: data.map((product) => ({
+      id: product.id,
+      slug: normalizeText(product.slug),
+      name: normalizeText(product.name, "Bez nazwy produktu"),
+      status: normalizeProductStatus(product.status),
+    })),
+    error: null,
+  };
+}
+
 export async function getAdminCategoriesSnapshot() {
   const supabase = await createSupabaseServerClient();
 
@@ -2205,6 +2814,48 @@ export async function getAdminOrdersSnapshot() {
       status: order.status,
       date: order.created_at,
       items: order.order_items.map((item) => item.product_name),
+    })),
+    error: null,
+  };
+}
+
+export async function getAdminCouponsSnapshot() {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return {
+      coupons: [] as AdminCouponSnapshot[],
+      error: "Brak konfiguracji Supabase.",
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("coupon_codes")
+    .select(
+      "id, code, label, percent_off, is_active, redemption_count, max_redemptions, expires_at, created_at",
+    )
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    return {
+      coupons: [] as AdminCouponSnapshot[],
+      error:
+        error?.message ??
+        "Nie udało się pobrać kodów rabatowych. Sprawdź, czy migracja Stage 2 została uruchomiona.",
+    };
+  }
+
+  return {
+    coupons: data.map((coupon) => ({
+      id: coupon.id,
+      code: coupon.code,
+      label: coupon.label,
+      percentOff: coupon.percent_off,
+      isActive: coupon.is_active,
+      redemptionCount: coupon.redemption_count,
+      maxRedemptions: coupon.max_redemptions,
+      expiresAt: coupon.expires_at,
+      createdAt: coupon.created_at,
     })),
     error: null,
   };
@@ -2347,6 +2998,9 @@ export async function getSiteSettingsSnapshot() {
   const defaults = {
     recommendedBundleId: "bundle-01",
     homepageFeaturedLimit: 4,
+    orderBumpEnabled: true,
+    orderBumpProductId: "",
+    orderBumpPercentOff: 20,
     businessName: "",
     businessTaxId: "",
     businessAddress: "",
@@ -2374,6 +3028,10 @@ export async function getSiteSettingsSnapshot() {
     settingsMap.get("homepage_featured_limit") ?? String(defaults.homepageFeaturedLimit),
     10,
   );
+  const parsedOrderBumpPercent = Number.parseInt(
+    settingsMap.get("order_bump_percent_off") ?? String(defaults.orderBumpPercentOff),
+    10,
+  );
 
   return {
     recommendedBundleId:
@@ -2382,6 +3040,15 @@ export async function getSiteSettingsSnapshot() {
       Number.isFinite(parsedFeaturedLimit) && parsedFeaturedLimit > 0
         ? parsedFeaturedLimit
         : defaults.homepageFeaturedLimit,
+    orderBumpEnabled:
+      (settingsMap.get("order_bump_enabled") ?? String(defaults.orderBumpEnabled)) !==
+      "false",
+    orderBumpProductId:
+      settingsMap.get("order_bump_product_id") ?? defaults.orderBumpProductId,
+    orderBumpPercentOff:
+      Number.isFinite(parsedOrderBumpPercent) && parsedOrderBumpPercent > 0
+        ? Math.min(parsedOrderBumpPercent, 80)
+        : defaults.orderBumpPercentOff,
     businessName: settingsMap.get("business_name") ?? defaults.businessName,
     businessTaxId: settingsMap.get("business_tax_id") ?? defaults.businessTaxId,
     businessAddress: settingsMap.get("business_address") ?? defaults.businessAddress,

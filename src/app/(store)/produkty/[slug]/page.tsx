@@ -67,14 +67,14 @@ export async function generateMetadata({
   }
 
   return {
-    title: product.name,
-    description: product.shortDescription,
+    title: product.seoTitle ?? product.name,
+    description: product.seoDescription ?? product.shortDescription,
     alternates: {
       canonical: getCanonicalUrl(`/produkty/${product.slug}`),
     },
     openGraph: {
-      title: `${product.name} | Templify`,
-      description: product.shortDescription,
+      title: `${product.seoTitle ?? product.name} | Templify`,
+      description: product.seoDescription ?? product.shortDescription,
       url: getCanonicalUrl(`/produkty/${product.slug}`),
       siteName: "Templify",
       locale: "pl_PL",
@@ -82,8 +82,8 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: `${product.name} | Templify`,
-      description: product.shortDescription,
+      title: `${product.seoTitle ?? product.name} | Templify`,
+      description: product.seoDescription ?? product.shortDescription,
     },
   };
 }

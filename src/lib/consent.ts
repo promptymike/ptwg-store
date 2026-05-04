@@ -31,3 +31,8 @@ export function hasAnalyticsConsent() {
   const consent = readConsentFromStorage();
   return Boolean(consent?.analytics);
 }
+
+export function hasMarketingConsent() {
+  const consent = readConsentFromStorage();
+  return Boolean(consent?.marketing);
+}

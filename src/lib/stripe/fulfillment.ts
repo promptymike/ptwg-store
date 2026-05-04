@@ -2,6 +2,7 @@ import "server-only";
 
 import type Stripe from "stripe";
 
+import { recordCouponRedemption } from "@/lib/coupons";
 import { sendEmail } from "@/lib/email/client";
 import { renderOrderConfirmationEmail } from "@/lib/email/templates";
 import { formatOrderNumber } from "@/lib/format";
@@ -55,6 +56,25 @@ function getProductMetadataFromLineItem(
   if (!product || typeof product === "string") return null;
   if ("deleted" in product && product.deleted) return null;
   return product.metadata ?? {};
+}
+
+function getSessionMetadataValue(
+  metadata: Stripe.Metadata | null | undefined,
+  key: string,
+  max = 300,
+) {
+  const value = metadata?.[key]?.trim();
+  return value ? value.slice(0, max) : null;
+}
+
+function getSessionMetadataInteger(
+  metadata: Stripe.Metadata | null | undefined,
+  key: string,
+) {
+  const value = getSessionMetadataValue(metadata, key, 32);
+  if (!value) return 0;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? Math.max(parsed, 0) : 0;
 }
 
 async function expandBundleLineItem(
@@ -399,6 +419,29 @@ export async function fulfillCheckoutSession(
     stripe_checkout_session_id: session.id,
     stripe_payment_intent_id: paymentIntentId,
     stripe_customer_id: customerId,
+    coupon_code:
+      getSessionMetadataValue(session.metadata, "coupon_code", 40) ??
+      getSessionMetadataValue(session.metadata, "promo_code", 40),
+    coupon_discount_amount: getSessionMetadataInteger(
+      session.metadata,
+      "coupon_discount_amount",
+    ),
+    order_bump_product_id: getSessionMetadataValue(
+      session.metadata,
+      "order_bump_product_id",
+      80,
+    ),
+    order_bump_discount_amount: getSessionMetadataInteger(
+      session.metadata,
+      "order_bump_discount_amount",
+    ),
+    utm_source: getSessionMetadataValue(session.metadata, "utm_source", 120),
+    utm_medium: getSessionMetadataValue(session.metadata, "utm_medium", 120),
+    utm_campaign: getSessionMetadataValue(session.metadata, "utm_campaign", 160),
+    utm_content: getSessionMetadataValue(session.metadata, "utm_content", 160),
+    utm_term: getSessionMetadataValue(session.metadata, "utm_term", 160),
+    referrer: getSessionMetadataValue(session.metadata, "referrer", 300),
+    landing_page: getSessionMetadataValue(session.metadata, "landing_page", 300),
   };
 
   // We already called getExistingFulfillmentResult above and know no order
@@ -471,6 +514,19 @@ export async function fulfillCheckoutSession(
     userId,
     items,
   };
+
+  await recordCouponRedemption({
+    code:
+      getSessionMetadataValue(session.metadata, "coupon_code", 40) ??
+      getSessionMetadataValue(session.metadata, "promo_code", 40),
+    orderId: result.orderId,
+    userId,
+    stripeCheckoutSessionId: session.id,
+    discountAmount: getSessionMetadataInteger(
+      session.metadata,
+      "coupon_discount_amount",
+    ),
+  });
 
   // Best-effort post-purchase email. We re-fetch the session with invoice
   // + payment_intent expanded so the template can include the hosted
