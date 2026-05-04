@@ -454,20 +454,27 @@ async function mapProductRow(
 
   const slug = normalizeText(row.slug, row.id);
 
+  // Cache-busting suffix tied to the row's last update — admins editing the
+  // product in /admin/produkty (which touches updated_at) get a fresh PNG
+  // immediately, while unchanged products keep hitting the long-lived CDN
+  // cache. The endpoint ignores `?v=...`; this is purely a client/CDN key.
+  const updatedAt = (row as { updated_at?: string | null }).updated_at;
+  const versionSig = updatedAt ? new Date(updatedAt).getTime() : Date.now();
+
   // Dynamic cover fallback: when neither admin-uploaded cover nor a slug-based
   // mock is available, point at our `/api/produkty/{slug}/cover` endpoint so
   // every published product gets a themed PNG cover instead of a bare
   // gradient. Real uploads still win — we only fall back when storageCoverUrl
-  // is null. We force opacity to 100 here because the dynamic PNG already
-  // has its own gradient bake-in; blending it at 40% over another gradient
-  // washes the title out.
+  // is null. The DB-driven cover_image_opacity is meant for real photo/design
+  // uploads (where blending with the gradient is intentional). Our dynamic
+  // PNG is itself a designed gradient + decoration, so we force opacity to
+  // 100 — otherwise it gets muddied by the underlying gradient and the
+  // card's title overlay competes with a half-faded second layer.
   let coverImageUrl: string | null = storageCoverUrl;
   let coverImageOpacity = normalizeCoverImageOpacity(row.cover_image_opacity);
   if (!coverImageUrl && slug) {
-    coverImageUrl = `/api/produkty/${slug}/cover`;
-    if (row.cover_image_opacity === null || row.cover_image_opacity === undefined) {
-      coverImageOpacity = 100;
-    }
+    coverImageUrl = `/api/produkty/${slug}/cover?v=${versionSig}`;
+    coverImageOpacity = 100;
   }
 
   // Dynamic previews fallback: only kicks in for full-product loads
@@ -478,7 +485,7 @@ async function mapProductRow(
   if (includeAssets && resolvedPreviews.length === 0 && slug) {
     resolvedPreviews = [0, 1, 2].map((i) => ({
       id: `dynamic-${slug}-${i}`,
-      imageUrl: `/api/produkty/${slug}/preview/${i}`,
+      imageUrl: `/api/produkty/${slug}/preview/${i}?v=${versionSig}`,
       altText: ["Spis treści", "Przykładowa strona", "Workbook / planer"][i],
     }));
   }

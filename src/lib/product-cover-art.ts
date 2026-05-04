@@ -6,6 +6,10 @@
  *   - "Zobacz wnętrze produktu" preview grid,
  *   - library tiles.
  *
+ * Tones are intentionally muted/pastel to match the hand-tuned palettes the
+ * brand already uses for real (admin-uploaded) covers — saturated Tailwind
+ * 200→600 gradients clash with the rest of the storefront aesthetic.
+ *
  * If a product's category isn't in the map (because an admin renamed one in
  * Supabase), we fall back to the Mindset palette — neutral enough that the
  * cover never looks broken even for unexpected categories.
@@ -22,76 +26,76 @@ export type CoverArt = {
 
 export const COVER_ART_BY_CATEGORY: Record<string, CoverArt> = {
   "Finanse osobiste": {
-    from: "#bbf7d0",
-    to: "#16a34a",
-    accent: "#15803d",
-    text: "#052e16",
-    textSecondary: "rgba(5,46,22,0.7)",
+    from: "#f7faec",
+    to: "#c8dca6",
+    accent: "#5b7837",
+    text: "#1f2a10",
+    textSecondary: "rgba(31,42,16,0.6)",
     icon: "💰",
-    shape: "rgba(255,255,255,0.55)",
+    shape: "rgba(255,255,255,0.45)",
   },
   "Zdrowie i dieta": {
-    from: "#fecaca",
-    to: "#dc2626",
-    accent: "#b91c1c",
-    text: "#450a0a",
-    textSecondary: "rgba(69,10,10,0.7)",
+    from: "#fdf0ec",
+    to: "#e3c6bd",
+    accent: "#9a4f3f",
+    text: "#3b1410",
+    textSecondary: "rgba(59,20,16,0.6)",
     icon: "🍎",
-    shape: "rgba(255,255,255,0.55)",
+    shape: "rgba(255,255,255,0.45)",
   },
   "Fitness i ruch": {
-    from: "#fed7aa",
-    to: "#ea580c",
-    accent: "#c2410c",
-    text: "#431407",
-    textSecondary: "rgba(67,20,7,0.7)",
+    from: "#f4f6ee",
+    to: "#bccfa6",
+    accent: "#5f7a3d",
+    text: "#22301a",
+    textSecondary: "rgba(34,48,26,0.6)",
     icon: "💪",
-    shape: "rgba(255,255,255,0.55)",
+    shape: "rgba(255,255,255,0.45)",
   },
   "Macierzyństwo i rodzina": {
-    from: "#fbcfe8",
-    to: "#db2777",
-    accent: "#be185d",
-    text: "#500724",
-    textSecondary: "rgba(80,7,36,0.7)",
+    from: "#fbf1ee",
+    to: "#dcc2b9",
+    accent: "#955b54",
+    text: "#36161a",
+    textSecondary: "rgba(54,22,26,0.6)",
     icon: "👶",
-    shape: "rgba(255,255,255,0.55)",
+    shape: "rgba(255,255,255,0.45)",
   },
   "Produktywność i czas": {
-    from: "#bfdbfe",
-    to: "#2563eb",
-    accent: "#1d4ed8",
-    text: "#0c1f4d",
-    textSecondary: "rgba(12,31,77,0.7)",
+    from: "#f3f0fa",
+    to: "#c5bcec",
+    accent: "#5f4fa1",
+    text: "#1d1844",
+    textSecondary: "rgba(29,24,68,0.6)",
     icon: "⏰",
-    shape: "rgba(255,255,255,0.55)",
+    shape: "rgba(255,255,255,0.45)",
   },
   "Mindset i rozwój osobisty": {
-    from: "#ddd6fe",
-    to: "#7c3aed",
-    accent: "#6d28d9",
-    text: "#2e1065",
-    textSecondary: "rgba(46,16,101,0.7)",
+    from: "#fbf5ea",
+    to: "#e4c58d",
+    accent: "#8a6321",
+    text: "#2a1d05",
+    textSecondary: "rgba(42,29,5,0.6)",
     icon: "🌱",
-    shape: "rgba(255,255,255,0.55)",
+    shape: "rgba(255,255,255,0.45)",
   },
   "Praca i kariera": {
-    from: "#fde68a",
-    to: "#f59e0b",
-    accent: "#b45309",
-    text: "#451a03",
-    textSecondary: "rgba(69,26,3,0.7)",
+    from: "#eef4f6",
+    to: "#a4c5cf",
+    accent: "#3d6975",
+    text: "#0f2026",
+    textSecondary: "rgba(15,32,38,0.6)",
     icon: "💼",
-    shape: "rgba(255,255,255,0.55)",
+    shape: "rgba(255,255,255,0.45)",
   },
   "Podróże i lifestyle": {
-    from: "#a7f3d0",
-    to: "#059669",
-    accent: "#047857",
-    text: "#022c22",
-    textSecondary: "rgba(2,44,34,0.7)",
+    from: "#ecf6f0",
+    to: "#95cba9",
+    accent: "#3a6b4c",
+    text: "#0f2418",
+    textSecondary: "rgba(15,36,24,0.6)",
     icon: "✈️",
-    shape: "rgba(255,255,255,0.55)",
+    shape: "rgba(255,255,255,0.45)",
   },
 };
 
@@ -100,20 +104,6 @@ const FALLBACK: CoverArt = COVER_ART_BY_CATEGORY["Mindset i rozwój osobisty"];
 export function getCoverArt(category: string | null | undefined): CoverArt {
   if (!category) return FALLBACK;
   return COVER_ART_BY_CATEGORY[category] ?? FALLBACK;
-}
-
-/**
- * Title font sizes are hand-tuned because Satori (the engine behind
- * `next/og` ImageResponse) does NOT shrink text to fit — long titles will
- * just overflow the card unless we step the font down ourselves.
- */
-export function getTitleFontSize(title: string): number {
-  const len = title.length;
-  if (len <= 18) return 96;
-  if (len <= 28) return 78;
-  if (len <= 42) return 64;
-  if (len <= 60) return 52;
-  return 44;
 }
 
 export const PREVIEW_LABELS = [
