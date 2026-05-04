@@ -435,7 +435,7 @@ async function mapProductRow(
   includeAssets = false,
 ): Promise<Product> {
   const category = getSingleRelation(row.categories);
-  const [coverImageUrl, mappedPreviews] = includeAssets
+  const [storageCoverUrl, mappedPreviews] = includeAssets
     ? await Promise.all([
         normalizeText(row.cover_path)
           ? createProductCoverSignedUrl(normalizeText(row.cover_path))
@@ -451,6 +451,37 @@ async function mapProductRow(
         ),
       ])
     : [null, []];
+
+  const slug = normalizeText(row.slug, row.id);
+
+  // Dynamic cover fallback: when neither admin-uploaded cover nor a slug-based
+  // mock is available, point at our `/api/produkty/{slug}/cover` endpoint so
+  // every published product gets a themed PNG cover instead of a bare
+  // gradient. Real uploads still win — we only fall back when storageCoverUrl
+  // is null. We force opacity to 100 here because the dynamic PNG already
+  // has its own gradient bake-in; blending it at 40% over another gradient
+  // washes the title out.
+  let coverImageUrl: string | null = storageCoverUrl;
+  let coverImageOpacity = normalizeCoverImageOpacity(row.cover_image_opacity);
+  if (!coverImageUrl && slug) {
+    coverImageUrl = `/api/produkty/${slug}/cover`;
+    if (row.cover_image_opacity === null || row.cover_image_opacity === undefined) {
+      coverImageOpacity = 100;
+    }
+  }
+
+  // Dynamic previews fallback: only kicks in for full-product loads
+  // (`includeAssets`) where the "Zobacz wnętrze produktu" grid would
+  // otherwise be empty. Three previews — TOC, sample page, workbook —
+  // matching how real PDF screenshots would be ordered.
+  let resolvedPreviews = mappedPreviews;
+  if (includeAssets && resolvedPreviews.length === 0 && slug) {
+    resolvedPreviews = [0, 1, 2].map((i) => ({
+      id: `dynamic-${slug}-${i}`,
+      imageUrl: `/api/produkty/${slug}/preview/${i}`,
+      altText: ["Spis treści", "Przykładowa strona", "Workbook / planer"][i],
+    }));
+  }
 
   const polishOverride = mockProductsBySlug.get(row.slug);
 
@@ -482,7 +513,7 @@ async function mapProductRow(
     // stay compatible with older environments where migration
     // 20260422130000 hasn't been applied yet and the column is missing from
     // the PostgREST response.
-    coverImageOpacity: normalizeCoverImageOpacity(row.cover_image_opacity),
+    coverImageOpacity,
     includes: polishOverride?.includes ?? normalizeStringList(row.includes),
     heroNote: polishOverride?.heroNote ?? normalizeText(row.hero_note),
     badge: (row.badge as ProductBadge | null) ?? null,
@@ -490,7 +521,7 @@ async function mapProductRow(
     bestseller: normalizeBoolean(row.bestseller),
     featured: normalizeBoolean(row.featured),
     coverImageUrl,
-    previews: mappedPreviews,
+    previews: resolvedPreviews,
     filePath: normalizeNullableText(row.file_path),
   };
 }
