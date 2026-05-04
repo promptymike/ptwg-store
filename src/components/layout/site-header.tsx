@@ -27,6 +27,7 @@ const primaryLinks = [
   { href: "/produkty", label: "Produkty" },
   { href: "/#use-cases", label: "Kategorie" },
   { href: "/#bundles", label: "Pakiety" },
+  { href: "/blog", label: "Blog" },
   { href: "/test", label: "Test" },
 ];
 
