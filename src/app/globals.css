@@ -150,12 +150,30 @@
   }
 
   .surface-panel {
-    @apply rounded-3xl border border-border/80 bg-card/90 shadow-[0_24px_80px_-36px_rgba(82,57,31,0.18)];
-    backdrop-filter: blur(24px);
+    @apply relative rounded-[2.25rem] border border-border/35 bg-card/80 shadow-[0_28px_90px_-40px_rgba(82,57,31,0.22)];
+    backdrop-filter: blur(28px);
+  }
+
+  .surface-panel::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 30%),
+      radial-gradient(120% 80% at 50% -20%, rgba(255, 234, 196, 0.08) 0%, rgba(255, 234, 196, 0) 60%);
   }
 
   .dark .surface-panel {
-    box-shadow: 0 24px 80px -36px rgba(0, 0, 0, 0.82);
+    box-shadow: 0 30px 90px -42px rgba(0, 0, 0, 0.6);
+    border-color: rgba(255, 234, 196, 0.08);
+  }
+
+  .dark .surface-panel::before {
+    background:
+      linear-gradient(180deg, rgba(255, 234, 196, 0.05) 0%, rgba(255, 234, 196, 0) 35%),
+      radial-gradient(140% 90% at 50% -10%, rgba(226, 188, 114, 0.08) 0%, rgba(226, 188, 114, 0) 65%);
   }
 
   .surface-strong {
@@ -286,23 +304,27 @@ a {
    Next.js 16.2.4 + React 19.2.4 stable it requires the canary
    <ViewTransition> component to actually fire. */
 .page-transition-enter {
-  animation: page-transition-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: page-transition-enter 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
   will-change: opacity, transform, filter;
+  transform-origin: center top;
 }
 
 @keyframes page-transition-enter {
   from {
     opacity: 0;
-    transform: translateY(14px) scale(0.985);
-    filter: blur(4px);
+    transform: translateY(28px) scale(0.965);
+    filter: blur(8px) saturate(0.8);
   }
-  60% {
-    filter: blur(0);
+  35% {
+    opacity: 0.55;
+  }
+  65% {
+    filter: blur(0) saturate(1);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
-    filter: blur(0);
+    filter: blur(0) saturate(1);
   }
 }
 
