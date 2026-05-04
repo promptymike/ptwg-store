@@ -111,18 +111,22 @@ export function SiteHeader({ profile }: SiteHeaderProps) {
           </span>
         </Link>
 
-        <nav className="hidden flex-wrap items-center gap-1 xl:flex">
+        <nav
+          aria-label="Główna nawigacja"
+          className="hidden flex-nowrap items-center gap-0.5 rounded-full border border-border/30 bg-card/40 p-1 backdrop-blur-xl backdrop-saturate-150 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.15)] xl:flex"
+        >
           {primaryLinks.map((link) => {
             const isActive = pathname.startsWith(link.href.replace("/#", "/"));
             return (
               <Link
                 key={link.href}
                 href={link.href}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "rounded-full px-4 py-2 text-sm transition",
+                  "relative inline-flex h-9 items-center whitespace-nowrap rounded-full px-4 text-[13px] font-medium tracking-[0.005em] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
                   isActive
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                    ? "bg-foreground text-background shadow-[0_2px_8px_-2px_rgba(0,0,0,0.18)]"
+                    : "text-muted-foreground hover:bg-foreground/8 hover:text-foreground",
                 )}
               >
                 {link.label}
