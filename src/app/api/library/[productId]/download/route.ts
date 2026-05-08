@@ -67,7 +67,7 @@ export async function GET(request: Request, { params }: DownloadRouteProps) {
 
   const { data, error } = await supabase
     .from("library_items")
-    .select("id, download_count, product_id")
+    .select("id, download_count, product_id, instance_path")
     .eq("user_id", user.id)
     .eq("product_id", productId)
     .maybeSingle();
@@ -116,7 +116,11 @@ export async function GET(request: Request, { params }: DownloadRouteProps) {
     );
   }
 
-  const signedUrl = await createProductFileSignedUrl(product.file_path, 120);
+  // Per-account instance ("klatka"): each customer downloads from their
+  // own copy. Falls back to the master path when the customer is on a
+  // legacy library row that pre-dates instance provisioning.
+  const sourcePath = data.instance_path ?? product.file_path;
+  const signedUrl = await createProductFileSignedUrl(sourcePath, 120);
 
   if (!signedUrl) {
     return redirectWithMessage(
@@ -147,7 +151,7 @@ export async function GET(request: Request, { params }: DownloadRouteProps) {
     .eq("id", data.id)
     .eq("user_id", user.id);
 
-  const filename = getSafeDownloadName(product.name, product.file_path);
+  const filename = getSafeDownloadName(product.name, sourcePath);
   const headers = new Headers();
   headers.set(
     "Content-Type",

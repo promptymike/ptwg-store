@@ -40,12 +40,24 @@ export function ProductCard({
 
   const productHref = `/produkty/${product.slug}`;
   const coverOverlayOpacity = getCoverImageOverlayOpacity(product);
+  // Real uploaded covers come from supabase storage (full https URL). The
+  // dynamic API fallback (/api/produkty/{slug}/cover) is intentionally a
+  // title-empty mockup that needs the storefront <h3> overlay on top.
+  // Real artwork ALREADY has the book title baked in, so we drop the overlay
+  // there to avoid the double-title look users complained about.
+  const isUploadedCover = Boolean(
+    product.coverImageUrl && /^https?:\/\//i.test(product.coverImageUrl),
+  );
 
   return (
     <article className="surface-panel group flex h-full flex-col overflow-hidden transition duration-300 ease-out hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_24px_70px_-30px_rgba(0,0,0,0.5)]">
       <Link href={productHref} className="block" aria-label={`Zobacz produkt: ${product.name}`}>
         <div
-          className={`relative min-h-64 overflow-hidden border-b border-border/70 bg-gradient-to-br ${product.coverGradient} p-6 transition duration-500 group-hover:brightness-105`}
+          className={`relative min-h-64 overflow-hidden border-b border-border/70 ${
+            isUploadedCover
+              ? "bg-stone-100"
+              : `bg-gradient-to-br ${product.coverGradient}`
+          } p-6 transition duration-500 group-hover:brightness-105`}
         >
           {/* Decorative orbs only when there's no cover image — once a real
               cover is uploaded we let the artwork speak instead of stacking
@@ -57,7 +69,7 @@ export function ProductCard({
             </>
           ) : null}
 
-          {product.coverImageUrl && coverOverlayOpacity > 0 ? (
+          {product.coverImageUrl && (isUploadedCover || coverOverlayOpacity > 0) ? (
             <div
               aria-hidden
               className="pointer-events-none absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.06]"
@@ -65,23 +77,27 @@ export function ProductCard({
                 backgroundImage: `url(${product.coverImageUrl})`,
                 backgroundPosition: "center",
                 backgroundSize: "cover",
-                opacity: coverOverlayOpacity,
+                // Uploaded covers should be the thumbnail, full strength. The
+                // admin-tunable opacity only applies to the dynamic-fallback
+                // case, where the cover blends with the brand gradient.
+                opacity: isUploadedCover ? 1 : coverOverlayOpacity,
               }}
             />
           ) : null}
 
-          {/* Title-contrast overlay tuned per state: stronger when a real
-              cover is present so the title cleanly reads against any photo,
-              softer over the stylised gradient so it doesn't muddy the
-              pastel palette. */}
-          <div
-            aria-hidden
-            className={`pointer-events-none absolute inset-x-0 bottom-0 ${
-              product.coverImageUrl
-                ? "h-1/2 bg-gradient-to-t from-stone-950/55 via-stone-950/15 to-transparent"
-                : "h-1/2 bg-gradient-to-t from-stone-950/20 via-stone-950/5 to-transparent"
-            }`}
-          />
+          {/* Title-contrast overlay only when we actually render a title on
+              top of the cover. Uploaded artwork has the title baked in, so
+              the dim overlay is just visual noise there. */}
+          {!isUploadedCover ? (
+            <div
+              aria-hidden
+              className={`pointer-events-none absolute inset-x-0 bottom-0 ${
+                product.coverImageUrl
+                  ? "h-1/2 bg-gradient-to-t from-stone-950/55 via-stone-950/15 to-transparent"
+                  : "h-1/2 bg-gradient-to-t from-stone-950/20 via-stone-950/5 to-transparent"
+              }`}
+            />
+          ) : null}
 
           {!isOwned ? (
             <div className="absolute right-3 top-3 z-10">
@@ -114,11 +130,15 @@ export function ProductCard({
               ) : null}
             </div>
 
-            <div className="space-y-3">
-              <h3 className="line-clamp-3 max-w-xs break-words font-heading text-3xl font-semibold text-stone-950 [text-shadow:0_1px_0_rgba(255,255,255,0.5)]">
-                {product.name}
-              </h3>
-            </div>
+            {isUploadedCover ? (
+              <h3 className="sr-only">{product.name}</h3>
+            ) : (
+              <div className="space-y-3">
+                <h3 className="line-clamp-3 max-w-xs break-words font-heading text-3xl font-semibold text-stone-950 [text-shadow:0_1px_0_rgba(255,255,255,0.5)]">
+                  {product.name}
+                </h3>
+              </div>
+            )}
           </div>
         </div>
       </Link>

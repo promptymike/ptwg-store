@@ -1092,6 +1092,71 @@ export async function deleteProductAction(formData: FormData) {
   redirectWithMessage("/admin/produkty", redirectType, redirectMessage);
 }
 
+/**
+ * Bulk-archive all "x*" products. We can't hard-delete these because their
+ * IDs are referenced by stripe-tied test transactions in order_items
+ * (FK on delete restrict — that protection is on purpose: deleting a
+ * product would corrupt the historical revenue ledger). Archiving moves
+ * them out of the storefront and out of the default admin filters
+ * without touching the order history.
+ */
+export async function archiveTestProductsAction() {
+  let redirectType: "success" | "error" = "success";
+  let redirectMessage = "";
+
+  try {
+    const { supabase } = await ensureAdmin();
+
+    // Match by slug or name starting with "x" (case-insensitive). The
+    // ilike "x%" pattern is the convention the team uses for throwaway
+    // test products tied to Stripe test mode. We exclude already-archived
+    // rows so the action is idempotent (re-running won't redirect-flash a
+    // misleading "0 archived" when in fact everything was already done).
+    const { data: candidates, error: candidatesError } = await supabase
+      .from("products")
+      .select("id, slug")
+      .or("slug.ilike.x%,name.ilike.x%")
+      .neq("status", "archived");
+
+    if (candidatesError) {
+      throw new Error(candidatesError.message);
+    }
+
+    if (!candidates || candidates.length === 0) {
+      redirectMessage = "Brak produktów testowych (x*) do zarchiwizowania.";
+    } else {
+      const ids = candidates.map((row) => row.id);
+      const { error: updateError } = await supabase
+        .from("products")
+        .update({
+          status: "archived",
+          is_active: false,
+        })
+        .in("id", ids);
+
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
+      revalidatePath("/admin/produkty");
+      candidates.forEach((row) => {
+        if (row.slug) revalidateStorefront(row.slug);
+      });
+
+      redirectMessage = `Zarchiwizowano ${candidates.length} produkt(ów) testowych. Historia transakcji pozostaje nietknięta.`;
+    }
+  } catch (error) {
+    logAdminActionError("archive-test-products", error);
+    redirectType = "error";
+    redirectMessage =
+      error instanceof Error
+        ? error.message
+        : "Nie udało się zarchiwizować produktów testowych.";
+  }
+
+  redirectWithMessage("/admin/produkty", redirectType, redirectMessage);
+}
+
 export async function importProductMasterAction(formData: FormData) {
   let redirectType: "success" | "error" = "success";
   let redirectMessage = "Product Master został zaimportowany.";

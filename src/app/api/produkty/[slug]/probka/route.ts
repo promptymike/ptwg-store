@@ -179,8 +179,48 @@ export async function GET(_request: Request, { params }: SampleRouteProps) {
   }
 
   if (!html) {
-    return new Response("Próbka jest dostępna tylko dla ebooków HTML.", {
-      status: 415,
+    // Falling back to a styled HTML page (instead of raw plain text) keeps
+    // the new-tab look on-brand when a customer clicks the button on a
+    // product whose source file is a PDF / format we can't safely truncate
+    // to a few pages without leaking the whole book. Storefront also hides
+    // the button for PDF products, but this is the safety net.
+    const message = `<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Próbka chwilowo niedostępna — ${escapeHtml(product.name)}</title>
+    <style>
+      :root { color-scheme: light; }
+      html, body { background: #faf6f0; color: #1a1612; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; margin: 0; }
+      .wrap { max-width: 560px; margin: 0 auto; padding: 96px 24px; text-align: center; }
+      h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 2rem; margin: 0 0 12px; }
+      p { color: #6b6256; margin: 0 0 24px; }
+      .actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+      .primary { display: inline-block; padding: 12px 22px; border-radius: 999px; background: #b9763a; color: #fff; text-decoration: none; font-weight: 700; }
+      .secondary { display: inline-block; padding: 12px 22px; border-radius: 999px; border: 1px solid #d8cfc0; color: #3a2e1e; text-decoration: none; font-weight: 600; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Próbka chwilowo niedostępna</h1>
+      <p>Ten produkt jest w formacie, dla którego nie udostępniamy automatycznej próbki kilku pierwszych stron. Pełna wersja trafia do Twojej biblioteki natychmiast po zakupie i możesz ją zwrócić w 14 dni.</p>
+      <div class="actions">
+        <a class="primary" href="/produkty/${escapeHtml(product.slug)}">Wróć do produktu</a>
+        <a class="secondary" href="/produkty">Przeglądaj wszystkie ebooki</a>
+      </div>
+    </div>
+  </body>
+</html>`;
+
+    return new NextResponse(message, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "private, no-store",
+        "X-Robots-Tag": "noindex, nofollow",
+      },
     });
   }
 

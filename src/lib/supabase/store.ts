@@ -435,19 +435,31 @@ async function mapProductRow(
   includeAssets = false,
 ): Promise<Product> {
   const category = getSingleRelation(row.categories);
+  // Defensive: only resolve preview rows whose storage path looks like an
+  // image. Anything else (e.g., a stray .pdf upload from an older admin
+  // version) would render as a broken <img> on the storefront and was the
+  // root cause of the "Zobacz wnętrze produktu" layout break complaints.
+  const isImagePath = (path: string) =>
+    /\.(png|jpe?g|webp|avif|gif)$/i.test(path);
+
   const [storageCoverUrl, mappedPreviews] = includeAssets
     ? await Promise.all([
         normalizeText(row.cover_path)
           ? createProductCoverSignedUrl(normalizeText(row.cover_path))
           : null,
         Promise.all(
-          previews.map(async (preview) => ({
-            id: preview.id,
-            imageUrl: normalizeText(preview.storage_path)
-              ? await createProductCoverSignedUrl(normalizeText(preview.storage_path))
-              : null,
-            altText: normalizeText(preview.alt_text),
-          })),
+          previews
+            .filter((preview) => {
+              const storagePath = normalizeText(preview.storage_path);
+              return !storagePath || isImagePath(storagePath);
+            })
+            .map(async (preview) => ({
+              id: preview.id,
+              imageUrl: normalizeText(preview.storage_path)
+                ? await createProductCoverSignedUrl(normalizeText(preview.storage_path))
+                : null,
+              altText: normalizeText(preview.alt_text),
+            })),
         ),
       ])
     : [null, []];

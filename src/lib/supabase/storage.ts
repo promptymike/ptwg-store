@@ -100,3 +100,54 @@ export async function removeStorageFile(
 
   await supabase.storage.from(bucket).remove([path]);
 }
+
+/**
+ * Server-side copy inside the product-files bucket. Used by the checkout
+ * fulfillment to stamp out a per-user instance ("klatkę") of the master
+ * product file so each customer reads/edits their own copy.
+ *
+ * Returns the destination path on success, or null if the copy fails — the
+ * caller should fall back to the master file_path so the customer still
+ * gets *something* in their library.
+ */
+export async function copyProductFileToInstance(
+  sourcePath: string,
+  destinationPath: string,
+): Promise<string | null> {
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase || !sourcePath || !destinationPath) {
+    return null;
+  }
+
+  const { error } = await supabase.storage
+    .from(PRODUCT_FILES_BUCKET)
+    .copy(sourcePath, destinationPath);
+
+  if (error) {
+    // Don't throw: a copy failure (e.g. destination exists from a previous
+    // partial fulfillment) shouldn't break the order. Caller falls back to
+    // the master file_path.
+    console.warn(
+      `[storage] failed to copy product file ${sourcePath} -> ${destinationPath}:`,
+      error.message,
+    );
+    return null;
+  }
+
+  return destinationPath;
+}
+
+/**
+ * Build the per-user instance path for a given user/product/master path.
+ * Lives next to the storage helper because the routing decision (which
+ * filename to keep) is a storage concern, not a checkout concern.
+ */
+export function buildInstanceStoragePath(
+  userId: string,
+  productId: string,
+  masterFilePath: string,
+): string {
+  const filename = masterFilePath.split("/").pop() ?? "instance";
+  return `instances/${userId}/${productId}/${filename}`;
+}

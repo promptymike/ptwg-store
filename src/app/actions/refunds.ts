@@ -133,6 +133,22 @@ export async function refundOrderAction(
       ?.map((item) => item.product_id)
       .filter(Boolean) as string[];
     if (productIds && productIds.length > 0 && order.user_id) {
+      // Clean up the per-user instance copies before deleting the rows
+      // so storage doesn't leak files for refunded customers.
+      const { data: revokedItems } = await supabase
+        .from("library_items")
+        .select("instance_path")
+        .eq("user_id", order.user_id)
+        .in("product_id", productIds);
+
+      const instancePaths = (revokedItems ?? [])
+        .map((item) => item.instance_path)
+        .filter((path): path is string => typeof path === "string" && path.length > 0);
+
+      if (instancePaths.length > 0) {
+        await supabase.storage.from("product-files").remove(instancePaths);
+      }
+
       await supabase
         .from("library_items")
         .delete()

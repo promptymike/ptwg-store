@@ -239,67 +239,92 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       />
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
-        <div
-          className={`surface-panel relative min-h-[340px] overflow-hidden bg-gradient-to-br ${product.coverGradient} p-6 sm:min-h-[400px] sm:p-8`}
-        >
-          <div className="hero-orb right-10 top-8 size-28 bg-white/35" />
-          <div className="hero-orb bottom-8 left-10 size-24 bg-primary/24" />
+        {(() => {
+          // Same rule as product-card.tsx: a real uploaded cover is the
+          // hero artwork itself (title baked in), so we drop the gradient
+          // and the stacked <h1> overlay there. The dynamic /api fallback
+          // is title-empty on purpose, so it still gets the overlay title.
+          const isUploadedCover = Boolean(
+            product.coverImageUrl && /^https?:\/\//i.test(product.coverImageUrl),
+          );
+          const heroOpacity = getCoverImageOverlayOpacity(product);
 
-          {product.coverImageUrl && getCoverImageOverlayOpacity(product) > 0 ? (
+          return (
             <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0"
-              style={{
-                backgroundImage: `url(${product.coverImageUrl})`,
-                backgroundPosition: "center",
-                backgroundSize: "cover",
-                opacity: getCoverImageOverlayOpacity(product),
-              }}
-            />
-          ) : null}
+              className={`surface-panel relative min-h-[340px] overflow-hidden ${
+                isUploadedCover
+                  ? "bg-stone-100"
+                  : `bg-gradient-to-br ${product.coverGradient}`
+              } p-6 sm:min-h-[400px] sm:p-8`}
+            >
+              {!isUploadedCover ? (
+                <>
+                  <div className="hero-orb right-10 top-8 size-28 bg-white/35" />
+                  <div className="hero-orb bottom-8 left-10 size-24 bg-primary/24" />
+                </>
+              ) : null}
 
-          {/* Soft dark gradient at the bottom keeps the title legible on the
-              pastel cover regardless of theme. */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-stone-950/35 via-stone-950/10 to-transparent"
-          />
+              {product.coverImageUrl && (isUploadedCover || heroOpacity > 0) ? (
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    backgroundImage: `url(${product.coverImageUrl})`,
+                    backgroundPosition: "center",
+                    backgroundSize: "cover",
+                    opacity: isUploadedCover ? 1 : heroOpacity,
+                  }}
+                />
+              ) : null}
 
-          <div className="relative flex h-full flex-col justify-between">
-            <div className="flex items-center justify-between gap-3">
-              <Badge
-                className={`border-0 bg-stone-950/85 font-semibold uppercase tracking-[0.18em] text-stone-50 backdrop-blur-sm`}
-              >
-                {product.category}
-              </Badge>
-              <div className="flex items-center gap-2">
-                {hasOwnedAccess ? (
+              {!isUploadedCover ? (
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-stone-950/35 via-stone-950/10 to-transparent"
+                />
+              ) : null}
+
+              <div className="relative flex h-full flex-col justify-between">
+                <div className="flex items-center justify-between gap-3">
                   <Badge
-                    variant="outline"
-                    className="border-stone-950/20 bg-stone-50/95 text-stone-900"
+                    className={`border-0 bg-stone-950/85 font-semibold uppercase tracking-[0.18em] text-stone-50 backdrop-blur-sm`}
                   >
-                    Kupione
+                    {product.category}
                   </Badge>
-                ) : null}
-                <Badge
-                  variant="outline"
-                  className="border-stone-950/15 bg-stone-50/95 font-semibold text-stone-900"
-                >
-                  {product.format}
-                </Badge>
+                  <div className="flex items-center gap-2">
+                    {hasOwnedAccess ? (
+                      <Badge
+                        variant="outline"
+                        className="border-stone-950/20 bg-stone-50/95 text-stone-900"
+                      >
+                        Kupione
+                      </Badge>
+                    ) : null}
+                    <Badge
+                      variant="outline"
+                      className="border-stone-950/15 bg-stone-50/95 font-semibold text-stone-900"
+                    >
+                      {product.format}
+                    </Badge>
+                  </div>
+                </div>
+
+                {isUploadedCover ? (
+                  <h1 className="sr-only">{product.name}</h1>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-xs uppercase tracking-[0.28em] text-stone-900/85 [text-shadow:0_1px_0_rgba(255,255,255,0.4)]">
+                      {product.heroNote}
+                    </p>
+                    <h1 className="max-w-xl text-balance font-heading text-5xl font-semibold text-stone-950 sm:text-6xl [overflow-wrap:anywhere] [text-shadow:0_1px_0_rgba(255,255,255,0.5)]">
+                      {product.name}
+                    </h1>
+                  </div>
+                )}
               </div>
             </div>
-
-            <div className="space-y-4">
-              <p className="text-xs uppercase tracking-[0.28em] text-stone-900/85 [text-shadow:0_1px_0_rgba(255,255,255,0.4)]">
-                {product.heroNote}
-              </p>
-              <h1 className="max-w-xl text-balance font-heading text-5xl font-semibold text-stone-950 sm:text-6xl [overflow-wrap:anywhere] [text-shadow:0_1px_0_rgba(255,255,255,0.5)]">
-                {product.name}
-              </h1>
-            </div>
-          </div>
-        </div>
+          );
+        })()}
 
         <div className="surface-panel space-y-6 p-6 sm:p-8">
           <div className="space-y-4">
@@ -431,7 +456,8 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                   }}
                   fullWidth
                 />
-                {product.filePath ? (
+                {product.filePath &&
+                !product.filePath.toLowerCase().endsWith(".pdf") ? (
                   <Button
                     size="lg"
                     variant="outline"

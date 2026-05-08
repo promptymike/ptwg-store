@@ -631,6 +631,7 @@ export type Database = {
           created_at: string
           download_count: number
           id: string
+          instance_path: string | null
           last_downloaded_at: string | null
           order_id: string | null
           product_id: string
@@ -640,6 +641,7 @@ export type Database = {
           created_at?: string
           download_count?: number
           id?: string
+          instance_path?: string | null
           last_downloaded_at?: string | null
           order_id?: string | null
           product_id: string
@@ -649,6 +651,7 @@ export type Database = {
           created_at?: string
           download_count?: number
           id?: string
+          instance_path?: string | null
           last_downloaded_at?: string | null
           order_id?: string | null
           product_id?: string

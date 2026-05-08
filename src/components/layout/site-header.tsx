@@ -227,13 +227,22 @@ export function SiteHeader({ profile }: SiteHeaderProps) {
               ) : null}
             </div>
           ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              render={<Link href="/logowanie?next=/checkout" />}
-            >
-              Zaloguj się
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                render={<Link href="/logowanie?next=/checkout" />}
+              >
+                Zaloguj się
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                render={<Link href="/rejestracja?next=/checkout" />}
+              >
+                Załóż konto
+              </Button>
+            </>
           )}
           <Button
             size="sm"

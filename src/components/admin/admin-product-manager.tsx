@@ -12,6 +12,7 @@ import {
 
 import { AdminDetailsToggleButton } from "@/components/admin/admin-details-toggle-button";
 import {
+  archiveTestProductsAction,
   createProductAction,
   createProductPreviewAction,
   deleteProductAction,
@@ -340,12 +341,21 @@ export function AdminProductManager({
               edycji lub publikacji produktu.
             </p>
           </div>
-          <Link
-            href="/admin/import"
-            className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm text-foreground transition hover:border-primary/30"
-          >
-            Import / Źródła produktów
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/admin/import"
+              className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm text-foreground transition hover:border-primary/30"
+            >
+              Import / Źródła produktów
+            </Link>
+            <form action={archiveTestProductsAction}>
+              <AdminSubmitButton
+                idleLabel="Zarchiwizuj produkty testowe (x*)"
+                pendingLabel="Archiwizowanie..."
+                variant="destructive"
+              />
+            </form>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">

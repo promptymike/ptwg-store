@@ -73,7 +73,7 @@ export async function GET(request: Request, { params }: ReadRouteProps) {
 
   const { data: libraryItem, error: libraryError } = await supabase
     .from("library_items")
-    .select("id, product_id")
+    .select("id, product_id, instance_path")
     .eq("user_id", user.id)
     .eq("product_id", productId)
     .maybeSingle();
@@ -113,7 +113,12 @@ export async function GET(request: Request, { params }: ReadRouteProps) {
     );
   }
 
-  const signedUrl = await createProductFileSignedUrl(product.file_path, 120);
+  // Per-account instance ("klatka"): each customer reads from their own
+  // copy provisioned at fulfillment. If the copy is missing (legacy
+  // purchase or a copy that failed at fulfillment time) we still serve the
+  // master file so the customer never gets locked out of what they bought.
+  const sourcePath = libraryItem.instance_path ?? product.file_path;
+  const signedUrl = await createProductFileSignedUrl(sourcePath, 120);
   if (!signedUrl) {
     return redirectWithMessage(
       request,
@@ -134,7 +139,7 @@ export async function GET(request: Request, { params }: ReadRouteProps) {
   }
 
   const upstreamType = upstream.headers.get("content-type") ?? "";
-  const isZip = product.file_path.toLowerCase().endsWith(".zip");
+  const isZip = sourcePath.toLowerCase().endsWith(".zip");
   let html: string | null = null;
 
   if (isZip) {
@@ -143,7 +148,7 @@ export async function GET(request: Request, { params }: ReadRouteProps) {
     html = extracted?.html ?? null;
   } else if (
     upstreamType.startsWith("text/html") ||
-    product.file_path.toLowerCase().endsWith(".html")
+    sourcePath.toLowerCase().endsWith(".html")
   ) {
     html = await upstream.text();
   }

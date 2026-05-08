@@ -10,6 +10,10 @@ import { markGiftCodeRedeemed } from "@/lib/gift-codes";
 import { getStripeServerClient } from "@/lib/stripe";
 import { getCanonicalUrl } from "@/lib/seo";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import {
+  buildInstanceStoragePath,
+  copyProductFileToInstance,
+} from "@/lib/supabase/storage";
 import type { TablesInsert } from "@/types/database.types";
 
 type FulfillmentOptions = {
@@ -312,12 +316,82 @@ async function ensureLibraryAccess(
     return;
   }
 
+  // Find which library rows already exist (and whether they already have an
+  // instance_path), so we don't pay for an unnecessary storage copy on
+  // repeat purchases of the same product.
+  const productIds = items.map((item) => item.productId);
+  const { data: existingRows, error: existingError } = await supabase
+    .from("library_items")
+    .select("product_id, instance_path")
+    .eq("user_id", userId)
+    .in("product_id", productIds);
+
+  if (existingError) {
+    throw new Error(existingError.message);
+  }
+
+  const existingByProductId = new Map(
+    (existingRows ?? []).map((row) => [row.product_id, row.instance_path]),
+  );
+
+  // Provision per-user instances ("klatki") in storage. Only for items that
+  // don't already have one (new purchase or a previous purchase that ran
+  // before this feature shipped). Failures degrade gracefully — null
+  // instance_path means read/download falls back to the master file.
+  const masterPathsResult = await supabase
+    .from("products")
+    .select("id, file_path")
+    .in("id", productIds);
+
+  const masterPathByProductId = new Map(
+    (masterPathsResult.data ?? [])
+      .filter(
+        (row): row is { id: string; file_path: string } =>
+          typeof row.file_path === "string" && row.file_path.length > 0,
+      )
+      .map((row) => [row.id, row.file_path]),
+  );
+
+  const instancePathByProductId = new Map<string, string>();
+
+  await Promise.all(
+    items.map(async (item) => {
+      if (existingByProductId.get(item.productId)) {
+        // Already provisioned on a prior purchase — keep the existing copy.
+        return;
+      }
+      const masterPath = masterPathByProductId.get(item.productId);
+      if (!masterPath) return;
+
+      const destinationPath = buildInstanceStoragePath(
+        userId,
+        item.productId,
+        masterPath,
+      );
+      const copied = await copyProductFileToInstance(
+        masterPath,
+        destinationPath,
+      );
+      if (copied) {
+        instancePathByProductId.set(item.productId, copied);
+      }
+    }),
+  );
+
   const { error } = await supabase.from("library_items").upsert(
-    items.map((item) => ({
-      user_id: userId,
-      product_id: item.productId,
-      order_id: orderId,
-    })),
+    items.map((item) => {
+      const existingInstance = existingByProductId.get(item.productId);
+      const newInstance = instancePathByProductId.get(item.productId);
+      return {
+        user_id: userId,
+        product_id: item.productId,
+        order_id: orderId,
+        // Preserve a previously provisioned instance_path; otherwise save
+        // the freshly copied path; otherwise leave null so consumers fall
+        // back to products.file_path.
+        instance_path: existingInstance ?? newInstance ?? null,
+      };
+    }),
     {
       onConflict: "user_id,product_id",
       ignoreDuplicates: false,
