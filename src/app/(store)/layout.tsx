@@ -9,6 +9,7 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { StoreOnboardingTour } from "@/components/onboarding/store-onboarding-tour";
 import { WishlistSync } from "@/components/products/wishlist-sync";
 import { getCurrentProfile } from "@/lib/session";
+import { getPublishedBlogPostCount } from "@/lib/supabase/blog";
 
 function deriveInitials(input: string | null | undefined) {
   if (!input) return "T";
@@ -26,7 +27,10 @@ export default async function StoreLayout({
 }: {
   children: ReactNode;
 }) {
-  const profile = await getCurrentProfile();
+  const [profile, blogPostCount] = await Promise.all([
+    getCurrentProfile(),
+    getPublishedBlogPostCount(),
+  ]);
   const profileSummary = profile
     ? {
         initials: deriveInitials(profile.full_name ?? profile.email),
@@ -36,13 +40,17 @@ export default async function StoreLayout({
         isAdmin: profile.role === "admin",
       }
     : null;
+  // Hide /blog from nav until the editorial pipeline has at least one post —
+  // dropping visitors into an empty index hurts trust more than a missing
+  // tab does.
+  const hasBlogPosts = blogPostCount > 0;
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-x-clip">
       <PromoStrip />
-      <SiteHeader profile={profileSummary} />
+      <SiteHeader profile={profileSummary} hasBlogPosts={hasBlogPosts} />
       <PageTransition>{children}</PageTransition>
-      <SiteFooter />
+      <SiteFooter hasBlogPosts={hasBlogPosts} />
       {/* Store tour fires on the first visit for any logged-in shopper.
           Skipped for anonymous browsers — they get the slim cookie banner
           instead and see the product cards work without a modal. */}

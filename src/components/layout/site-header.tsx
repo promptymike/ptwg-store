@@ -23,11 +23,13 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const primaryLinks = [
+type PrimaryLink = { href: string; label: string; requiresBlog?: boolean };
+
+const basePrimaryLinks: PrimaryLink[] = [
   { href: "/produkty", label: "Produkty" },
   { href: "/#use-cases", label: "Kategorie" },
   { href: "/#bundles", label: "Pakiety" },
-  { href: "/blog", label: "Blog" },
+  { href: "/blog", label: "Blog", requiresBlog: true },
   { href: "/test", label: "Test" },
 ];
 
@@ -40,9 +42,15 @@ export type SiteHeaderProfile = {
 
 type SiteHeaderProps = {
   profile?: SiteHeaderProfile | null;
+  hasBlogPosts?: boolean;
 };
 
-export function SiteHeader({ profile }: SiteHeaderProps) {
+export function SiteHeader({ profile, hasBlogPosts = false }: SiteHeaderProps) {
+  // Drop /blog from nav until at least one post is published — otherwise the
+  // link lands on an empty index, which reads worse than a missing tab.
+  const primaryLinks = basePrimaryLinks.filter(
+    (link) => !link.requiresBlog || hasBlogPosts,
+  );
   const pathname = usePathname();
   const { totalItems } = useCart();
   const [isMobileOpen, setIsMobileOpen] = useState(false);

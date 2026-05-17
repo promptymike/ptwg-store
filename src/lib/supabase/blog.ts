@@ -51,6 +51,23 @@ async function withCover(row: BlogRow): Promise<BlogPostDetail> {
   };
 }
 
+/**
+ * Cheap count query used by the shared layout to decide whether to render
+ * blog links in the header/footer. Until we actually have published posts,
+ * showing /blog in the nav drops visitors into an empty index — better to
+ * hide the entrance entirely.
+ */
+export async function getPublishedBlogPostCount(): Promise<number> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return 0;
+  const { count, error } = await supabase
+    .from("blog_posts")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "published");
+  if (error) return 0;
+  return count ?? 0;
+}
+
 export async function getPublishedBlogPosts(): Promise<BlogPostSummary[]> {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return [];

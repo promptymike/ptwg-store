@@ -66,6 +66,24 @@ export async function generateMetadata({
     };
   }
 
+  // Social-share preview image. Prefer the admin-uploaded cover (real
+  // artwork drives much higher CTR than a generated mockup); fall back to the
+  // dynamic /api/produkty/[slug]/cover route so EVERY product still ships
+  // with a valid og:image instead of dropping back to the generic site OG.
+  // Twitter / Facebook / LinkedIn crawlers fetch absolute URLs only, so any
+  // relative URL must be promoted through getCanonicalUrl first.
+  const coverIsAbsolute = Boolean(
+    product.coverImageUrl && /^https?:\/\//i.test(product.coverImageUrl),
+  );
+  const shareImageUrl = product.coverImageUrl
+    ? coverIsAbsolute
+      ? product.coverImageUrl
+      : getCanonicalUrl(product.coverImageUrl)
+    : getCanonicalUrl(`/api/produkty/${product.slug}/cover`);
+
+  const ogTitle = `${product.seoTitle ?? product.name} | Templify`;
+  const ogDescription = product.seoDescription ?? product.shortDescription;
+
   return {
     title: product.seoTitle ?? product.name,
     description: product.seoDescription ?? product.shortDescription,
@@ -73,17 +91,26 @@ export async function generateMetadata({
       canonical: getCanonicalUrl(`/produkty/${product.slug}`),
     },
     openGraph: {
-      title: `${product.seoTitle ?? product.name} | Templify`,
-      description: product.seoDescription ?? product.shortDescription,
+      title: ogTitle,
+      description: ogDescription,
       url: getCanonicalUrl(`/produkty/${product.slug}`),
       siteName: "Templify",
       locale: "pl_PL",
       type: "website",
+      images: [
+        {
+          url: shareImageUrl,
+          width: 800,
+          height: 1000,
+          alt: product.name,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${product.seoTitle ?? product.name} | Templify`,
-      description: product.seoDescription ?? product.shortDescription,
+      title: ogTitle,
+      description: ogDescription,
+      images: [shareImageUrl],
     },
   };
 }

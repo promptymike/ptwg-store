@@ -11,12 +11,16 @@ import {
 } from "lucide-react";
 
 import { SectionHeading } from "@/components/shared/section-heading";
-import { products } from "@/data/mock-store";
 import type { CategoryHighlight, SiteSectionContent } from "@/types/store";
 
 type CatalogSectionProps = {
   content: SiteSectionContent;
   categories: CategoryHighlight[];
+  // Real per-category counts (keyed by category NAME, matching what the
+  // homepage snapshot emits). Used to show a truthful "X produktów" line on
+  // each tile instead of the historic mock-data count, which kept claiming
+  // products that never existed in Supabase.
+  categoryProductCounts?: Record<string, number>;
 };
 
 const categoryIcons: Record<string, LucideIcon> = {
@@ -31,20 +35,13 @@ function pickIcon(slug: string) {
   return categoryIcons[slug] ?? Sparkles;
 }
 
-export function CatalogSection({ content, categories }: CatalogSectionProps) {
-  const categoryMetrics = new Map(
-    categories.map((category) => {
-      const matchingProducts = products.filter((product) => product.category === category.title);
-
-      return [
-        category.slug,
-        {
-          productCount: matchingProducts.length,
-          sampleName: matchingProducts[0]?.name ?? null,
-        },
-      ] as const;
-    }),
-  );
+export function CatalogSection({
+  content,
+  categories,
+  categoryProductCounts = {},
+}: CatalogSectionProps) {
+  const getCountForCategory = (category: CategoryHighlight) =>
+    categoryProductCounts[category.title] ?? 0;
 
   return (
     <section id="use-cases" className="shell section-space">
@@ -58,7 +55,7 @@ export function CatalogSection({ content, categories }: CatalogSectionProps) {
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {categories.map((category) => {
             const Icon = pickIcon(category.slug);
-            const metrics = categoryMetrics.get(category.slug);
+            const productCount = getCountForCategory(category);
 
             return (
               <Link
@@ -87,8 +84,8 @@ export function CatalogSection({ content, categories }: CatalogSectionProps) {
                     Szybki start
                   </p>
                   <p className="mt-2 text-sm text-foreground">
-                    {metrics?.productCount ?? 0} produktów
-                    {metrics?.sampleName ? ` · np. ${metrics.sampleName}` : ""}
+                    {productCount}{" "}
+                    {productCount === 1 ? "produkt" : "produktów"}
                   </p>
                 </div>
 

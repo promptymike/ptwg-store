@@ -442,12 +442,18 @@ async function mapProductRow(
   const isImagePath = (path: string) =>
     /\.(png|jpe?g|webp|avif|gif)$/i.test(path);
 
-  const [storageCoverUrl, mappedPreviews] = includeAssets
-    ? await Promise.all([
-        normalizeText(row.cover_path)
-          ? createProductCoverSignedUrl(normalizeText(row.cover_path))
-          : null,
-        Promise.all(
+  // Cover URLs are needed by EVERY storefront card (homepage bestsellers,
+  // /produkty, wishlist, library), not just the product detail page. Resolving
+  // them only when `includeAssets` was set caused the whole homepage to fall
+  // back to the dynamic /api cover even when admins had uploaded real artwork
+  // — the single biggest reason the storefront "looked like just gradients".
+  // Signed-URL generation is cheap (parallelized below); previews stay gated
+  // because they're a heavier per-row fan-out only needed on the detail view.
+  const coverPath = normalizeText(row.cover_path);
+  const [storageCoverUrl, mappedPreviews] = await Promise.all([
+    coverPath ? createProductCoverSignedUrl(coverPath) : Promise.resolve(null),
+    includeAssets
+      ? Promise.all(
           previews
             .filter((preview) => {
               const storagePath = normalizeText(preview.storage_path);
@@ -460,9 +466,9 @@ async function mapProductRow(
                 : null,
               altText: normalizeText(preview.alt_text),
             })),
-        ),
-      ])
-    : [null, []];
+        )
+      : Promise.resolve([]),
+  ]);
 
   const slug = normalizeText(row.slug, row.id);
 
@@ -3165,6 +3171,19 @@ export async function getStorefrontSnapshot() {
   const liveBundles = await getBundlesSnapshot();
   const bundlesForUi = liveBundles.length > 0 ? liveBundles : bundles;
 
+  // Pre-compute per-category product counts so the homepage CatalogSection
+  // can drop empty kategorie tiles (e.g. "Podróże i lifestyle" with 0 items)
+  // without each consumer having to refilter. Keyed by category NAME because
+  // that's the field surfaced on each mapped product row.
+  const categoryProductCounts = allProducts.reduce<Record<string, number>>(
+    (acc, product) => {
+      if (!product.category) return acc;
+      acc[product.category] = (acc[product.category] ?? 0) + 1;
+      return acc;
+    },
+    {},
+  );
+
   return {
     sections,
     featuredProducts: resolvedFeatured.slice(0, featuredLimit),
@@ -3177,5 +3196,6 @@ export async function getStorefrontSnapshot() {
       null,
     faqs,
     testimonials,
+    categoryProductCounts,
   };
 }

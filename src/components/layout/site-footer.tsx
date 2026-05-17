@@ -1,16 +1,17 @@
 import Link from "next/link";
 
-import { NewsletterForm } from "@/components/newsletter/newsletter-form";
 import { getSiteSettingsSnapshot } from "@/lib/supabase/store";
 
-const footerGroups = [
+type FooterLink = { href: string; label: string; requiresBlog?: boolean };
+
+const baseFooterGroups: Array<{ title: string; links: FooterLink[] }> = [
   {
     title: "Sklep",
     links: [
       { href: "/produkty", label: "Wszystkie produkty" },
       { href: "/#featured", label: "Bestsellery" },
       { href: "/#bundles", label: "Pakiety" },
-      { href: "/blog", label: "Blog" },
+      { href: "/blog", label: "Blog", requiresBlog: true },
       { href: "/podarunek", label: "Voucher podarunkowy" },
       { href: "/test", label: "Test stylu pracy" },
     ],
@@ -37,12 +38,21 @@ const footerGroups = [
   },
 ];
 
-export async function SiteFooter() {
+type SiteFooterProps = {
+  hasBlogPosts?: boolean;
+};
+
+export async function SiteFooter({ hasBlogPosts = false }: SiteFooterProps) {
   const currentYear = new Date().getFullYear();
   const settings = await getSiteSettingsSnapshot();
   const hasBusinessDetails = Boolean(
     settings.businessName || settings.businessTaxId || settings.businessAddress,
   );
+
+  const footerGroups = baseFooterGroups.map((group) => ({
+    ...group,
+    links: group.links.filter((link) => !link.requiresBlog || hasBlogPosts),
+  }));
 
   return (
     <footer className="relative bg-gradient-to-b from-transparent via-background to-background before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-border/30 before:to-transparent">
@@ -59,15 +69,13 @@ export async function SiteFooter() {
             </p>
           </div>
 
-          <div className="space-y-3 rounded-[1.5rem] border border-border/70 bg-background/60 p-5 text-sm text-muted-foreground">
-            <p className="text-xs uppercase tracking-[0.22em] text-primary/75">Newsletter</p>
-            <p className="text-foreground">1 króciutki insight tygodniowo + bezpłatna próbka ebooka po zapisie.</p>
-            <NewsletterForm source="footer" variant="compact" />
-          </div>
-
-          <div className="rounded-[1.5rem] border border-border/70 bg-background/60 p-5 text-sm text-muted-foreground">
-            <p className="text-xs uppercase tracking-[0.22em] text-primary/75">Operator sklepu</p>
-            {hasBusinessDetails ? (
+          {/* Operator-sklepu tile only renders once admins have filled in the
+              business identity in /admin/ustawienia. Until then we leave the
+              tile out entirely — the previous "uzupełnij dane operatora..."
+              copy was an admin nudge that was leaking publicly. */}
+          {hasBusinessDetails ? (
+            <div className="rounded-[1.5rem] border border-border/70 bg-background/60 p-5 text-sm text-muted-foreground">
+              <p className="text-xs uppercase tracking-[0.22em] text-primary/75">Operator sklepu</p>
               <div className="mt-3 space-y-1.5">
                 {settings.businessName ? (
                   <p className="font-medium text-foreground">{settings.businessName}</p>
@@ -76,13 +84,8 @@ export async function SiteFooter() {
                 {settings.businessAddress ? <p>{settings.businessAddress}</p> : null}
                 <p>{settings.supportEmail}</p>
               </div>
-            ) : (
-              <p className="mt-3">
-                Uzupełnij dane operatora sklepu w panelu admina przed szerszym ruchem lub kampanią
-                sprzedażową. Kontakt do wsparcia: {settings.supportEmail}
-              </p>
-            )}
-          </div>
+            </div>
+          ) : null}
         </div>
 
         {footerGroups.map((group) => (

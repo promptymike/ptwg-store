@@ -39,10 +39,19 @@ export default async function HomePage() {
     bundles,
     recommendedBundle,
     faqs,
+    categoryProductCounts,
   } = await getStorefrontSnapshot();
 
   const user = await getCurrentUser();
   const ownedProductIds = await getOwnedProductIds(user?.id ?? null);
+
+  // Drop kategorie tiles whose DB count is 0 so we never link visitors into
+  // an empty filter page (e.g. "Podróże i lifestyle" before any product
+  // lands in that bucket). Counts come from the storefront snapshot so the
+  // section renders zero queries beyond what the homepage already issues.
+  const populatedCategoryHighlights = categoryHighlights.filter(
+    (category) => (categoryProductCounts[category.title] ?? 0) > 0,
+  );
 
   const organizationStructuredData = {
     "@context": "https://schema.org",
@@ -125,10 +134,13 @@ export default async function HomePage() {
         products={newArrivalProducts}
         ownedProductIds={ownedProductIds}
       />
-      <CatalogSection
-        content={getSectionOrFallback(sections, "use-cases")}
-        categories={categoryHighlights}
-      />
+      {populatedCategoryHighlights.length > 0 ? (
+        <CatalogSection
+          content={getSectionOrFallback(sections, "use-cases")}
+          categories={populatedCategoryHighlights}
+          categoryProductCounts={categoryProductCounts}
+        />
+      ) : null}
       <BundlesSection
         bundles={bundles}
         recommendedBundle={recommendedBundle}
