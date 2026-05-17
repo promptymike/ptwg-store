@@ -105,9 +105,9 @@ export const products: Product[] = [
     name: "ADHD Planner dla Dorosłych",
     category: "Produktywność i czas",
     shortDescription:
-      "6 tygodni planera dla osób z ADHD. Bez sztywnych godzin, z miejscem na brain dump i celebrację małych zwycięstw.",
+      "6 tygodni planera dla osób z ADHD. Bez sztywnych godzin, z miejscem na wysypkę myśli i celebrację małych zwycięstw.",
     description:
-      "Większość plannerów zakłada, że masz dyscyplinę i koncentrację. Ten zakłada coś przeciwnego. Jedna decyzja dziennie, brain dump przed startem, brak sztywnych godzin, świętowanie tego, co zrobiłeś. 6 tygodni plus sekcje na cele kwartalne i notatki.",
+      "Większość planerów zakłada, że masz dyscyplinę i koncentrację. Ten zakłada coś przeciwnego. Jedna decyzja dziennie, wysypka myśli (brain dump) przed startem, brak sztywnych godzin, świętowanie tego, co zrobiłeś. 6 tygodni plus sekcje na cele kwartalne i notatki.",
     price: 59,
     compareAtPrice: 89,
     format: "HTML",
@@ -119,12 +119,12 @@ export const products: Product[] = [
     coverGradient: "from-[#f8f5f0] via-[#e8dfd2] to-[#d9cebf]",
     includes: [
       "6 tygodni dziennych planerów",
-      "Brain dump templates",
+      "Sekcje wysypki myśli (brain dump)",
       "Cele kwartalne i miesięczne",
       "Plan rytmu dnia bez sztywnych godzin",
       "Sekcja celebracji małych zwycięstw",
     ],
-    heroNote: "Planner zaprojektowany pod ADHD — bez pułapek",
+    heroNote: "Planer zaprojektowany pod ADHD — bez pułapek",
     badge: "bestseller",
     bestseller: true,
     featured: true,

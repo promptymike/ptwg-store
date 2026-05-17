@@ -89,7 +89,7 @@ export function formatProductPipelineStatus(status: string | null | undefined) {
 export function formatProductStatus(status: string | null | undefined) {
   switch (status) {
     case "draft":
-      return "Draft";
+      return "Szkic";
     case "published":
       return "Opublikowany";
     case "archived":
@@ -104,7 +104,7 @@ export function formatProductSourceLinkStatus(status: string | null | undefined)
     case "unattached":
       return "Niepodpięty";
     case "draft":
-      return "Draft";
+      return "Szkic";
     case "published":
       return "Opublikowany";
     default:
@@ -115,9 +115,9 @@ export function formatProductSourceLinkStatus(status: string | null | undefined)
 export function formatProductSourceStage(stage: string | null | undefined) {
   switch (stage) {
     case "in_progress":
-      return "In progress";
+      return "W trakcie";
     case "final":
-      return "Final wersje";
+      return "Wersja finalna";
     case "ideas":
       return "Pomysły";
     case "planning":
