@@ -65,3 +65,5 @@ node_modules/
 # Claude Code preview server config — local dev convenience, varies per
 # developer. settings.local.json is similar.
 .claude/launch.json
+.claude/scheduled_tasks.lock
+.claude/settings.local.json
