@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { CheckCircle2 } from "lucide-react";
 
 import { BundleCheckoutButton } from "@/components/cart/bundle-checkout-button";
@@ -10,6 +11,62 @@ type BundlesSectionProps = {
   recommendedBundle?: Bundle | null;
   ownedProductIds?: Set<string>;
 };
+
+// Decorative bookshelf: shows the first three covers of products that ship
+// with the pakiet, fanned out like books on a shelf. Replaces the previous
+// "empty gradient blob" placeholder which communicated nothing about what
+// was inside the bundle and looked unfinished against the real covers
+// rendered on storefront cards.
+function BundleBookshelf({ products }: { products: Bundle["products"] }) {
+  const shelfProducts = products.slice(0, 3);
+  if (shelfProducts.length === 0) {
+    return null;
+  }
+
+  return (
+    <div
+      className="relative isolate h-48 sm:h-56"
+      aria-hidden
+    >
+      {/* Soft shelf shadow on the floor — anchors the "books" so they don't
+          float above the card background. */}
+      <div className="absolute inset-x-6 bottom-0 h-3 rounded-full bg-stone-950/20 blur-md" />
+
+      <div className="absolute inset-x-0 bottom-2 flex items-end justify-center gap-2 sm:gap-3">
+        {shelfProducts.map((product, index) => {
+          const offset = index - (shelfProducts.length - 1) / 2;
+          const rotation = offset * 6;
+          const translateY = Math.abs(offset) * 4;
+          return (
+            <div
+              key={product.id}
+              className="relative aspect-[3/4] h-40 shrink-0 overflow-hidden rounded-xl border border-stone-200/80 bg-stone-100 shadow-[0_18px_36px_-18px_rgba(0,0,0,0.45)] transition duration-500 ease-out group-hover:-translate-y-1 sm:h-48"
+              style={{
+                transform: `rotate(${rotation}deg) translateY(${translateY}px)`,
+                zIndex: shelfProducts.length - Math.abs(offset),
+              }}
+            >
+              {product.coverImageUrl ? (
+                <img
+                  src={product.coverImageUrl}
+                  alt={product.name}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-stone-200 to-stone-300 p-3 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-700">
+                  {product.name}
+                </div>
+              )}
+              {/* Subtle inner glow so the spine reads even on light covers. */}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-stone-950/15" />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export function BundlesSection({
   bundles,
@@ -44,12 +101,22 @@ export function BundlesSection({
             const allOwned = ownedCount === bundle.products.length;
 
             return (
-              <article key={bundle.id} className="surface-panel p-6 sm:p-8">
+              <article
+                key={bundle.id}
+                className="surface-panel group p-6 sm:p-8"
+              >
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
                   <div className="space-y-4">
+                    {/* Decorative shelf carrying a fan of the included covers
+                        — replaces the previous empty gradient placeholder
+                        with a real preview of what's in the pakiet. The
+                        background uses the bundle accent gradient as a soft
+                        backdrop so brand styling stays intact. */}
                     <div
-                      className={`h-36 rounded-[1.8rem] border border-border/70 bg-gradient-to-br ${bundle.accent}`}
-                    />
+                      className={`relative overflow-hidden rounded-[1.8rem] border border-border/70 bg-gradient-to-br ${bundle.accent} px-4 pt-6`}
+                    >
+                      <BundleBookshelf products={bundle.products} />
+                    </div>
                     <div className="min-w-0">
                       <p className="text-xs uppercase tracking-[0.24em] text-primary/75">
                         {isRecommended ? "Polecany pakiet" : "Pakiet premium"}

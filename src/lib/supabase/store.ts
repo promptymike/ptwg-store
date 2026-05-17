@@ -909,7 +909,7 @@ export async function getBundlesSnapshot(): Promise<Bundle[]> {
   const { data, error } = await supabase
     .from("bundles")
     .select(
-      "id, slug, name, description, price, compare_at_price, accent, perks, sort_order, is_active, bundle_products(position, products(id, slug, name, price, categories(name)))",
+      "id, slug, name, description, price, compare_at_price, accent, perks, sort_order, is_active, bundle_products(position, products(id, slug, name, price, cover_path, updated_at, categories(name)))",
     )
     .eq("is_active", true)
     .order("sort_order", { ascending: true });
@@ -932,42 +932,69 @@ export async function getBundlesSnapshot(): Promise<Bundle[]> {
         slug: string;
         name: string;
         price: number;
+        cover_path: string | null;
+        updated_at: string | null;
         categories?: { name?: string | null } | { name?: string | null }[] | null;
       } | null;
     }>;
   };
 
-  return (data as BundleRow[]).map((row) => {
-    const linked = (row.bundle_products ?? [])
-      .filter((bp) => bp.products)
-      .sort((a, b) => a.position - b.position)
-      .map((bp) => {
-        const product = bp.products!;
-        const categoryRel = Array.isArray(product.categories)
-          ? product.categories[0]
-          : product.categories;
-        return {
-          id: product.id,
-          slug: product.slug,
-          name: product.name,
-          category: normalizeCategory(categoryRel?.name ?? null),
-          price: product.price,
-        };
-      });
+  // Resolve everything (cover signed URLs included) in parallel so the
+  // bookshelf renders fully populated on first paint. Each bundle's products
+  // get their real cover_path signed URL if available, otherwise the dynamic
+  // /api fallback — same priority order as the storefront cards so visual
+  // language stays consistent.
+  return Promise.all(
+    (data as BundleRow[]).map(async (row) => {
+      const sortedLinks = (row.bundle_products ?? [])
+        .filter((bp) => bp.products)
+        .sort((a, b) => a.position - b.position);
 
-    return {
-      id: row.id,
-      slug: row.slug,
-      name: row.name,
-      description: row.description,
-      price: row.price,
-      compareAtPrice: row.compare_at_price ?? row.price,
-      accent: row.accent ?? "from-[#fbf5ea] via-[#f4ead9] to-[#e4c58d]",
-      perks: row.perks ?? [],
-      productIds: linked.map((p) => p.id),
-      products: linked,
-    };
-  });
+      const linked = await Promise.all(
+        sortedLinks.map(async (bp) => {
+          const product = bp.products!;
+          const categoryRel = Array.isArray(product.categories)
+            ? product.categories[0]
+            : product.categories;
+          const coverPath = normalizeText(product.cover_path);
+          const updatedAt = product.updated_at;
+          const versionSig = updatedAt
+            ? new Date(updatedAt).getTime()
+            : Date.now();
+          const storageCoverUrl = coverPath
+            ? await createProductCoverSignedUrl(coverPath)
+            : null;
+          const coverImageUrl =
+            storageCoverUrl ??
+            (product.slug
+              ? `/api/produkty/${product.slug}/cover?v=${versionSig}`
+              : null);
+
+          return {
+            id: product.id,
+            slug: product.slug,
+            name: product.name,
+            category: normalizeCategory(categoryRel?.name ?? null),
+            price: product.price,
+            coverImageUrl,
+          };
+        }),
+      );
+
+      return {
+        id: row.id,
+        slug: row.slug,
+        name: row.name,
+        description: row.description,
+        price: row.price,
+        compareAtPrice: row.compare_at_price ?? row.price,
+        accent: row.accent ?? "from-[#fbf5ea] via-[#f4ead9] to-[#e4c58d]",
+        perks: row.perks ?? [],
+        productIds: linked.map((p) => p.id),
+        products: linked,
+      };
+    }),
+  );
 }
 
 export type RevenuePoint = {

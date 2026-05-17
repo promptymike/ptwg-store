@@ -106,6 +106,11 @@ export type Bundle = {
     name: string;
     category: string;
     price: number;
+    /** Either a signed URL to the admin-uploaded cover, or the dynamic
+     *  /api/produkty/[slug]/cover fallback. Used by the bundle bookshelf
+     *  to render a real preview of what's inside the pakiet instead of
+     *  an empty gradient placeholder. */
+    coverImageUrl: string | null;
   }>;
 };
 
