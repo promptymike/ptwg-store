@@ -59,9 +59,11 @@ export function SiteHeader({ profile, hasBlogPosts = false }: SiteHeaderProps) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement | null>(null);
+  const previousPathnameRef = useRef(pathname);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- close menus after navigation
+    if (previousPathnameRef.current === pathname) return;
+    previousPathnameRef.current = pathname;
     setIsMobileOpen(false);
     setIsAccountOpen(false);
     setIsCartOpen(false);
@@ -339,6 +341,7 @@ export function SiteHeader({ profile, hasBlogPosts = false }: SiteHeaderProps) {
                   <Link
                     key={link.href}
                     href={link.href}
+                    onClick={() => setIsMobileOpen(false)}
                     className={cn(
                       "rounded-2xl px-4 py-3 text-base transition",
                       isActive
