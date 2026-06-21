@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatAdminDate } from "@/lib/format";
 import { getCoverImageOverlayOpacity } from "@/lib/product";
+import { getInteractivePlanner } from "@/data/interactive-planners";
 import type { LibraryItemSnapshot } from "@/lib/supabase/store";
 
 type LibraryGridProps = {
@@ -276,6 +277,7 @@ function LibraryCard({
   openedAt: number | undefined;
 }) {
   const coverOverlayOpacity = getCoverImageOverlayOpacity(item);
+  const interactivePlanner = getInteractivePlanner(item.slug);
   const hasProgress = progressValue > 0;
   const isFinished = progressValue >= 95;
   const hasOpened = !!openedAt || hasProgress;
@@ -287,12 +289,14 @@ function LibraryCard({
     <article className="surface-panel group flex h-full flex-col overflow-hidden border-border/70 bg-background/70 transition duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_24px_60px_-30px_rgba(0,0,0,0.5)]">
       <Link
         href={
-          item.filePath
+          interactivePlanner
+            ? `/narzedzia/${interactivePlanner.slug}`
+            : item.filePath
             ? `/api/library/${item.productId}/read`
             : `/produkty/${item.slug}`
         }
-        target={item.filePath ? "_blank" : undefined}
-        rel={item.filePath ? "noopener noreferrer" : undefined}
+        target={item.filePath && !interactivePlanner ? "_blank" : undefined}
+        rel={item.filePath && !interactivePlanner ? "noopener noreferrer" : undefined}
         className={`relative isolate aspect-[16/10] overflow-hidden bg-gradient-to-br ${item.coverGradient}`}
       >
         {item.coverImageUrl && coverOverlayOpacity > 0 ? (
@@ -395,7 +399,16 @@ function LibraryCard({
         ) : null}
 
         <div className="mt-auto flex flex-col gap-2 pt-2 sm:flex-row">
-          {item.filePath ? (
+          {interactivePlanner ? (
+            <Button
+              size="default"
+              className="w-full sm:flex-1"
+              render={<Link href={`/narzedzia/${interactivePlanner.slug}`} />}
+            >
+              <Sparkles className="size-4" />
+              Otwórz planer
+            </Button>
+          ) : item.filePath ? (
             <>
               <Button
                 size="default"

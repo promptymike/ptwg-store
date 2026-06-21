@@ -10,6 +10,7 @@ import { StreakRewardCard } from "@/components/account/streak-reward-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { interactivePlanners } from "@/data/interactive-planners";
 import { getCurrentUser } from "@/lib/session";
 import {
   getCustomerLibrarySnapshot,
@@ -127,9 +128,9 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
         <EmptyState
           icon={LibraryBig}
           badge="Moja biblioteka"
-          title="Twoja biblioteka czeka na pierwszy ebook"
-          description="Po pierwszym zakupie produkty pojawią się tu automatycznie wraz z bezpiecznym linkiem do czytania w przeglądarce i szybkim pobraniem PDF."
-          action={{ href: "/produkty", label: "Wybierz pierwszy ebook" }}
+          title="Twoja biblioteka czeka na pierwszy produkt"
+          description="Po zakupie interaktywny planer lub e-book pojawi się tutaj automatycznie i będzie przypisany do Twojego konta."
+          action={{ href: "/planery", label: "Wybierz pierwszy planer" }}
           secondaryAction={{ href: "/test", label: "Zrób test dopasowania" }}
         />
       </div>
@@ -160,10 +161,16 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
             </div>
             <div className="rounded-[1.4rem] border border-border/70 bg-background/60 px-5 py-5">
               <p className="text-[11px] uppercase tracking-[0.22em] text-primary/75">
-                Gotowe do pobrania
+                Gotowe do użycia
               </p>
               <p className="mt-3 text-2xl text-foreground">
-                {snapshot.items.filter((item) => item.filePath).length}
+                {snapshot.items.filter(
+                  (item) =>
+                    item.filePath ||
+                    interactivePlanners.some(
+                      (planner) => planner.id === item.productId,
+                    ),
+                ).length}
               </p>
             </div>
             <div className="sm:col-span-2">

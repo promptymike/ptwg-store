@@ -23,11 +23,11 @@ export function SectionHeading({
       )}
     >
       <span className="eyebrow">{badge}</span>
-      <div className="space-y-3">
-        <HeadingTag className="text-balance break-words text-4xl text-foreground sm:text-5xl">
+      <div className="space-y-4">
+        <HeadingTag className="text-balance break-words font-heading text-[2.7rem] font-semibold leading-[0.95] tracking-[-0.035em] text-foreground sm:text-6xl">
           {title}
         </HeadingTag>
-        <p className="text-pretty break-words text-sm leading-7 text-muted-foreground sm:text-base">
+        <p className="max-w-2xl text-pretty break-words text-base leading-7 text-muted-foreground sm:text-lg">
           {description}
         </p>
       </div>

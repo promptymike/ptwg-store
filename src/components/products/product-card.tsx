@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, BookOpen, CheckCircle2 } from "lucide-react";
+import { ArrowUpRight, BookOpen, CheckCircle2, Sparkles } from "lucide-react";
 
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
 import { WishlistButton } from "@/components/products/wishlist-button";
@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
 import { getCoverImageOverlayOpacity } from "@/lib/product";
+import { getInteractivePlanner, getProductHref } from "@/data/interactive-planners";
 import { type Product } from "@/types/store";
 
 type ProductCardProps = {
@@ -38,7 +39,8 @@ export function ProductCard({
 }: ProductCardProps) {
   const badgeLabel = getBadgeLabel(product);
 
-  const productHref = `/produkty/${product.slug}`;
+  const productHref = getProductHref(product.slug);
+  const interactivePlanner = getInteractivePlanner(product.slug);
   const coverOverlayOpacity = getCoverImageOverlayOpacity(product);
   // Real uploaded covers come from supabase storage (full https URL). The
   // dynamic API fallback (/api/produkty/{slug}/cover) is intentionally a
@@ -172,14 +174,14 @@ export function ProductCard({
               className="w-full"
               render={
                 <Link
-                  href={`/api/library/${product.id}/read`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={interactivePlanner ? `/narzedzia/${product.slug}` : `/api/library/${product.id}/read`}
+                  target={interactivePlanner ? undefined : "_blank"}
+                  rel={interactivePlanner ? undefined : "noopener noreferrer"}
                 />
               }
             >
-              <BookOpen className="size-4" />
-              Otwórz w bibliotece
+              {interactivePlanner ? <Sparkles className="size-4" /> : <BookOpen className="size-4" />}
+              {interactivePlanner ? "Otwórz planer" : "Otwórz w bibliotece"}
             </Button>
           ) : (
             <AddToCartButton

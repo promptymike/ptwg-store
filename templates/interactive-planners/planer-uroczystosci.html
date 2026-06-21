@@ -1,0 +1,2951 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planer Imprez</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f8f6f2;
+            --bg-secondary: #f2ede6;
+            --bg-card: #ffffff;
+            --bg-card-hover: #fdfbf8;
+            --bg-sidebar: #1a1a2e;
+            --bg-input: #f5f0ea;
+            --accent-gold: #c9a96e;
+            --accent-gold-dark: #a07840;
+            --accent-gold-light: #eedcba;
+            --accent-rose: #e8a598;
+            --accent-rose-dark: #c97a6d;
+            --accent-rose-light: #f5d5cf;
+            --accent-sage: #8faa8e;
+            --accent-sage-dark: #6b8a6a;
+            --accent-sage-light: #d4e5d3;
+            --accent-lavender: #a89bc2;
+            --accent-lavender-light: #ddd6ed;
+            --accent-sky: #7aafc4;
+            --accent-sky-light: #cde4ef;
+            --accent-ruby: #d47070;
+            --accent-ruby-light: #f5d0d0;
+            --text-primary: #2d2d2d;
+            --text-secondary: #6b6b6b;
+            --text-muted: #a0a0a0;
+            --text-white: #ffffff;
+            --border: rgba(0,0,0,0.08);
+            --border-accent: rgba(201,169,110,0.3);
+            --shadow-sm: 0 1px 4px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+            --shadow-gold: 0 4px 20px rgba(201,169,110,0.25);
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --font-display: 'Playfair Display', serif;
+            --font-body: 'Manrope', sans-serif;
+            --nav-width: 230px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; overflow: hidden; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: var(--accent-gold); border-radius: 3px; }
+
+        /* SIDEBAR */
+        .sidebar { width: var(--nav-width); min-height: 100vh; background: var(--bg-sidebar); display: flex; flex-direction: column; padding: 28px 0 20px; position: fixed; left: 0; top: 0; bottom: 0; z-index: 100; box-shadow: 4px 0 20px rgba(0,0,0,0.15); }
+        .sidebar-logo { padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .logo-gem { width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-rose)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; }
+        .sidebar-logo h1 { font-family: var(--font-display); font-size: 17px; font-weight: 700; color: #fff; }
+        .sidebar-logo span { display: block; font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 3px; }
+
+        /* Event selector */
+        .event-selector { padding: 14px 14px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .event-selector-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.3); margin-bottom: 8px; }
+        .event-select-btn { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); padding: 9px 12px; color: #fff; font-family: var(--font-body); font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .event-select-btn:hover { background: rgba(255,255,255,0.1); }
+        .event-select-btn .event-emoji { font-size: 16px; }
+        .event-select-btn .event-name { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .event-select-btn .arrow { color: rgba(255,255,255,0.3); font-size: 10px; }
+        .add-event-btn { width: 100%; background: transparent; border: 1px dashed rgba(201,169,110,0.35); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--accent-gold); font-family: var(--font-body); font-size: 12px; cursor: pointer; margin-top: 6px; transition: all 0.2s; }
+        .add-event-btn:hover { background: rgba(201,169,110,0.1); }
+
+        .sidebar-nav { flex: 1; padding: 14px 12px; display: flex; flex-direction: column; gap: 3px; }
+        .nav-section-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.25); padding: 10px 6px 4px; }
+        .nav-btn { display: flex; align-items: center; gap: 10px; padding: 10px 13px; border: none; border-radius: var(--radius-sm); background: transparent; color: rgba(255,255,255,0.55); font-family: var(--font-body); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; width: 100%; }
+        .nav-btn:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.85); }
+        .nav-btn.active { background: linear-gradient(135deg, rgba(201,169,110,0.25), rgba(232,165,152,0.2)); color: #fff; box-shadow: inset 0 0 0 1px rgba(201,169,110,0.3); }
+        .nav-icon { font-size: 16px; min-width: 20px; }
+        .sidebar-footer { padding: 16px; border-top: 1px solid rgba(255,255,255,0.06); }
+        .sidebar-date { font-size: 11px; color: rgba(255,255,255,0.3); text-align: center; }
+
+        /* No event placeholder */
+        .no-event-placeholder { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 16px; text-align: center; }
+        .no-event-placeholder p { color: rgba(255,255,255,0.3); font-size: 12px; line-height: 1.6; }
+
+        /* MAIN */
+        .main { margin-left: var(--nav-width); flex: 1; height: 100vh; overflow-y: auto; padding: 28px 32px 60px; }
+        .view { display: none; }
+        .view.active { display: block; }
+
+        /* Screens */
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        /* Page header */
+        .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }
+        .page-title { font-family: var(--font-display); font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+        .page-subtitle { font-size: 13px; color: var(--text-muted); }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        .stat-card { background: var(--bg-card); border-radius: var(--radius-md); padding: 20px 22px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); transition: all 0.25s; position: relative; overflow: hidden; }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; }
+        .stat-card.gold::before { background: linear-gradient(90deg, var(--accent-gold), var(--accent-gold-light)); }
+        .stat-card.sage::before { background: linear-gradient(90deg, var(--accent-sage), var(--accent-sage-light)); }
+        .stat-card.rose::before { background: linear-gradient(90deg, var(--accent-rose), var(--accent-rose-light)); }
+        .stat-card.lavender::before { background: linear-gradient(90deg, var(--accent-lavender), var(--accent-lavender-light)); }
+        .stat-card.sky::before { background: linear-gradient(90deg, var(--accent-sky), var(--accent-sky-light)); }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .stat-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; margin-bottom: 12px; }
+        .stat-icon.gold { background: var(--accent-gold-light); }
+        .stat-icon.sage { background: var(--accent-sage-light); }
+        .stat-icon.rose { background: var(--accent-rose-light); }
+        .stat-icon.lavender { background: var(--accent-lavender-light); }
+        .stat-icon.sky { background: var(--accent-sky-light); }
+        .stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 5px; }
+        .stat-value { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--text-primary); }
+        .stat-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+        /* Section */
+        .section { background: var(--bg-card); border-radius: var(--radius-md); padding: 22px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); margin-bottom: 20px; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+        .section-title { font-family: var(--font-display); font-size: 18px; font-weight: 600; }
+
+        /* Grid */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+        /* Buttons */
+        .btn-primary { padding: 10px 18px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-dark)); border: none; border-radius: var(--radius-sm); color: white; font-family: var(--font-body); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-gold); white-space: nowrap; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,169,110,0.4); }
+        .btn-primary.rose { background: linear-gradient(135deg, var(--accent-rose), var(--accent-rose-dark)); box-shadow: 0 4px 16px rgba(232,165,152,0.4); }
+        .btn-primary.sage { background: linear-gradient(135deg, var(--accent-sage), var(--accent-sage-dark)); box-shadow: 0 4px 16px rgba(143,170,142,0.4); }
+        .btn-primary.sky { background: linear-gradient(135deg, var(--accent-sky), #5a8fa4); box-shadow: 0 4px 16px rgba(122,175,196,0.4); }
+        .btn-secondary { padding: 10px 16px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-secondary); font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-secondary:hover { border-color: var(--accent-gold); color: var(--text-primary); }
+        .btn-icon { width: 30px; height: 30px; border: none; border-radius: var(--radius-sm); background: var(--bg-input); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.2s; }
+        .btn-icon:hover { background: var(--accent-gold-light); }
+        .btn-icon.danger:hover { background: var(--accent-ruby-light); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+        /* Forms */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 13px; margin-bottom: 13px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+        .form-input, .form-select, .form-textarea { padding: 9px 13px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: var(--font-body); font-size: 13.5px; transition: all 0.2s; width: 100%; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--accent-gold); box-shadow: 0 0 0 3px rgba(201,169,110,0.12); background: white; }
+        .form-textarea { resize: vertical; min-height: 65px; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); backdrop-filter: blur(6px); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--bg-card); border-radius: var(--radius-lg); padding: 30px; max-width: 540px; width: 100%; box-shadow: var(--shadow-lg); animation: modalIn 0.25s ease; max-height: 90vh; overflow-y: auto; }
+        .modal-content.wide { max-width: 680px; }
+        @keyframes modalIn { from { opacity: 0; transform: translateY(-14px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .modal-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+        /* Toast */
+        #toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 600; opacity: 0; transform: translateY(8px); transition: all 0.3s; z-index: 9999; pointer-events: none; background: var(--bg-sidebar); color: white; }
+        #toast.show { opacity: 1; transform: translateY(0); }
+        #toast.error { background: var(--accent-ruby); }
+        #toast.success { background: var(--accent-sage-dark); }
+
+        /* Empty state */
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+        .empty-icon { font-size: 38px; margin-bottom: 10px; }
+        .empty-state p { font-size: 13.5px; }
+
+        /* ====== EVENTS LIST (home screen) ====== */
+        .events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+        .event-card { background: var(--bg-card); border-radius: var(--radius-md); border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 22px; cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden; }
+        .event-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; }
+        .event-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+        .event-card-emoji { font-size: 32px; margin-bottom: 10px; }
+        .event-card-type { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 4px; }
+        .event-card-name { font-family: var(--font-display); font-size: 19px; font-weight: 700; margin-bottom: 6px; }
+        .event-card-date { font-size: 12px; color: var(--text-secondary); margin-bottom: 14px; display: flex; align-items: center; gap: 5px; }
+        .event-card-stats { display: flex; gap: 14px; flex-wrap: wrap; }
+        .event-card-stat { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+        .event-card-actions { position: absolute; top: 14px; right: 14px; display: flex; gap: 6px; }
+        .countdown-badge { display: inline-block; background: var(--accent-gold-light); color: var(--accent-gold-dark); font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; }
+        .countdown-badge.soon { background: var(--accent-rose-light); color: var(--accent-rose-dark); }
+        .countdown-badge.past { background: var(--bg-input); color: var(--text-muted); }
+
+        /* ====== BUDGET ====== */
+        .budget-progress { background: var(--bg-input); border-radius: 4px; height: 8px; overflow: hidden; margin: 8px 0; }
+        .budget-bar { height: 100%; border-radius: 4px; transition: width 0.5s; background: linear-gradient(90deg, var(--accent-gold), var(--accent-sage)); }
+        .budget-bar.over { background: linear-gradient(90deg, var(--accent-rose), var(--accent-ruby)); }
+        .expense-row { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--border); }
+        .expense-row:last-child { border-bottom: none; }
+        .expense-cat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .expense-info { flex: 1; }
+        .expense-name { font-size: 13.5px; font-weight: 600; }
+        .expense-cat { font-size: 11px; color: var(--text-muted); }
+        .expense-amount { font-family: var(--font-display); font-size: 15px; font-weight: 700; }
+        .expense-amount.planned { color: var(--text-secondary); }
+        .expense-amount.paid { color: var(--accent-sage-dark); }
+        .expense-status { font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700; }
+        .expense-status.paid { background: var(--accent-sage-light); color: var(--accent-sage-dark); }
+        .expense-status.planned { background: var(--accent-gold-light); color: var(--accent-gold-dark); }
+        .expense-status.deposit { background: var(--accent-sky-light); color: #4a8fa4; }
+
+        /* ====== GUESTS ====== */
+        .guests-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .filter-pill { padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg-input); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; color: var(--text-secondary); }
+        .filter-pill.active { background: var(--accent-gold); border-color: var(--accent-gold); color: white; }
+        .guest-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .guest-row:last-child { border-bottom: none; }
+        .guest-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+        .guest-info { flex: 1; }
+        .guest-name { font-size: 13.5px; font-weight: 600; }
+        .guest-detail { font-size: 11px; color: var(--text-muted); }
+        .rsvp-badge { font-size: 10px; padding: 3px 10px; border-radius: 12px; font-weight: 700; white-space: nowrap; }
+        .rsvp-badge.confirmed { background: var(--accent-sage-light); color: var(--accent-sage-dark); }
+        .rsvp-badge.declined { background: var(--accent-ruby-light); color: var(--accent-ruby); }
+        .rsvp-badge.pending { background: var(--accent-gold-light); color: var(--accent-gold-dark); }
+        .rsvp-badge.maybe { background: var(--accent-lavender-light); color: var(--accent-lavender); }
+        .table-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: var(--bg-input); color: var(--text-secondary); }
+
+        /* ====== TASKS ====== */
+        .task-categories { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .task-row { display: flex; align-items: flex-start; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--border); }
+        .task-row:last-child { border-bottom: none; }
+        .task-check { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; transition: all 0.2s; }
+        .task-check.done { background: var(--accent-sage); border-color: var(--accent-sage); color: white; }
+        .task-info { flex: 1; }
+        .task-name { font-size: 13.5px; font-weight: 600; }
+        .task-name.done-text { text-decoration: line-through; color: var(--text-muted); }
+        .task-meta { font-size: 11px; color: var(--text-muted); display: flex; gap: 10px; margin-top: 2px; flex-wrap: wrap; }
+        .task-priority { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+        .task-priority.high { background: var(--accent-rose-light); color: var(--accent-rose-dark); }
+        .task-priority.medium { background: var(--accent-gold-light); color: var(--accent-gold-dark); }
+        .task-priority.low { background: var(--accent-sage-light); color: var(--accent-sage-dark); }
+        .tasks-progress-bar { background: var(--bg-input); border-radius: 4px; height: 6px; overflow: hidden; margin-bottom: 20px; }
+        .tasks-progress-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent-sage), var(--accent-gold)); transition: width 0.5s; }
+
+        /* ====== MENU ====== */
+        .menu-course { margin-bottom: 24px; }
+        .menu-course-title { font-family: var(--font-display); font-size: 16px; font-weight: 600; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--accent-gold-light); display: flex; align-items: center; gap: 8px; }
+        .menu-item-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .menu-item-row:last-child { border-bottom: none; }
+        .menu-item-info { flex: 1; }
+        .menu-item-name { font-size: 13.5px; font-weight: 600; }
+        .menu-item-desc { font-size: 11px; color: var(--text-muted); }
+        .diet-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+        .diet-badge.vege { background: var(--accent-sage-light); color: var(--accent-sage-dark); }
+        .diet-badge.vegan { background: #d4f4d4; color: #2d6e2d; }
+        .diet-badge.gluten { background: var(--accent-gold-light); color: var(--accent-gold-dark); }
+        .diet-badge.standard { background: var(--bg-input); color: var(--text-secondary); }
+        .caterer-card { background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card)); border: 1px solid var(--border-accent); border-radius: var(--radius-md); padding: 20px; margin-bottom: 16px; }
+        .caterer-name { font-family: var(--font-display); font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+        .caterer-details { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--text-secondary); }
+
+        /* ====== SCHEDULE ====== */
+        .schedule-timeline { position: relative; padding-left: 50px; }
+        .schedule-timeline::before { content: ''; position: absolute; left: 22px; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, var(--accent-gold), var(--accent-rose)); border-radius: 2px; }
+        .schedule-item { position: relative; margin-bottom: 20px; }
+        .schedule-dot { position: absolute; left: -36px; top: 4px; width: 28px; height: 28px; border-radius: 50%; background: var(--bg-card); border: 2px solid var(--accent-gold); display: flex; align-items: center; justify-content: center; font-size: 13px; z-index: 1; }
+        .schedule-time { font-size: 11px; font-weight: 700; color: var(--accent-gold-dark); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .schedule-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px 16px; }
+        .schedule-event-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+        .schedule-event-detail { font-size: 12px; color: var(--text-muted); }
+        .schedule-duration { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: var(--accent-gold-light); color: var(--accent-gold-dark); font-weight: 600; display: inline-block; margin-top: 5px; }
+
+        /* Welcome screen */
+        .welcome-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 70vh; text-align: center; }
+        .welcome-icon { font-size: 60px; margin-bottom: 20px; }
+        .welcome-title { font-family: var(--font-display); font-size: 32px; font-weight: 700; margin-bottom: 12px; }
+        .welcome-sub { font-size: 15px; color: var(--text-secondary); max-width: 400px; margin: 0 auto 28px; line-height: 1.6; }
+
+        /* Event type colors */
+        .type-wesele::before { background: var(--accent-rose); }
+        .type-komunia::before { background: var(--accent-gold); }
+        .type-urodziny::before { background: var(--accent-lavender); }
+        .type-chrzciny::before { background: var(--accent-sky); }
+        .type-inna::before { background: var(--accent-sage); }
+
+        /* ====== RSVP QUICK SELECT ====== */
+        .rsvp-select {
+            font-size: 10px;
+            padding: 4px 22px 4px 10px;
+            border-radius: 12px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            font-family: var(--font-body);
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24'%3E%3Cpath fill='%23888' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 6px center;
+            outline: none;
+            white-space: nowrap;
+            transition: opacity 0.15s, box-shadow 0.15s;
+            flex-shrink: 0;
+        }
+        .rsvp-select:hover  { opacity: 0.85; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+        .rsvp-select:focus  { box-shadow: 0 0 0 3px rgba(201,169,110,0.25); }
+        .rsvp-select.confirmed { background-color: var(--accent-sage-light);     color: var(--accent-sage-dark); }
+        .rsvp-select.declined  { background-color: var(--accent-ruby-light);     color: var(--accent-ruby); }
+        .rsvp-select.pending   { background-color: var(--accent-gold-light);     color: var(--accent-gold-dark); }
+        .rsvp-select.maybe     { background-color: var(--accent-lavender-light); color: var(--accent-lavender); }
+
+        /* ====== SEATING PLAN ====== */
+        .seating-layout { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
+        @media (max-width: 1100px) { .seating-layout { grid-template-columns: 1fr; } }
+        .table-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 18px; }
+        .table-card { background: var(--bg-card); border-radius: var(--radius-md); border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: hidden; transition: all 0.25s; }
+        .table-card:hover { box-shadow: var(--shadow-md); border-color: var(--border-accent); }
+        .table-card-head { padding: 14px 16px 12px; display: flex; align-items: flex-start; justify-content: space-between; }
+        .table-card-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; }
+        .table-card-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+        .table-card-actions { display: flex; gap: 4px; flex-shrink: 0; }
+        .table-card-body { padding: 12px 16px 14px; }
+        .table-card-footer { padding: 10px 16px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .seats-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+        .seat-pill { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; width: 56px; }
+        .seat-circle { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; transition: all 0.2s; }
+        .seat-circle.empty { background: var(--bg-input); border: 2px dashed rgba(0,0,0,0.15); color: var(--text-muted); font-size: 20px; }
+        .seat-circle.empty:hover { background: var(--accent-gold-light); border-color: var(--accent-gold); color: var(--accent-gold-dark); transform: scale(1.08); }
+        .seat-circle.taken { border: 2px solid transparent; }
+        .seat-circle.taken:hover { opacity: 0.8; transform: scale(1.05); }
+        .seat-name { font-size: 9px; font-weight: 600; color: var(--text-secondary); text-align: center; width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .occupancy-bar { flex: 1; max-width: 90px; height: 5px; background: var(--bg-input); border-radius: 3px; overflow: hidden; }
+        .occupancy-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+
+        .unassigned-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+        .unassigned-item:last-child { border-bottom: none; }
+        .unassigned-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+        .unassigned-info { flex: 1; min-width: 0; }
+        .unassigned-name { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .unassigned-detail { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+        .unassigned-assign-btn { width: 28px; height: 28px; border: none; border-radius: 50%; background: var(--accent-gold-light); color: var(--accent-gold-dark); cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
+        .unassigned-assign-btn:hover { background: var(--accent-gold); color: white; }
+
+        /* ====== VENDORS ====== */
+        .vendor-row { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--border); }
+        .vendor-row:last-child { border-bottom: none; }
+        .vendor-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+        .vendor-info { flex: 1; min-width: 0; }
+        .vendor-name { font-size: 14px; font-weight: 600; }
+        .vendor-detail { font-size: 11px; color: var(--text-muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vendor-status { font-size: 10px; padding: 3px 10px; border-radius: 12px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+        .vendor-status.signed { background: var(--accent-sage-light); color: var(--accent-sage-dark); }
+        .vendor-status.offer  { background: var(--accent-sky-light); color: #4a8fa4; }
+        .vendor-status.inquiry{ background: var(--accent-gold-light); color: var(--accent-gold-dark); }
+        .vendor-status.paid   { background: var(--accent-sage-light); color: var(--accent-sage-dark); }
+        .vendor-status.none   { background: var(--bg-input); color: var(--text-muted); }
+
+        /* ====== PRINT ====== */
+        @media print {
+            .sidebar, .btn-primary, .btn-secondary, .btn-icon, .btn-sm,
+            .table-card-actions, .unassigned-assign-btn, #toast,
+            .seating-layout > div:last-child { display: none !important; }
+            .main { margin-left: 0 !important; padding: 20px !important; }
+            .seating-layout { grid-template-columns: 1fr !important; }
+            .seat-circle.empty { display: none !important; }
+            .table-card { break-inside: avoid; border: 1px solid #ccc !important; box-shadow: none !important; }
+            body { background: white !important; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-gem">🎉</div>
+        <h1>Planer Imprez</h1>
+        <span id="user-label">Ładowanie...</span>
+    </div>
+
+    <div class="event-selector">
+        <div class="event-selector-label">Aktywna impreza</div>
+        <button class="event-select-btn" onclick="openModal('events-picker-modal')">
+            <span class="event-emoji" id="active-event-emoji">📋</span>
+            <span class="event-name" id="active-event-name">Wybierz imprezę</span>
+            <span class="arrow">▼</span>
+        </button>
+        <button class="add-event-btn" onclick="openModal('add-event-modal')">+ Dodaj nową imprezę</button>
+    </div>
+
+    <div class="sidebar-nav" id="sidebar-nav">
+        <div class="nav-section-label">Nawigacja</div>
+        <button class="nav-btn active" data-view="dashboard" onclick="switchView('dashboard')">
+            <span class="nav-icon">🏠</span> Przegląd
+        </button>
+        <button class="nav-btn" data-view="budget" onclick="switchView('budget')">
+            <span class="nav-icon">💰</span> Budżet
+        </button>
+        <button class="nav-btn" data-view="guests" onclick="switchView('guests')">
+            <span class="nav-icon">👥</span> Goście
+        </button>
+        <button class="nav-btn" data-view="tasks" onclick="switchView('tasks')">
+            <span class="nav-icon">✅</span> Zadania
+        </button>
+        <button class="nav-btn" data-view="menu" onclick="switchView('menu')">
+            <span class="nav-icon">🍽️</span> Menu & Catering
+        </button>
+        <button class="nav-btn" data-view="schedule" onclick="switchView('schedule')">
+            <span class="nav-icon">📅</span> Harmonogram
+        </button>
+        <button class="nav-btn" data-view="seating" onclick="switchView('seating')">
+            <span class="nav-icon">🪑</span> Rozsadzenie
+        </button>
+        <button class="nav-btn" data-view="vendors" onclick="switchView('vendors')">
+            <span class="nav-icon">🤝</span> Dostawcy
+        </button>
+        <div class="nav-section-label" style="margin-top:8px;">Moje imprezy</div>
+        <button class="nav-btn" data-view="ai" onclick="switchView('ai')"><span class="nav-icon">🤖</span> Asystent AI</button>
+        <button class="nav-btn" onclick="switchView('all-events')">
+            <span class="nav-icon">📋</span> Wszystkie imprezy
+        </button>
+    </div>
+    <div class="sidebar-footer">
+        <div class="sidebar-date" id="sidebar-date"></div>
+    </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+    <!-- DASHBOARD -->
+    <div id="dashboard-view" class="view active">
+        <div id="dashboard-content"></div>
+    </div>
+
+    <!-- BUDGET -->
+    <div id="budget-view" class="view">
+        <div class="page-header">
+            <div>
+                <div class="page-title">💰 Budżet</div>
+                <div class="page-subtitle" id="budget-subtitle">Zarządzaj wydatkami</div>
+            </div>
+            <div style="display:flex;gap:10px;">
+                <button class="btn-primary" onclick="openModal('budget-modal')">+ Dodaj wydatek</button>
+            </div>
+        </div>
+        <div class="stats-grid" id="budget-stats"></div>
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">Wszystkie wydatki</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;" id="expense-filters"></div>
+            </div>
+            <div id="expenses-list"></div>
+        </div>
+    </div>
+
+    <!-- GUESTS -->
+    <div id="guests-view" class="view">
+        <div class="page-header">
+            <div>
+                <div class="page-title">👥 Goście</div>
+                <div class="page-subtitle" id="guests-subtitle">Lista gości i RSVP</div>
+            </div>
+            <div style="display:flex;gap:10px;">
+                <button class="btn-primary rose" onclick="openModal('guest-modal')">+ Dodaj gościa</button>
+            </div>
+        </div>
+        <div class="stats-grid" id="guest-stats"></div>
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">Lista gości</div>
+                <input class="form-input" style="max-width:220px;padding:7px 12px;" placeholder="🔍 Szukaj..." oninput="filterGuests(this.value)">
+            </div>
+            <div class="guests-filters" id="guest-filters">
+                <button class="filter-pill active" onclick="setGuestFilter('all', this)">Wszyscy</button>
+                <button class="filter-pill" onclick="setGuestFilter('confirmed', this)">✅ Zaakceptowani</button>
+                <button class="filter-pill" onclick="setGuestFilter('maybe', this)">🤔 Wstępnie</button>
+                <button class="filter-pill" onclick="setGuestFilter('pending', this)">⏳ Zaproszeni</button>
+                <button class="filter-pill" onclick="setGuestFilter('declined', this)">❌ Odrzuceni</button>
+            </div>
+            <div id="guests-list"></div>
+        </div>
+    </div>
+
+    <!-- TASKS -->
+    <div id="tasks-view" class="view">
+        <div class="page-header">
+            <div>
+                <div class="page-title">✅ Zadania</div>
+                <div class="page-subtitle" id="tasks-subtitle">Lista rzeczy do zrobienia</div>
+            </div>
+            <button class="btn-primary sage" onclick="openModal('task-modal')">+ Dodaj zadanie</button>
+        </div>
+        <div class="section" style="padding-bottom:10px;">
+            <div class="section-header" style="margin-bottom:10px;">
+                <div class="section-title">Postęp</div>
+                <span id="tasks-progress-label" style="font-size:13px;color:var(--text-muted);"></span>
+            </div>
+            <div class="tasks-progress-bar"><div class="tasks-progress-fill" id="tasks-progress-fill" style="width:0%"></div></div>
+        </div>
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">Lista zadań</div>
+                <div style="display:flex;gap:8px;">
+                    <select class="form-select" style="padding:7px 10px;font-size:12px;" onchange="filterTasks(this.value)">
+                        <option value="all">Wszystkie kategorie</option>
+                        <option value="venue">📍 Miejsce</option>
+                        <option value="catering">🍽️ Catering</option>
+                        <option value="decor">🌸 Dekoracje</option>
+                        <option value="music">🎵 Muzyka</option>
+                        <option value="photo">📷 Foto/Video</option>
+                        <option value="clothing">👗 Stroje</option>
+                        <option value="invitations">✉️ Zaproszenia</option>
+                        <option value="transport">🚗 Transport</option>
+                        <option value="other">📌 Inne</option>
+                    </select>
+                    <select class="form-select" style="padding:7px 10px;font-size:12px;" onchange="filterTasksByStatus(this.value)">
+                        <option value="all">Wszystkie statusy</option>
+                        <option value="todo">Do zrobienia</option>
+                        <option value="done">Ukończone</option>
+                    </select>
+                </div>
+            </div>
+            <div id="tasks-list"></div>
+        </div>
+    </div>
+
+    <!-- MENU -->
+    <div id="menu-view" class="view">
+        <div class="page-header">
+            <div>
+                <div class="page-title">🍽️ Menu & Catering</div>
+                <div class="page-subtitle" id="menu-subtitle">Planowanie posiłków i usług cateringowych</div>
+            </div>
+            <div style="display:flex;gap:10px;">
+                <button class="btn-primary" onclick="openModal('caterer-modal')">🏢 Dodaj firmę</button>
+                <button class="btn-primary rose" onclick="openModal('menu-item-modal')">+ Dodaj danie</button>
+            </div>
+        </div>
+        <div id="caterer-section"></div>
+        <div class="two-col">
+            <div>
+                <div class="section">
+                    <div class="section-header"><div class="section-title">Menu</div></div>
+                    <div id="menu-courses"></div>
+                </div>
+            </div>
+            <div>
+                <div class="section">
+                    <div class="section-header"><div class="section-title">Statystyki dietetyczne</div></div>
+                    <div id="diet-stats"></div>
+                </div>
+                <div class="section" style="margin-top:0;">
+                    <div class="section-header"><div class="section-title">Napoje & Alkohol</div></div>
+                    <div id="drinks-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCHEDULE -->
+    <div id="schedule-view" class="view">
+        <div class="page-header">
+            <div>
+                <div class="page-title">📅 Harmonogram dnia</div>
+                <div class="page-subtitle" id="schedule-subtitle">Plan minutowy uroczystości</div>
+            </div>
+            <button class="btn-primary sky" onclick="openModal('schedule-modal')">+ Dodaj punkt</button>
+        </div>
+        <div class="two-col">
+            <div>
+                <div class="section">
+                    <div class="section-header"><div class="section-title">Przebieg uroczystości</div></div>
+                    <div class="schedule-timeline" id="schedule-timeline"></div>
+                </div>
+            </div>
+            <div>
+                <div class="section">
+                    <div class="section-header"><div class="section-title">Podsumowanie dnia</div></div>
+                    <div id="schedule-summary"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEATING PLAN -->
+    <div id="seating-view" class="view">
+        <div class="page-header">
+            <div>
+                <div class="page-title">🪑 Plan rozsadzenia</div>
+                <div class="page-subtitle" id="seating-subtitle">Rozmieszczenie gości przy stołach</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn-secondary btn-sm" onclick="autoAssignGuests()">🔀 Auto-przypisz</button>
+                <button class="btn-secondary btn-sm" onclick="printSeatingChart()">🖨 Drukuj</button>
+                <button class="btn-primary" onclick="openTableModal()">+ Dodaj stół</button>
+            </div>
+        </div>
+        <div class="stats-grid" id="seating-stats"></div>
+        <div class="seating-layout">
+            <div>
+                <div class="table-cards-grid" id="table-cards-grid"></div>
+            </div>
+            <div>
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">Nieprzypisani</div>
+                        <span id="unassigned-count" style="font-size:12px;color:var(--text-muted);font-weight:700;"></span>
+                    </div>
+                    <div class="guests-filters" id="unassigned-filters" style="margin-bottom:12px;">
+                        <button class="filter-pill active" onclick="setUnassignedFilter('all',this)">Wszyscy</button>
+                        <button class="filter-pill" onclick="setUnassignedFilter('confirmed',this)">✅ Potwierdzeni</button>
+                    </div>
+                    <div id="unassigned-guests-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VENDORS -->
+    <div id="vendors-view" class="view">
+        <div class="page-header">
+            <div>
+                <div class="page-title">🤝 Dostawcy</div>
+                <div class="page-subtitle" id="vendors-subtitle">Firmy i usługodawcy</div>
+            </div>
+            <button class="btn-primary" onclick="openVendorModal()">+ Dodaj dostawcę</button>
+        </div>
+        <div class="stats-grid" id="vendor-stats" style="grid-template-columns:repeat(3,1fr);"></div>
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">Lista dostawców</div>
+                <div style="display:flex;gap:8px;" id="vendor-cat-filters"></div>
+            </div>
+            <div id="vendors-list"></div>
+        </div>
+    </div>
+
+    <!-- ALL EVENTS -->
+    <div id="all-events-view" class="view">
+        <div class="page-header">
+            <div>
+                <div class="page-title">📋 Wszystkie imprezy</div>
+                <div class="page-subtitle">Zarządzaj swoimi wydarzeniami</div>
+            </div>
+            <button class="btn-primary" onclick="openModal('add-event-modal')">+ Nowa impreza</button>
+        </div>
+        <div class="events-grid" id="all-events-grid"></div>
+    </div>
+
+</main>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Events picker -->
+<div id="events-picker-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-title">Wybierz imprezę</div>
+        <div id="events-picker-list" style="max-height:400px;overflow-y:auto;"></div>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal('events-picker-modal')">Zamknij</button>
+            <button class="btn-primary" onclick="closeModal('events-picker-modal');openModal('add-event-modal')">+ Nowa impreza</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add event modal -->
+<div id="add-event-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-title" id="add-event-title">Nowa impreza</div>
+        <div class="form-grid">
+            <div class="form-group full">
+                <label class="form-label">Nazwa imprezy</label>
+                <input class="form-input" id="ev-name" placeholder="np. Wesele Kowalskich">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Typ imprezy</label>
+                <select class="form-select" id="ev-type" onchange="updateEventEmoji()">
+                    <option value="wesele">💒 Wesele</option>
+                    <option value="komunia">🙏 Komunia</option>
+                    <option value="chrzciny">🕊️ Chrzciny</option>
+                    <option value="urodziny">🎂 Urodziny</option>
+                    <option value="rocznica">💍 Rocznica</option>
+                    <option value="impreza-firmowa">🎉 Impreza firmowa</option>
+                    <option value="inna">🎊 Inna</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Data imprezy</label>
+                <input class="form-input" id="ev-date" type="date">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Miejscowość</label>
+                <input class="form-input" id="ev-location" placeholder="np. Kraków">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Planowany budżet (PLN)</label>
+                <input class="form-input" id="ev-budget" type="number" placeholder="50000">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Planowana liczba gości</label>
+                <input class="form-input" id="ev-guests-count" type="number" placeholder="100">
+            </div>
+            <div class="form-group full">
+                <label class="form-label">Notatki</label>
+                <textarea class="form-textarea" id="ev-notes" placeholder="Dodatkowe informacje..."></textarea>
+            </div>
+        </div>
+        <input type="hidden" id="ev-edit-id">
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal('add-event-modal')">Anuluj</button>
+            <button class="btn-primary" onclick="saveEvent()">Zapisz imprezę</button>
+        </div>
+    </div>
+</div>
+
+<!-- Budget modal -->
+<div id="budget-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-title">Dodaj wydatek</div>
+        <div class="form-grid">
+            <div class="form-group full">
+                <label class="form-label">Nazwa</label>
+                <input class="form-input" id="exp-name" placeholder="np. Sala weselna">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Kategoria</label>
+                <select class="form-select" id="exp-category">
+                    <option value="venue">📍 Sala / Miejsce</option>
+                    <option value="catering">🍽️ Catering</option>
+                    <option value="music">🎵 Muzyka / DJ</option>
+                    <option value="photo">📷 Foto / Video</option>
+                    <option value="flowers">🌸 Kwiaty / Dekoracje</option>
+                    <option value="clothing">👗 Stroje</option>
+                    <option value="transport">🚗 Transport</option>
+                    <option value="invitations">✉️ Zaproszenia</option>
+                    <option value="cake">🎂 Tort / Słodycze</option>
+                    <option value="other">📌 Inne</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Status płatności</label>
+                <select class="form-select" id="exp-status">
+                    <option value="planned">📋 Zaplanowany</option>
+                    <option value="deposit">💳 Zaliczka wpłacona</option>
+                    <option value="paid">✅ Zapłacony</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Kwota planowana (PLN)</label>
+                <input class="form-input" id="exp-planned" type="number" placeholder="0">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Kwota zapłacona (PLN)</label>
+                <input class="form-input" id="exp-paid" type="number" placeholder="0">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Termin zapłaty</label>
+                <input class="form-input" id="exp-due" type="date">
+            </div>
+            <div class="form-group full">
+                <label class="form-label">Notatki</label>
+                <input class="form-input" id="exp-notes" placeholder="Kontakt, uwagi...">
+            </div>
+        </div>
+        <input type="hidden" id="exp-edit-id">
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal('budget-modal');clearExpenseForm()">Anuluj</button>
+            <button class="btn-primary" onclick="saveExpense()">Zapisz</button>
+        </div>
+    </div>
+</div>
+
+<!-- Guest modal -->
+<div id="guest-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-title">Dodaj gościa</div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label class="form-label">Imię i nazwisko</label>
+                <input class="form-input" id="g-name" placeholder="np. Anna Kowalska">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Relacja</label>
+                <select class="form-select" id="g-relation">
+                    <option value="rodzina">👨‍👩‍👧 Rodzina</option>
+                    <option value="przyjaciel">👫 Przyjaciel</option>
+                    <option value="znajomy">🤝 Znajomy</option>
+                    <option value="kolega-pracy">💼 Kolega z pracy</option>
+                    <option value="inny">👤 Inny</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">RSVP</label>
+                <select class="form-select" id="g-rsvp">
+                    <option value="pending">⏳ Oczekujący</option>
+                    <option value="confirmed">✅ Potwierdził/a</option>
+                    <option value="declined">❌ Odmówił/a</option>
+                    <option value="maybe">🤔 Może</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Numer stołu</label>
+                <input class="form-input" id="g-table" placeholder="np. 5">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Telefon</label>
+                <input class="form-input" id="g-phone" placeholder="+48 000 000 000">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input class="form-input" id="g-email" placeholder="anna@example.com">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Dieta</label>
+                <select class="form-select" id="g-diet">
+                    <option value="standard">🍖 Standardowa</option>
+                    <option value="vege">🥗 Wegetariańska</option>
+                    <option value="vegan">🌱 Wegańska</option>
+                    <option value="gluten">🌾 Bezglutenowa</option>
+                    <option value="other">🍽️ Inna</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Dzieci (liczba)</label>
+                <input class="form-input" id="g-children" type="number" min="0" placeholder="0" value="0">
+            </div>
+            <div class="form-group full">
+                <label class="form-label">Notatki</label>
+                <input class="form-input" id="g-notes" placeholder="Alergie, uwagi specjalne...">
+            </div>
+        </div>
+        <input type="hidden" id="g-edit-id">
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal('guest-modal');clearGuestForm()">Anuluj</button>
+            <button class="btn-primary rose" onclick="saveGuest()">Zapisz</button>
+        </div>
+    </div>
+</div>
+
+<!-- Task modal -->
+<div id="task-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-title">Dodaj zadanie</div>
+        <div class="form-grid">
+            <div class="form-group full">
+                <label class="form-label">Nazwa zadania</label>
+                <input class="form-input" id="t-name" placeholder="np. Zarezerwować salę weselną">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Kategoria</label>
+                <select class="form-select" id="t-category">
+                    <option value="venue">📍 Miejsce</option>
+                    <option value="catering">🍽️ Catering</option>
+                    <option value="decor">🌸 Dekoracje</option>
+                    <option value="music">🎵 Muzyka</option>
+                    <option value="photo">📷 Foto/Video</option>
+                    <option value="clothing">👗 Stroje</option>
+                    <option value="invitations">✉️ Zaproszenia</option>
+                    <option value="transport">🚗 Transport</option>
+                    <option value="other">📌 Inne</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Priorytet</label>
+                <select class="form-select" id="t-priority">
+                    <option value="high">🔴 Wysoki</option>
+                    <option value="medium">🟡 Średni</option>
+                    <option value="low">🟢 Niski</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Termin</label>
+                <input class="form-input" id="t-due" type="date">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Przypisane do</label>
+                <input class="form-input" id="t-assigned" placeholder="np. Pani Młoda">
+            </div>
+            <div class="form-group full">
+                <label class="form-label">Notatki</label>
+                <textarea class="form-textarea" id="t-notes" placeholder="Szczegóły..."></textarea>
+            </div>
+        </div>
+        <input type="hidden" id="t-edit-id">
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal('task-modal');clearTaskForm()">Anuluj</button>
+            <button class="btn-primary sage" onclick="saveTask()">Zapisz</button>
+        </div>
+    </div>
+</div>
+
+<!-- Caterer modal -->
+<div id="caterer-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-title">Firma cateringowa / restauracja</div>
+        <div class="form-grid">
+            <div class="form-group full">
+                <label class="form-label">Nazwa firmy</label>
+                <input class="form-input" id="cat-name" placeholder="np. Restauracja Złota Podkowa">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Kontakt (telefon)</label>
+                <input class="form-input" id="cat-phone" placeholder="+48 ...">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input class="form-input" id="cat-email" placeholder="kontakt@firma.pl">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Cena za osobę (PLN)</label>
+                <input class="form-input" id="cat-price" type="number" placeholder="0">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Status umowy</label>
+                <select class="form-select" id="cat-status">
+                    <option value="inquiry">🔍 Zapytanie</option>
+                    <option value="offer">📄 Oferta</option>
+                    <option value="signed">✅ Podpisana umowa</option>
+                    <option value="deposit">💳 Zaliczka wpłacona</option>
+                </select>
+            </div>
+            <div class="form-group full">
+                <label class="form-label">Uwagi</label>
+                <textarea class="form-textarea" id="cat-notes" placeholder="Menu próbne, warunki umowy..."></textarea>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal('caterer-modal')">Anuluj</button>
+            <button class="btn-primary" onclick="saveCaterer()">Zapisz</button>
+        </div>
+    </div>
+</div>
+
+<!-- Menu item modal -->
+<div id="menu-item-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-title">Dodaj danie / napój</div>
+        <div class="form-grid">
+            <div class="form-group full">
+                <label class="form-label">Nazwa</label>
+                <input class="form-input" id="mi-name" placeholder="np. Zupa pomidorowa">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Kurs</label>
+                <select class="form-select" id="mi-course">
+                    <option value="przystawka">🥗 Przystawka</option>
+                    <option value="zupa">🍲 Zupa</option>
+                    <option value="danie-glowne">🍽️ Danie główne</option>
+                    <option value="deser">🍰 Deser</option>
+                    <option value="napoj">🥂 Napój / Alkohol</option>
+                    <option value="przekaska">🍿 Przekąska</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Opcja dietetyczna</label>
+                <select class="form-select" id="mi-diet">
+                    <option value="standard">Standard</option>
+                    <option value="vege">Wegetariańskie</option>
+                    <option value="vegan">Wegańskie</option>
+                    <option value="gluten">Bezglutenowe</option>
+                </select>
+            </div>
+            <div class="form-group full">
+                <label class="form-label">Opis</label>
+                <input class="form-input" id="mi-desc" placeholder="Składniki, przygotowanie...">
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal('menu-item-modal')">Anuluj</button>
+            <button class="btn-primary rose" onclick="saveMenuItem()">Zapisz</button>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule modal -->
+<!-- Table modal -->
+<div id="table-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-title" id="table-modal-title">Dodaj stół</div>
+        <div class="form-grid">
+            <div class="form-group full">
+                <label class="form-label">Nazwa stołu</label>
+                <input class="form-input" id="tb-name" placeholder="np. Stół 1, Stół Państwa Młodych, VIP">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Kształt stołu</label>
+                <select class="form-select" id="tb-shape">
+                    <option value="round">🔵 Okrągły</option>
+                    <option value="rect">▭ Prostokątny</option>
+                    <option value="head">👑 Główny (podkowa)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Liczba miejsc</label>
+                <input class="form-input" id="tb-seats" type="number" min="1" max="50" placeholder="8" value="8">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Kolor akcentu</label>
+                <select class="form-select" id="tb-color">
+                    <option value="gold">🟡 Złoty</option>
+                    <option value="rose">🌸 Różowy</option>
+                    <option value="sage">🌿 Szałwiowy</option>
+                    <option value="sky">💙 Niebieski</option>
+                    <option value="lavender">💜 Lawendowy</option>
+                </select>
+            </div>
+            <div class="form-group full">
+                <label class="form-label">Notatka (opcjonalnie)</label>
+                <input class="form-input" id="tb-note" placeholder="np. Przy oknie, VIP, Rodzina, Dzieci...">
+            </div>
+        </div>
+        <input type="hidden" id="tb-edit-id">
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal('table-modal')">Anuluj</button>
+            <button class="btn-primary" onclick="saveTable()">Zapisz stół</button>
+        </div>
+    </div>
+</div>
+
+<!-- Assign guest to seat modal -->
+<div id="assign-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-title" id="assign-modal-title">Wybierz gościa</div>
+        <div style="margin-bottom:14px;">
+            <input class="form-input" id="assign-search" placeholder="🔍 Szukaj gościa..." oninput="filterAssignList(this.value)">
+        </div>
+        <div id="assign-guest-list" style="max-height:380px;overflow-y:auto;"></div>
+        <input type="hidden" id="assign-table-id">
+        <input type="hidden" id="assign-seat-num">
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal('assign-modal')">Anuluj</button>
+        </div>
+    </div>
+</div>
+
+<!-- Vendor modal -->
+<div id="vendor-modal" class="modal">
+    <div class="modal-content wide">
+        <div class="modal-title" id="vendor-modal-title">Dodaj dostawcę</div>
+        <div class="form-grid">
+            <div class="form-group full">
+                <label class="form-label">Nazwa firmy / usługodawcy</label>
+                <input class="form-input" id="vd-name" placeholder="np. Studio Foto Kowalski, DJ KaroS...">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Kategoria</label>
+                <select class="form-select" id="vd-category">
+                    <option value="photo">📷 Foto / Video</option>
+                    <option value="music">🎵 Muzyka / DJ</option>
+                    <option value="flowers">🌸 Kwiaty / Dekoracje</option>
+                    <option value="catering">🍽️ Catering</option>
+                    <option value="venue">📍 Sala / Miejsce</option>
+                    <option value="transport">🚗 Transport</option>
+                    <option value="cake">🎂 Tort</option>
+                    <option value="clothing">👗 Stroje</option>
+                    <option value="other">📌 Inne</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                <select class="form-select" id="vd-status">
+                    <option value="inquiry">🔍 Zapytanie wysłane</option>
+                    <option value="offer">📄 Oferta otrzymana</option>
+                    <option value="signed">✅ Umowa podpisana</option>
+                    <option value="paid">💳 Zapłacono</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Telefon</label>
+                <input class="form-input" id="vd-phone" placeholder="+48 123 456 789">
+            </div>
+            <div class="form-group">
+                <label class="form-label">E-mail</label>
+                <input class="form-input" id="vd-email" type="email" placeholder="kontakt@firma.pl">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Cena umowna (PLN)</label>
+                <input class="form-input" id="vd-price" type="number" placeholder="0">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Strona www</label>
+                <input class="form-input" id="vd-website" placeholder="www.firma.pl">
+            </div>
+            <div class="form-group full">
+                <label class="form-label">Notatki</label>
+                <textarea class="form-textarea" id="vd-notes" placeholder="Szczegóły pakietu, uwagi, terminy..."></textarea>
+            </div>
+        </div>
+        <input type="hidden" id="vd-edit-id">
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal('vendor-modal')">Anuluj</button>
+            <button class="btn-primary" onclick="saveVendor()">Zapisz dostawcę</button>
+        </div>
+    </div>
+</div>
+
+<div id="schedule-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-title">Dodaj punkt harmonogramu</div>
+        <div class="form-grid">
+            <div class="form-group full">
+                <label class="form-label">Nazwa punktu</label>
+                <input class="form-input" id="sch-name" placeholder="np. Ceremonia ślubna">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Godzina</label>
+                <input class="form-input" id="sch-time" type="time" placeholder="14:00">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Czas trwania (min)</label>
+                <input class="form-input" id="sch-duration" type="number" placeholder="30">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Emoji / ikona</label>
+                <input class="form-input" id="sch-emoji" placeholder="💒">
+            </div>
+            <div class="form-group full">
+                <label class="form-label">Lokalizacja / sala</label>
+                <input class="form-input" id="sch-location" placeholder="np. Kościół pw. Matki Boskiej">
+            </div>
+            <div class="form-group full">
+                <label class="form-label">Notatki</label>
+                <textarea class="form-textarea" id="sch-notes" placeholder="Szczegóły, osoby odpowiedzialne..."></textarea>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal('schedule-modal')">Anuluj</button>
+            <button class="btn-primary sky" onclick="saveScheduleItem()">Zapisz</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIG & STORAGE
+// ============================================================
+const APP_ID = 'planer-imprez';
+
+function getUserId() {
+    const fromUrl = new URLSearchParams(window.location.search).get('userId');
+    const fromStorage = localStorage.getItem('app_current_user');
+    return fromUrl || fromStorage || 'anonymous';
+}
+const USER_ID = getUserId();
+
+function storageKey(dataType) { return `${APP_ID}_${USER_ID}_${dataType}`; }
+
+const db = {
+    get(k)    { try { const r = localStorage.getItem(storageKey(k)); return r ? JSON.parse(r) : null; } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(storageKey(k), JSON.stringify(v)); return true; } catch { return false; } },
+};
+
+// ============================================================
+// HELPERS
+// ============================================================
+const PLN = n => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', minimumFractionDigits: 0 }).format(n || 0);
+const newId = () => Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+const fDate = d => d ? new Date(d).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+
+function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = type + ' show';
+    setTimeout(() => { t.className = ''; }, 3200);
+}
+
+function openModal(id) { document.getElementById(id)?.classList.add('active'); }
+function closeModal(id) { document.getElementById(id)?.classList.remove('active'); }
+document.addEventListener('click', e => { if (e.target.classList.contains('modal')) e.target.classList.remove('active'); });
+
+function switchView(view) {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    const el = document.getElementById(view + '-view');
+    if (el) el.classList.add('active');
+    if (view === 'all-events') renderAllEvents();
+    if (view === 'budget')    renderBudget();
+    if (view === 'guests')    renderGuests();
+    if (view === 'tasks')     renderTasks();
+    if (view === 'menu')      renderMenu();
+    if (view === 'schedule')  renderSchedule();
+    if (view === 'seating')   renderSeating();
+    if (view === 'vendors')   renderVendors();
+    if (view === 'dashboard') renderDashboard();
+    if (view === 'ai') updateAIStatusBar();
+}
+
+// Nav buttons data-view sync
+document.querySelectorAll('.nav-btn[data-view]').forEach(btn => {
+    btn.addEventListener('click', () => switchView(btn.dataset.view));
+});
+
+// ============================================================
+// STATE
+// ============================================================
+let events = [];
+let activeEventId = null;
+
+function getActiveEvent() { return events.find(e => e.id === activeEventId) || null; }
+function getEventData(key) { if (!activeEventId) return []; return db.get(`event_${activeEventId}_${key}`) || []; }
+function setEventData(key, val) { if (!activeEventId) return; db.set(`event_${activeEventId}_${key}`, val); }
+function getEventSingle(key, def) { if (!activeEventId) return def; return db.get(`event_${activeEventId}_${key}`) ?? def; }
+function setEventSingle(key, val) { if (!activeEventId) return; db.set(`event_${activeEventId}_${key}`, val); }
+
+// ============================================================
+// EVENT TYPE CONFIG
+// ============================================================
+const EVENT_TYPES = {
+    'wesele':         { emoji: '💒', label: 'Wesele', color: 'rose' },
+    'komunia':        { emoji: '🙏', label: 'Komunia', color: 'gold' },
+    'chrzciny':       { emoji: '🕊️', label: 'Chrzciny', color: 'sky' },
+    'urodziny':       { emoji: '🎂', label: 'Urodziny', color: 'lavender' },
+    'rocznica':       { emoji: '💍', label: 'Rocznica', color: 'rose' },
+    'impreza-firmowa':{ emoji: '🎉', label: 'Impreza firmowa', color: 'sage' },
+    'inna':           { emoji: '🎊', label: 'Inna', color: 'sage' },
+};
+
+const CAT_COLORS = {
+    venue:'#c9a96e', catering:'#e8a598', music:'#a89bc2', photo:'#7aafc4',
+    flowers:'#8faa8e', clothing:'#d47070', transport:'#94a3b8', invitations:'#f59e0b', cake:'#ec4899', other:'#a0a0a0'
+};
+const CAT_LABELS = {
+    venue:'Sala/Miejsce', catering:'Catering', music:'Muzyka/DJ', photo:'Foto/Video',
+    flowers:'Kwiaty/Dekor', clothing:'Stroje', transport:'Transport', invitations:'Zaproszenia', cake:'Tort/Słodycze', other:'Inne'
+};
+const CAT_EMOJIS = {
+    venue:'📍', catering:'🍽️', music:'🎵', photo:'📷',
+    flowers:'🌸', clothing:'👗', transport:'🚗', invitations:'✉️', cake:'🎂', other:'📌'
+};
+const TASK_CAT_LABELS = {
+    venue:'📍 Miejsce', catering:'🍽️ Catering', decor:'🌸 Dekoracje', music:'🎵 Muzyka',
+    photo:'📷 Foto/Video', clothing:'👗 Stroje', invitations:'✉️ Zaproszenia', transport:'🚗 Transport', other:'📌 Inne'
+};
+const COURSE_LABELS = {
+    przystawka:'🥗 Przystawki', zupa:'🍲 Zupy', 'danie-glowne':'🍽️ Dania główne',
+    deser:'🍰 Desery', napoj:'🥂 Napoje & Alkohol', przekaska:'🍿 Przekąski'
+};
+const COURSE_ORDER = ['przystawka','zupa','danie-glowne','deser','przekaska','napoj'];
+
+// ============================================================
+// EVENTS MANAGEMENT
+// ============================================================
+function updateEventEmoji() {
+    const type = document.getElementById('ev-type').value;
+    // just visual hint
+}
+
+function saveEvent() {
+    const name = document.getElementById('ev-name').value.trim();
+    const type = document.getElementById('ev-type').value;
+    const date = document.getElementById('ev-date').value;
+    const location = document.getElementById('ev-location').value.trim();
+    const budget = parseFloat(document.getElementById('ev-budget').value) || 0;
+    const guestsCount = parseInt(document.getElementById('ev-guests-count').value) || 0;
+    const notes = document.getElementById('ev-notes').value.trim();
+    const editId = document.getElementById('ev-edit-id').value;
+
+    if (!name) { showToast('Podaj nazwę imprezy', 'error'); return; }
+
+    if (editId) {
+        const idx = events.findIndex(e => e.id === editId);
+        if (idx >= 0) {
+            events[idx] = { ...events[idx], name, type, date, location, budget, guestsCount, notes };
+        }
+        showToast('Impreza zaktualizowana ✓');
+    } else {
+        const ev = { id: newId(), name, type, date, location, budget, guestsCount, notes, createdAt: new Date().toISOString() };
+        events.push(ev);
+        setActiveEvent(ev.id);
+        showToast('Impreza dodana! 🎉');
+    }
+    db.set('events', events);
+    closeModal('add-event-modal');
+    clearEventForm();
+    renderSidebar();
+    renderDashboard();
+    if (document.getElementById('all-events-view').classList.contains('active')) renderAllEvents();
+}
+
+function clearEventForm() {
+    ['ev-name','ev-date','ev-location','ev-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('ev-budget').value = '';
+    document.getElementById('ev-guests-count').value = '';
+    document.getElementById('ev-edit-id').value = '';
+    document.getElementById('ev-type').value = 'wesele';
+}
+
+function editEvent(id) {
+    const ev = events.find(e => e.id === id);
+    if (!ev) return;
+    document.getElementById('add-event-title').textContent = 'Edytuj imprezę';
+    document.getElementById('ev-name').value = ev.name;
+    document.getElementById('ev-type').value = ev.type;
+    document.getElementById('ev-date').value = ev.date || '';
+    document.getElementById('ev-location').value = ev.location || '';
+    document.getElementById('ev-budget').value = ev.budget || '';
+    document.getElementById('ev-guests-count').value = ev.guestsCount || '';
+    document.getElementById('ev-notes').value = ev.notes || '';
+    document.getElementById('ev-edit-id').value = id;
+    openModal('add-event-modal');
+}
+
+function deleteEvent(id) {
+    if (!confirm('Czy na pewno chcesz usunąć tę imprezę? Wszystkie dane zostaną utracone.')) return;
+    events = events.filter(e => e.id !== id);
+    db.set('events', events);
+    if (activeEventId === id) {
+        activeEventId = events.length > 0 ? events[0].id : null;
+        db.set('active_event', activeEventId);
+    }
+    renderSidebar();
+    renderDashboard();
+    renderAllEvents();
+    showToast('Impreza usunięta');
+}
+
+function setActiveEvent(id) {
+    activeEventId = id;
+    db.set('active_event', id);
+    renderSidebar();
+    renderDashboard();
+    closeModal('events-picker-modal');
+}
+
+function renderSidebar() {
+    const ev = getActiveEvent();
+    const cfg = ev ? (EVENT_TYPES[ev.type] || EVENT_TYPES['inna']) : null;
+    document.getElementById('active-event-emoji').textContent = cfg ? cfg.emoji : '📋';
+    document.getElementById('active-event-name').textContent = ev ? ev.name : 'Wybierz imprezę';
+
+    // Picker list
+    const list = document.getElementById('events-picker-list');
+    if (list) {
+        if (events.length === 0) {
+            list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>Brak imprez. Dodaj pierwszą!</p></div>';
+        } else {
+            list.innerHTML = events.map(ev => {
+                const cfg2 = EVENT_TYPES[ev.type] || EVENT_TYPES['inna'];
+                const isActive = ev.id === activeEventId;
+                return `<div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;background:${isActive?'var(--bg-secondary)':'transparent'};margin-bottom:4px;" onclick="setActiveEvent('${ev.id}')">
+                    <span style="font-size:24px;">${cfg2.emoji}</span>
+                    <div style="flex:1;">
+                        <div style="font-weight:700;font-size:14px;">${ev.name}</div>
+                        <div style="font-size:11px;color:var(--text-muted);">${cfg2.label}${ev.date ? ' · ' + fDate(ev.date) : ''}</div>
+                    </div>
+                    ${isActive ? '<span style="color:var(--accent-gold);font-size:16px;">✓</span>' : ''}
+                </div>`;
+            }).join('');
+        }
+    }
+}
+
+function countdownDays(dateStr) {
+    if (!dateStr) return null;
+    const now = new Date(); now.setHours(0,0,0,0);
+    const d = new Date(dateStr); d.setHours(0,0,0,0);
+    return Math.round((d - now) / 86400000);
+}
+
+// ============================================================
+// ALL EVENTS VIEW
+// ============================================================
+function renderAllEvents() {
+    const grid = document.getElementById('all-events-grid');
+    if (!grid) return;
+    if (events.length === 0) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon">🎉</div><p>Brak imprez.<br>Dodaj swoją pierwszą uroczystość!</p></div>`;
+        return;
+    }
+    grid.innerHTML = events.map(ev => {
+        const cfg = EVENT_TYPES[ev.type] || EVENT_TYPES['inna'];
+        const guests = db.get(`event_${ev.id}_guests`) || [];
+        const expenses = db.get(`event_${ev.id}_expenses`) || [];
+        const tasks = db.get(`event_${ev.id}_tasks`) || [];
+        const totalSpent = expenses.reduce((s,e) => s + (e.paid||0), 0);
+        const confirmed = guests.filter(g => g.rsvp === 'confirmed').length;
+        const daysDiff = countdownDays(ev.date);
+        let cdBadge = '';
+        if (daysDiff !== null) {
+            if (daysDiff < 0) cdBadge = `<span class="countdown-badge past">Odbyła się</span>`;
+            else if (daysDiff === 0) cdBadge = `<span class="countdown-badge soon">Dzisiaj! 🎉</span>`;
+            else if (daysDiff <= 30) cdBadge = `<span class="countdown-badge soon">Za ${daysDiff} dni</span>`;
+            else cdBadge = `<span class="countdown-badge">Za ${daysDiff} dni</span>`;
+        }
+        return `<div class="event-card type-${ev.type}" onclick="setActiveEvent('${ev.id}');switchView('dashboard')">
+            <div class="event-card-actions">
+                <button class="btn-icon" onclick="event.stopPropagation();editEvent('${ev.id}')" title="Edytuj">✏️</button>
+                <button class="btn-icon danger" onclick="event.stopPropagation();deleteEvent('${ev.id}')" title="Usuń">🗑️</button>
+            </div>
+            <div class="event-card-emoji">${cfg.emoji}</div>
+            <div class="event-card-type">${cfg.label}</div>
+            <div class="event-card-name">${ev.name}</div>
+            <div class="event-card-date">📅 ${ev.date ? fDate(ev.date) : 'Brak daty'} ${ev.location ? '· 📍 ' + ev.location : ''}</div>
+            ${cdBadge ? `<div style="margin-bottom:12px;">${cdBadge}</div>` : ''}
+            <div class="event-card-stats">
+                <div class="event-card-stat">👥 ${confirmed}/${guests.length} gości</div>
+                <div class="event-card-stat">✅ ${tasks.filter(t=>t.done).length}/${tasks.length} zadań</div>
+                <div class="event-card-stat">💰 ${PLN(totalSpent)}</div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard() {
+    const el = document.getElementById('dashboard-content');
+    if (!el) return;
+    const ev = getActiveEvent();
+
+    if (!ev) {
+        el.innerHTML = `<div class="welcome-screen">
+            <div class="welcome-icon">🎉</div>
+            <div class="welcome-title">Witaj w Planerze Imprez!</div>
+            <div class="welcome-sub">Zacznij od dodania swojej pierwszej uroczystości — wesela, komunii, urodzin lub innego wyjątkowego dnia.</div>
+            <button class="btn-primary" onclick="openModal('add-event-modal')">+ Dodaj pierwszą imprezę</button>
+        </div>`;
+        return;
+    }
+
+    const cfg = EVENT_TYPES[ev.type] || EVENT_TYPES['inna'];
+    const guests = getEventData('guests');
+    const expenses = getEventData('expenses');
+    const tasks = getEventData('tasks');
+    const scheduleItems = getEventData('schedule');
+
+    const confirmed = guests.filter(g => g.rsvp === 'confirmed').length;
+    const totalChildren = guests.reduce((s, g) => s + (parseInt(g.children)||0), 0);
+    const totalGuests = confirmed + totalChildren;
+    const totalPlanned = expenses.reduce((s,e) => s + (e.planned||0), 0);
+    const totalPaid = expenses.reduce((s,e) => s + (e.paid||0), 0);
+    const budget = ev.budget || 0;
+    const tasksDone = tasks.filter(t => t.done).length;
+    const daysDiff = countdownDays(ev.date);
+
+    let countdownText = 'Brak daty';
+    if (daysDiff !== null) {
+        if (daysDiff < 0) countdownText = 'Impreza odbyła się';
+        else if (daysDiff === 0) countdownText = 'Dzisiaj! 🎉';
+        else countdownText = `${daysDiff} dni`;
+    }
+
+    el.innerHTML = `
+        <div class="page-header">
+            <div>
+                <div class="page-title">${cfg.emoji} ${ev.name}</div>
+                <div class="page-subtitle">${cfg.label}${ev.date ? ' · ' + fDate(ev.date) : ''}${ev.location ? ' · 📍 ' + ev.location : ''}</div>
+            </div>
+            <div style="display:flex;gap:8px;">
+                <button class="btn-secondary btn-sm" onclick="editEvent('${ev.id}')">✏️ Edytuj</button>
+                <button class="btn-primary btn-sm" onclick="switchView('all-events')">Wszystkie imprezy</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card gold">
+                <div class="stat-icon gold">⏰</div>
+                <div class="stat-label">Odliczanie</div>
+                <div class="stat-value" style="font-size:${daysDiff !== null && daysDiff < 100 ? '26' : '20'}px;">${countdownText}</div>
+                <div class="stat-sub">${ev.date ? fDate(ev.date) : 'Ustaw datę imprezy'}</div>
+            </div>
+            <div class="stat-card rose">
+                <div class="stat-icon rose">👥</div>
+                <div class="stat-label">Goście</div>
+                <div class="stat-value">${confirmed} / ${ev.guestsCount || '?'}</div>
+                <div class="stat-sub">potwierdzonych · ${totalChildren} dzieci</div>
+            </div>
+            <div class="stat-card sage">
+                <div class="stat-icon sage">✅</div>
+                <div class="stat-label">Zadania</div>
+                <div class="stat-value">${tasksDone} / ${tasks.length}</div>
+                <div class="stat-sub">${tasks.length > 0 ? Math.round(tasksDone/tasks.length*100) : 0}% ukończone</div>
+            </div>
+            <div class="stat-card lavender">
+                <div class="stat-icon lavender">💰</div>
+                <div class="stat-label">Budżet</div>
+                <div class="stat-value" style="font-size:18px;">${PLN(totalPaid)}</div>
+                <div class="stat-sub">z ${PLN(budget)} · zaplan. ${PLN(totalPlanned)}</div>
+            </div>
+        </div>
+
+        <div class="two-col">
+            <div>
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">Postęp budżetu</div>
+                        <button class="btn-secondary btn-sm" onclick="switchView('budget')">Zobacz →</button>
+                    </div>
+                    ${budget > 0 ? `
+                    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:6px;">
+                        <span>Zapłacono: ${PLN(totalPaid)}</span><span>Budżet: ${PLN(budget)}</span>
+                    </div>
+                    <div class="budget-progress"><div class="budget-bar ${totalPaid > budget ? 'over' : ''}" style="width:${Math.min(100,budget>0?totalPaid/budget*100:0)}%"></div></div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">Pozostało: <strong style="color:${budget-totalPaid < 0 ? 'var(--accent-ruby)' : 'var(--accent-sage-dark)'};">${PLN(budget - totalPaid)}</strong></div>
+                    ` : '<div style="font-size:13px;color:var(--text-muted);">Ustaw budżet w ustawieniach imprezy</div>'}
+                    ${expenses.length > 0 ? `
+                    <div style="margin-top:16px;">
+                        ${expenses.slice(0,4).map(e => `
+                        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+                            <span style="font-size:14px;">${CAT_EMOJIS[e.category]||'📌'}</span>
+                            <div style="flex:1;font-size:13px;font-weight:600;">${e.name}</div>
+                            <div style="font-size:13px;font-weight:700;">${PLN(e.paid||e.planned)}</div>
+                        </div>`).join('')}
+                    </div>` : ''}
+                </div>
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">Nadchodzące zadania</div>
+                        <button class="btn-secondary btn-sm" onclick="switchView('tasks')">Zobacz →</button>
+                    </div>
+                    ${tasks.filter(t=>!t.done).slice(0,5).map(t => `
+                    <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
+                        <div class="task-check ${t.done?'done':''}" onclick="toggleTaskDone('${t.id}')">${t.done?'✓':''}</div>
+                        <div style="flex:1;">
+                            <div style="font-size:13px;font-weight:600;">${t.name}</div>
+                            <div style="font-size:11px;color:var(--text-muted);">${TASK_CAT_LABELS[t.category]||t.category}${t.due?' · do '+fDate(t.due):''}</div>
+                        </div>
+                        <span class="task-priority ${t.priority}">${t.priority==='high'?'Wysoki':t.priority==='medium'?'Średni':'Niski'}</span>
+                    </div>`).join('') || '<div class="empty-state" style="padding:20px;"><p>Brak zadań do zrobienia 🎉</p></div>'}
+                </div>
+            </div>
+            <div>
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">Goście — RSVP</div>
+                        <button class="btn-secondary btn-sm" onclick="switchView('guests')">Zobacz →</button>
+                    </div>
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+                        ${[
+                            {key:'confirmed',label:'Zaakceptowani',color:'var(--accent-sage)'},
+                            {key:'pending',label:'Zaproszeni',color:'var(--accent-gold)'},
+                            {key:'declined',label:'Odrzucili',color:'var(--accent-ruby)'},
+                            {key:'maybe',label:'Wstępnie',color:'var(--accent-lavender)'},
+                        ].map(s => {
+                            const cnt = guests.filter(g => g.rsvp === s.key).length;
+                            return `<div style="text-align:center;flex:1;min-width:60px;">
+                                <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:${s.color};">${cnt}</div>
+                                <div style="font-size:10px;color:var(--text-muted);">${s.label}</div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                    ${guests.slice(0,5).map(g => `
+                    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+                        <div class="guest-avatar" style="background:var(--accent-gold-light);color:var(--accent-gold-dark);">${g.name[0].toUpperCase()}</div>
+                        <div style="flex:1;font-size:13px;font-weight:600;">${g.name}</div>
+                        <span class="rsvp-badge ${g.rsvp}">${{confirmed:'✅ Zaakceptowany',declined:'❌ Odrzucono',pending:'⏳ Zaproszony',maybe:'🤔 Wstępnie'}[g.rsvp]||'—'}</span>
+                    </div>`).join('') || '<div class="empty-state" style="padding:20px;"><p>Brak gości</p></div>'}
+                </div>
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">🪑 Rozsadzenie</div>
+                        <button class="btn-secondary btn-sm" onclick="switchView('seating')">Zarządzaj →</button>
+                    </div>
+                    ${(() => {
+                        const tables2 = getEventData('tables');
+                        const guests2 = getEventData('guests');
+                        if (tables2.length === 0) return '<div class="empty-state" style="padding:16px;"><p>Brak stołów. <a href="#" onclick="switchView(\'seating\');return false;" style="color:var(--accent-gold-dark);">Dodaj stoły →</a></p></div>';
+                        const totalSeats2 = tables2.reduce((s,t)=>s+(t.seats||0),0);
+                        const assigned2 = guests2.filter(g=>g.tableId).length;
+                        const unassigned2 = guests2.filter(g=>!g.tableId&&g.rsvp==='confirmed').length;
+                        return `<div style="display:flex;gap:16px;margin-bottom:14px;flex-wrap:wrap;">
+                            <div style="text-align:center;flex:1;min-width:60px;"><div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--accent-gold-dark);">${tables2.length}</div><div style="font-size:10px;color:var(--text-muted);">Stołów</div></div>
+                            <div style="text-align:center;flex:1;min-width:60px;"><div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--accent-sage-dark);">${assigned2}</div><div style="font-size:10px;color:var(--text-muted);">Przypisanych</div></div>
+                            <div style="text-align:center;flex:1;min-width:60px;"><div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:${unassigned2>0?'var(--accent-ruby)':'var(--accent-sage-dark)'};">${unassigned2}</div><div style="font-size:10px;color:var(--text-muted);">Bez miejsca</div></div>
+                        </div>
+                        ${tables2.slice(0,4).map(t=>{
+                            const occ = guests2.filter(g=>g.tableId===t.id).length;
+                            const pct = t.seats>0?Math.round(occ/t.seats*100):0;
+                            return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">
+                                <span style="font-size:12px;font-weight:600;flex:1;">${escHtml(t.name)}</span>
+                                <div style="width:60px;height:4px;background:var(--bg-input);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:var(--accent-gold);border-radius:2px;"></div></div>
+                                <span style="font-size:11px;color:var(--text-muted);white-space:nowrap;">${occ}/${t.seats}</span>
+                            </div>`;
+                        }).join('')}`;
+                    })()}
+                </div>
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">Harmonogram</div>
+                        <button class="btn-secondary btn-sm" onclick="switchView('schedule')">Zobacz →</button>
+                    </div>
+                    ${scheduleItems.length === 0 ? '<div class="empty-state" style="padding:20px;"><p>Brak punktów harmonogramu</p></div>' :
+                    scheduleItems.sort((a,b)=>a.time>b.time?1:-1).slice(0,4).map(s => `
+                    <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);">
+                        <div style="font-size:20px;">${s.emoji||'📌'}</div>
+                        <div style="flex:1;">
+                            <div style="font-size:13px;font-weight:600;">${s.name}</div>
+                            <div style="font-size:11px;color:var(--text-muted);">${s.time||''}${s.location?' · '+s.location:''}</div>
+                        </div>
+                        ${s.duration ? `<span class="schedule-duration">${s.duration} min</span>` : ''}
+                    </div>`).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// ============================================================
+// BUDGET
+// ============================================================
+let activeExpenseFilter = 'all';
+
+function renderBudget() {
+    const ev = getActiveEvent();
+    if (!ev) return;
+    document.getElementById('budget-subtitle').textContent = ev.name;
+    const expenses = getEventData('expenses');
+
+    const totalPlanned = expenses.reduce((s,e) => s + (e.planned||0), 0);
+    const totalPaid = expenses.reduce((s,e) => s + (e.paid||0), 0);
+    const budget = ev.budget || 0;
+    const remaining = budget - totalPaid;
+
+    document.getElementById('budget-stats').innerHTML = `
+        <div class="stat-card gold"><div class="stat-icon gold">💼</div><div class="stat-label">Całkowity budżet</div><div class="stat-value" style="font-size:18px;">${PLN(budget)}</div></div>
+        <div class="stat-card lavender"><div class="stat-icon lavender">📋</div><div class="stat-label">Zaplanowane</div><div class="stat-value" style="font-size:18px;">${PLN(totalPlanned)}</div></div>
+        <div class="stat-card rose"><div class="stat-icon rose">💳</div><div class="stat-label">Zapłacone</div><div class="stat-value" style="font-size:18px;">${PLN(totalPaid)}</div></div>
+        <div class="stat-card ${remaining < 0 ? 'rose' : 'sage'}"><div class="stat-icon ${remaining < 0 ? 'rose' : 'sage'}">${remaining < 0 ? '⚠️' : '💚'}</div><div class="stat-label">Pozostało</div><div class="stat-value" style="font-size:18px;color:${remaining < 0 ? 'var(--accent-ruby)' : 'var(--accent-sage-dark)'};">${PLN(remaining)}</div></div>
+    `;
+
+    // Filters
+    const cats = [...new Set(expenses.map(e => e.category))];
+    document.getElementById('expense-filters').innerHTML = `
+        <button class="filter-pill ${activeExpenseFilter==='all'?'active':''}" onclick="setExpenseFilter('all',this)">Wszystkie</button>
+        ${cats.map(c=>`<button class="filter-pill ${activeExpenseFilter===c?'active':''}" onclick="setExpenseFilter('${c}',this)">${CAT_EMOJIS[c]||'📌'} ${CAT_LABELS[c]||c}</button>`).join('')}
+    `;
+
+    const filtered = activeExpenseFilter === 'all' ? expenses : expenses.filter(e => e.category === activeExpenseFilter);
+
+    document.getElementById('expenses-list').innerHTML = filtered.length === 0
+        ? `<div class="empty-state"><div class="empty-icon">💰</div><p>Brak wydatków${activeExpenseFilter!=='all'?' w tej kategorii':''}. Dodaj pierwszy!</p></div>`
+        : filtered.map(e => `
+        <div class="expense-row">
+            <div class="expense-cat-dot" style="background:${CAT_COLORS[e.category]||'#a0a0a0'};"></div>
+            <div class="expense-info">
+                <div class="expense-name">${e.name}</div>
+                <div class="expense-cat">${CAT_EMOJIS[e.category]||'📌'} ${CAT_LABELS[e.category]||e.category}${e.due?' · termin: '+fDate(e.due):''}${e.notes?' · '+e.notes:''}</div>
+            </div>
+            <div style="text-align:right;">
+                <div class="expense-amount ${e.status}">${PLN(e.paid||0)} <span style="font-size:11px;color:var(--text-muted);">/ ${PLN(e.planned||0)}</span></div>
+                <span class="expense-status ${e.status}">${{planned:'Zaplanowany',deposit:'Zaliczka',paid:'Zapłacony'}[e.status]||e.status}</span>
+            </div>
+            <div style="display:flex;gap:4px;margin-left:8px;">
+                <button class="btn-icon" onclick="editExpense('${e.id}')">✏️</button>
+                <button class="btn-icon danger" onclick="deleteExpense('${e.id}')">🗑️</button>
+            </div>
+        </div>`).join('');
+}
+
+function setExpenseFilter(f, btn) {
+    activeExpenseFilter = f;
+    document.querySelectorAll('#expense-filters .filter-pill').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    renderBudget();
+}
+
+function saveExpense() {
+    const name = document.getElementById('exp-name').value.trim();
+    if (!name) { showToast('Podaj nazwę', 'error'); return; }
+    const editId = document.getElementById('exp-edit-id').value;
+    const expenses = getEventData('expenses');
+    const item = {
+        id: editId || newId(),
+        name,
+        category: document.getElementById('exp-category').value,
+        status: document.getElementById('exp-status').value,
+        planned: parseFloat(document.getElementById('exp-planned').value)||0,
+        paid: parseFloat(document.getElementById('exp-paid').value)||0,
+        due: document.getElementById('exp-due').value,
+        notes: document.getElementById('exp-notes').value.trim(),
+    };
+    if (editId) {
+        const idx = expenses.findIndex(e => e.id === editId);
+        if (idx >= 0) expenses[idx] = item;
+    } else {
+        expenses.push(item);
+    }
+    setEventData('expenses', expenses);
+    closeModal('budget-modal');
+    clearExpenseForm();
+    renderBudget();
+    showToast('Wydatek zapisany ✓');
+}
+
+function clearExpenseForm() {
+    ['exp-name','exp-notes','exp-due'].forEach(id => document.getElementById(id).value = '');
+    ['exp-planned','exp-paid'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('exp-edit-id').value = '';
+    document.getElementById('exp-category').value = 'venue';
+    document.getElementById('exp-status').value = 'planned';
+}
+
+function editExpense(id) {
+    const expenses = getEventData('expenses');
+    const e = expenses.find(x => x.id === id);
+    if (!e) return;
+    document.getElementById('exp-name').value = e.name;
+    document.getElementById('exp-category').value = e.category;
+    document.getElementById('exp-status').value = e.status;
+    document.getElementById('exp-planned').value = e.planned||'';
+    document.getElementById('exp-paid').value = e.paid||'';
+    document.getElementById('exp-due').value = e.due||'';
+    document.getElementById('exp-notes').value = e.notes||'';
+    document.getElementById('exp-edit-id').value = id;
+    openModal('budget-modal');
+}
+
+function deleteExpense(id) {
+    if (!confirm('Usunąć ten wydatek?')) return;
+    const expenses = getEventData('expenses').filter(e => e.id !== id);
+    setEventData('expenses', expenses);
+    renderBudget();
+    showToast('Wydatek usunięty');
+}
+
+// ============================================================
+// GUESTS
+// ============================================================
+let guestFilter = 'all';
+let guestSearch = '';
+
+function renderGuests() {
+    const ev = getActiveEvent();
+    if (!ev) return;
+    document.getElementById('guests-subtitle').textContent = ev.name;
+    let guests = getEventData('guests');
+
+    const confirmed = guests.filter(g=>g.rsvp==='confirmed').length;
+    const pending = guests.filter(g=>g.rsvp==='pending').length;
+    const declined = guests.filter(g=>g.rsvp==='declined').length;
+    const totalChildren = guests.reduce((s,g)=>s+(parseInt(g.children)||0),0);
+
+    document.getElementById('guest-stats').innerHTML = `
+        <div class="stat-card sage"><div class="stat-icon sage">✅</div><div class="stat-label">Zaakceptowani</div><div class="stat-value">${confirmed}</div><div class="stat-sub">+ ${totalChildren} dzieci</div></div>
+        <div class="stat-card gold"><div class="stat-icon gold">⏳</div><div class="stat-label">Zaproszeni (oczekują)</div><div class="stat-value">${pending}</div></div>
+        <div class="stat-card rose"><div class="stat-icon rose">❌</div><div class="stat-label">Odrzucili</div><div class="stat-value">${declined}</div></div>
+        <div class="stat-card lavender"><div class="stat-icon lavender">👥</div><div class="stat-label">Łącznie zaproszonych</div><div class="stat-value">${guests.length}</div><div class="stat-sub">plan: ${ev.guestsCount||'?'}</div></div>
+    `;
+
+    let filtered = guests;
+    if (guestFilter !== 'all') filtered = filtered.filter(g => g.rsvp === guestFilter);
+    if (guestSearch) filtered = filtered.filter(g => g.name.toLowerCase().includes(guestSearch.toLowerCase()) || (g.email||'').toLowerCase().includes(guestSearch.toLowerCase()));
+
+    document.getElementById('guests-list').innerHTML = filtered.length === 0
+        ? `<div class="empty-state"><div class="empty-icon">👥</div><p>Brak gości${guestFilter!=='all'?' w tym filtrze':''}. Dodaj pierwszego!</p></div>`
+        : filtered.map(g => {
+            const initials = g.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+            const avatarColors = {rodzina:'var(--accent-rose-light)',przyjaciel:'var(--accent-sage-light)',znajomy:'var(--accent-gold-light)','kolega-pracy':'var(--accent-sky-light)',inny:'var(--accent-lavender-light)'};
+            const textColors = {rodzina:'var(--accent-rose-dark)',przyjaciel:'var(--accent-sage-dark)',znajomy:'var(--accent-gold-dark)','kolega-pracy':'#4a8fa4',inny:'var(--accent-lavender)'};
+            const tables = getEventData('tables');
+            const assignedTable = g.tableId ? tables.find(t => t.id === g.tableId) : null;
+            const tableLabel = assignedTable ? assignedTable.name : (g.table || null);
+            return `<div class="guest-row">
+                <div class="guest-avatar" style="background:${avatarColors[g.relation]||'var(--accent-gold-light)'};color:${textColors[g.relation]||'var(--accent-gold-dark)'};">${initials}</div>
+                <div class="guest-info">
+                    <div class="guest-name">${escHtml(g.name)}</div>
+                    <div class="guest-detail">${g.relation||''} ${g.phone?'· 📞 '+g.phone:''} ${g.diet && g.diet!=='standard'?'· 🍽️ '+g.diet:''} ${(parseInt(g.children)||0)>0?'· 👶 '+g.children+' dzieci':''} ${g.notes?'· '+escHtml(g.notes):''}</div>
+                </div>
+                ${tableLabel ? `<span class="table-badge">🪑 ${escHtml(tableLabel)}${g.seatNum!=null?' #'+(g.seatNum+1):''}</span>` : ''}
+                <select class="rsvp-select ${g.rsvp}" onchange="setGuestRsvp('${g.id}', this.value, this)" title="Zmień status RSVP">
+                    <option value="pending"   ${g.rsvp==='pending'  ?'selected':''}>⏳ Zaproszony</option>
+                    <option value="confirmed" ${g.rsvp==='confirmed'?'selected':''}>✅ Zaakceptowany</option>
+                    <option value="maybe"     ${g.rsvp==='maybe'    ?'selected':''}>🤔 Wstępnie</option>
+                    <option value="declined"  ${g.rsvp==='declined' ?'selected':''}>❌ Odrzucono</option>
+                </select>
+                <div style="display:flex;gap:4px;">
+                    <button class="btn-icon" onclick="editGuest('${g.id}')">✏️</button>
+                    <button class="btn-icon danger" onclick="deleteGuest('${g.id}')">🗑️</button>
+                </div>
+            </div>`;
+        }).join('');
+}
+
+const RSVP_LABELS = { confirmed:'Zaakceptowany', declined:'Odrzucono', pending:'Zaproszony', maybe:'Wstępnie zaakceptowany' };
+
+function setGuestRsvp(id, rsvp, selectEl) {
+    const guests = getEventData('guests');
+    const g = guests.find(x => x.id === id);
+    if (!g) return;
+    g.rsvp = rsvp;
+    setEventData('guests', guests);
+    // Aktualizuj tylko klasę selecta — bez pełnego re-renderu (brak skoku widoku)
+    if (selectEl) {
+        selectEl.className = `rsvp-select ${rsvp}`;
+    }
+    // Odśwież statystyki bez re-renderu całej listy
+    updateGuestStats(guests);
+    showToast(`${g.name} → ${RSVP_LABELS[rsvp]} ✓`);
+}
+
+function updateGuestStats(guests) {
+    const el = document.getElementById('guest-stats');
+    if (!el) return;
+    const ev = getActiveEvent();
+    const confirmed     = guests.filter(g => g.rsvp === 'confirmed').length;
+    const pending       = guests.filter(g => g.rsvp === 'pending').length;
+    const declined      = guests.filter(g => g.rsvp === 'declined').length;
+    const totalChildren = guests.reduce((s,g) => s + (parseInt(g.children)||0), 0);
+    el.innerHTML = `
+        <div class="stat-card sage"><div class="stat-icon sage">✅</div><div class="stat-label">Zaakceptowani</div><div class="stat-value">${confirmed}</div><div class="stat-sub">+ ${totalChildren} dzieci</div></div>
+        <div class="stat-card gold"><div class="stat-icon gold">⏳</div><div class="stat-label">Zaproszeni (oczekują)</div><div class="stat-value">${pending}</div></div>
+        <div class="stat-card rose"><div class="stat-icon rose">❌</div><div class="stat-label">Odrzucili</div><div class="stat-value">${declined}</div></div>
+        <div class="stat-card lavender"><div class="stat-icon lavender">👥</div><div class="stat-label">Łącznie zaproszonych</div><div class="stat-value">${guests.length}</div><div class="stat-sub">plan: ${ev?.guestsCount||'?'}</div></div>
+    `;
+}
+
+function filterGuests(val) { guestSearch = val; renderGuests(); }
+function setGuestFilter(f, btn) {
+    guestFilter = f;
+    document.querySelectorAll('#guest-filters .filter-pill').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    renderGuests();
+}
+
+function saveGuest() {
+    const name = document.getElementById('g-name').value.trim();
+    if (!name) { showToast('Podaj imię i nazwisko', 'error'); return; }
+    const editId  = document.getElementById('g-edit-id').value;
+    const guests  = getEventData('guests');
+    const existing = editId ? guests.find(g => g.id === editId) : null;
+    const item = {
+        id:       editId || newId(),
+        name,
+        relation: document.getElementById('g-relation').value,
+        rsvp:     document.getElementById('g-rsvp').value,
+        table:    existing?.table    || document.getElementById('g-table').value.trim(),
+        tableId:  existing?.tableId  || null,
+        seatNum:  existing?.seatNum  ?? null,
+        phone:    document.getElementById('g-phone').value.trim(),
+        email:    document.getElementById('g-email').value.trim(),
+        diet:     document.getElementById('g-diet').value,
+        children: document.getElementById('g-children').value,
+        notes:    document.getElementById('g-notes').value.trim(),
+    };
+    if (editId) {
+        const idx = guests.findIndex(g => g.id === editId);
+        if (idx >= 0) guests[idx] = item;
+    } else {
+        guests.push(item);
+    }
+    setEventData('guests', guests);
+    closeModal('guest-modal');
+    clearGuestForm();
+    renderGuests();
+    showToast('Gość zapisany ✓');
+}
+
+function clearGuestForm() {
+    ['g-name','g-table','g-phone','g-email','g-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('g-edit-id').value = '';
+    document.getElementById('g-rsvp').value = 'pending';
+    document.getElementById('g-diet').value = 'standard';
+    document.getElementById('g-children').value = '0';
+}
+
+function editGuest(id) {
+    const g = getEventData('guests').find(x => x.id === id);
+    if (!g) return;
+    document.getElementById('g-name').value = g.name;
+    document.getElementById('g-relation').value = g.relation||'rodzina';
+    document.getElementById('g-rsvp').value = g.rsvp;
+    document.getElementById('g-table').value = g.table||'';
+    document.getElementById('g-phone').value = g.phone||'';
+    document.getElementById('g-email').value = g.email||'';
+    document.getElementById('g-diet').value = g.diet||'standard';
+    document.getElementById('g-children').value = g.children||'0';
+    document.getElementById('g-notes').value = g.notes||'';
+    document.getElementById('g-edit-id').value = id;
+    openModal('guest-modal');
+}
+
+function deleteGuest(id) {
+    if (!confirm('Usunąć tego gościa?')) return;
+    setEventData('guests', getEventData('guests').filter(g => g.id !== id));
+    renderGuests();
+    showToast('Gość usunięty');
+}
+
+// ============================================================
+// TASKS
+// ============================================================
+let taskCatFilter = 'all';
+let taskStatusFilter = 'all';
+
+function renderTasks() {
+    const ev = getActiveEvent();
+    if (!ev) return;
+    document.getElementById('tasks-subtitle').textContent = ev.name;
+    let tasks = getEventData('tasks');
+
+    const done = tasks.filter(t=>t.done).length;
+    const pct = tasks.length > 0 ? Math.round(done/tasks.length*100) : 0;
+    document.getElementById('tasks-progress-fill').style.width = pct + '%';
+    document.getElementById('tasks-progress-label').textContent = `${done} / ${tasks.length} ukończone (${pct}%)`;
+
+    let filtered = tasks;
+    if (taskCatFilter !== 'all') filtered = filtered.filter(t => t.category === taskCatFilter);
+    if (taskStatusFilter === 'todo') filtered = filtered.filter(t => !t.done);
+    if (taskStatusFilter === 'done') filtered = filtered.filter(t => t.done);
+
+    filtered.sort((a,b) => {
+        if (a.done !== b.done) return a.done ? 1 : -1;
+        const order = {high:0,medium:1,low:2};
+        return (order[a.priority]||1) - (order[b.priority]||1);
+    });
+
+    document.getElementById('tasks-list').innerHTML = filtered.length === 0
+        ? `<div class="empty-state"><div class="empty-icon">✅</div><p>Brak zadań w tym filtrze</p></div>`
+        : filtered.map(t => `
+        <div class="task-row">
+            <div class="task-check ${t.done?'done':''}" onclick="toggleTaskDone('${t.id}')">${t.done?'✓':''}</div>
+            <div class="task-info">
+                <div class="task-name ${t.done?'done-text':''}">${t.name}</div>
+                <div class="task-meta">
+                    <span>${TASK_CAT_LABELS[t.category]||t.category}</span>
+                    ${t.due?`<span>📅 ${fDate(t.due)}</span>`:''}
+                    ${t.assigned?`<span>👤 ${t.assigned}</span>`:''}
+                    ${t.notes?`<span>${t.notes}</span>`:''}
+                </div>
+            </div>
+            <span class="task-priority ${t.priority}">${t.priority==='high'?'Wysoki':t.priority==='medium'?'Średni':'Niski'}</span>
+            <div style="display:flex;gap:4px;">
+                <button class="btn-icon" onclick="editTask('${t.id}')">✏️</button>
+                <button class="btn-icon danger" onclick="deleteTask('${t.id}')">🗑️</button>
+            </div>
+        </div>`).join('');
+}
+
+function filterTasks(cat) { taskCatFilter = cat; renderTasks(); }
+function filterTasksByStatus(st) { taskStatusFilter = st; renderTasks(); }
+
+function toggleTaskDone(id) {
+    const tasks = getEventData('tasks');
+    const t = tasks.find(x => x.id === id);
+    if (t) t.done = !t.done;
+    setEventData('tasks', tasks);
+    renderTasks();
+    renderDashboard();
+}
+
+function saveTask() {
+    const name = document.getElementById('t-name').value.trim();
+    if (!name) { showToast('Podaj nazwę zadania', 'error'); return; }
+    const editId = document.getElementById('t-edit-id').value;
+    const tasks = getEventData('tasks');
+    const item = {
+        id: editId || newId(),
+        name,
+        category: document.getElementById('t-category').value,
+        priority: document.getElementById('t-priority').value,
+        due: document.getElementById('t-due').value,
+        assigned: document.getElementById('t-assigned').value.trim(),
+        notes: document.getElementById('t-notes').value.trim(),
+        done: false,
+    };
+    if (editId) {
+        const idx = tasks.findIndex(t => t.id === editId);
+        if (idx >= 0) item.done = tasks[idx].done;
+        if (idx >= 0) tasks[idx] = item; else tasks.push(item);
+    } else {
+        tasks.push(item);
+    }
+    setEventData('tasks', tasks);
+    closeModal('task-modal');
+    clearTaskForm();
+    renderTasks();
+    showToast('Zadanie zapisane ✓');
+}
+
+function clearTaskForm() {
+    ['t-name','t-due','t-assigned','t-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('t-edit-id').value = '';
+    document.getElementById('t-priority').value = 'high';
+    document.getElementById('t-category').value = 'venue';
+}
+
+function editTask(id) {
+    const t = getEventData('tasks').find(x => x.id === id);
+    if (!t) return;
+    document.getElementById('t-name').value = t.name;
+    document.getElementById('t-category').value = t.category;
+    document.getElementById('t-priority').value = t.priority;
+    document.getElementById('t-due').value = t.due||'';
+    document.getElementById('t-assigned').value = t.assigned||'';
+    document.getElementById('t-notes').value = t.notes||'';
+    document.getElementById('t-edit-id').value = id;
+    openModal('task-modal');
+}
+
+function deleteTask(id) {
+    if (!confirm('Usunąć to zadanie?')) return;
+    setEventData('tasks', getEventData('tasks').filter(t => t.id !== id));
+    renderTasks();
+    showToast('Zadanie usunięte');
+}
+
+// ============================================================
+// MENU & CATERING
+// ============================================================
+function renderMenu() {
+    const ev = getActiveEvent();
+    if (!ev) return;
+    document.getElementById('menu-subtitle').textContent = ev.name;
+    const caterer = getEventSingle('caterer', null);
+    const menuItems = getEventData('menu');
+
+    // Caterer
+    const catSection = document.getElementById('caterer-section');
+    if (caterer) {
+        const statusLabels = {inquiry:'🔍 Zapytanie',offer:'📄 Oferta',signed:'✅ Umowa podpisana',deposit:'💳 Zaliczka wpłacona'};
+        catSection.innerHTML = `<div class="caterer-card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                <div>
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);margin-bottom:4px;">Firma cateringowa</div>
+                    <div class="caterer-name">🏢 ${caterer.name}</div>
+                </div>
+                <div style="display:flex;gap:6px;">
+                    <button class="btn-secondary btn-sm" onclick="openModal('caterer-modal')">✏️ Edytuj</button>
+                </div>
+            </div>
+            <div class="caterer-details">
+                ${caterer.phone?`<span>📞 ${caterer.phone}</span>`:''}
+                ${caterer.email?`<span>✉️ ${caterer.email}</span>`:''}
+                ${caterer.price?`<span>💰 ${PLN(caterer.price)}/os.</span>`:''}
+                <span>${statusLabels[caterer.status]||caterer.status}</span>
+                ${caterer.notes?`<span>📝 ${caterer.notes}</span>`:''}
+            </div>
+        </div>`;
+    } else {
+        catSection.innerHTML = '';
+    }
+
+    // Group by course
+    const courses = {};
+    menuItems.forEach(m => {
+        if (!courses[m.course]) courses[m.course] = [];
+        courses[m.course].push(m);
+    });
+
+    // Main menu
+    const mainCourses = COURSE_ORDER.filter(c => c !== 'napoj');
+    const menuCoursesEl = document.getElementById('menu-courses');
+    const mainItems = menuItems.filter(m => m.course !== 'napoj');
+    if (mainItems.length === 0) {
+        menuCoursesEl.innerHTML = `<div class="empty-state"><p>Brak pozycji menu. Dodaj pierwsze danie!</p></div>`;
+    } else {
+        menuCoursesEl.innerHTML = mainCourses.filter(c => courses[c]).map(c => `
+            <div class="menu-course">
+                <div class="menu-course-title">${COURSE_LABELS[c]}</div>
+                ${(courses[c]||[]).map(item => `
+                <div class="menu-item-row">
+                    <div class="menu-item-info">
+                        <div class="menu-item-name">${item.name}</div>
+                        ${item.desc ? `<div class="menu-item-desc">${item.desc}</div>` : ''}
+                    </div>
+                    <span class="diet-badge ${item.diet}">${{standard:'Standard',vege:'🥗 Wege',vegan:'🌱 Vegan',gluten:'🌾 Bez glutenu'}[item.diet]||item.diet}</span>
+                    <div style="display:flex;gap:4px;margin-left:8px;">
+                        <button class="btn-icon danger" onclick="deleteMenuItem('${item.id}')">🗑️</button>
+                    </div>
+                </div>`).join('')}
+            </div>`).join('');
+    }
+
+    // Drinks
+    const drinks = courses['napoj'] || [];
+    document.getElementById('drinks-list').innerHTML = drinks.length === 0
+        ? `<div class="empty-state" style="padding:16px;"><p>Brak napojów</p></div>`
+        : drinks.map(d => `
+        <div class="menu-item-row">
+            <div class="menu-item-info">
+                <div class="menu-item-name">🥂 ${d.name}</div>
+                ${d.desc?`<div class="menu-item-desc">${d.desc}</div>`:''}
+            </div>
+            <button class="btn-icon danger" onclick="deleteMenuItem('${d.id}')">🗑️</button>
+        </div>`).join('');
+
+    // Diet stats
+    const dietCounts = {standard:0,vege:0,vegan:0,gluten:0};
+    menuItems.forEach(m => { if (dietCounts[m.diet]!==undefined) dietCounts[m.diet]++; });
+    document.getElementById('diet-stats').innerHTML = Object.entries({standard:'🍖 Standard',vege:'🥗 Wegetariańskie',vegan:'🌱 Wegańskie',gluten:'🌾 Bezglutenowe'}).map(([k,l]) => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">
+            <span style="font-size:13px;">${l}</span>
+            <span style="font-family:var(--font-display);font-size:16px;font-weight:700;">${dietCounts[k]}</span>
+        </div>`).join('');
+}
+
+function saveCaterer() {
+    const name = document.getElementById('cat-name').value.trim();
+    if (!name) { showToast('Podaj nazwę firmy', 'error'); return; }
+    setEventSingle('caterer', {
+        name,
+        phone: document.getElementById('cat-phone').value.trim(),
+        email: document.getElementById('cat-email').value.trim(),
+        price: parseFloat(document.getElementById('cat-price').value)||0,
+        status: document.getElementById('cat-status').value,
+        notes: document.getElementById('cat-notes').value.trim(),
+    });
+    closeModal('caterer-modal');
+    renderMenu();
+    showToast('Firma cateringowa zapisana ✓');
+}
+
+function saveMenuItem() {
+    const name = document.getElementById('mi-name').value.trim();
+    if (!name) { showToast('Podaj nazwę', 'error'); return; }
+    const items = getEventData('menu');
+    items.push({
+        id: newId(),
+        name,
+        course: document.getElementById('mi-course').value,
+        diet: document.getElementById('mi-diet').value,
+        desc: document.getElementById('mi-desc').value.trim(),
+    });
+    setEventData('menu', items);
+    closeModal('menu-item-modal');
+    ['mi-name','mi-desc'].forEach(id => document.getElementById(id).value = '');
+    renderMenu();
+    showToast('Danie dodane ✓');
+}
+
+function deleteMenuItem(id) {
+    setEventData('menu', getEventData('menu').filter(m => m.id !== id));
+    renderMenu();
+}
+
+// ============================================================
+// SCHEDULE
+// ============================================================
+function renderSchedule() {
+    const ev = getActiveEvent();
+    if (!ev) return;
+    document.getElementById('schedule-subtitle').textContent = ev.name + (ev.date ? ' · ' + fDate(ev.date) : '');
+    const items = getEventData('schedule').sort((a,b) => a.time > b.time ? 1 : -1);
+
+    if (items.length === 0) {
+        document.getElementById('schedule-timeline').innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><p>Brak punktów harmonogramu. Dodaj pierwszy!</p></div>`;
+        document.getElementById('schedule-summary').innerHTML = '';
+        return;
+    }
+
+    document.getElementById('schedule-timeline').innerHTML = items.map(s => `
+        <div class="schedule-item">
+            <div class="schedule-dot">${s.emoji||'📌'}</div>
+            <div class="schedule-time">${s.time||'?:??'}</div>
+            <div class="schedule-card">
+                <div class="schedule-event-name">${s.name}</div>
+                ${s.location?`<div class="schedule-event-detail">📍 ${s.location}</div>`:''}
+                ${s.notes?`<div class="schedule-event-detail" style="margin-top:3px;">📝 ${s.notes}</div>`:''}
+                ${s.duration?`<span class="schedule-duration">⏱ ${s.duration} min</span>`:''}
+            </div>
+            <div style="display:flex;gap:4px;margin-top:6px;">
+                <button class="btn-icon danger" onclick="deleteScheduleItem('${s.id}')">🗑️</button>
+            </div>
+        </div>`).join('');
+
+    const totalMin = items.reduce((s,i) => s+(parseInt(i.duration)||0),0);
+    const start = items[0]?.time || '';
+    const end = items[items.length-1]?.time || '';
+    document.getElementById('schedule-summary').innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">
+                <span style="font-size:13px;color:var(--text-muted);">Liczba punktów</span>
+                <span style="font-weight:700;">${items.length}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">
+                <span style="font-size:13px;color:var(--text-muted);">Godzina rozpoczęcia</span>
+                <span style="font-weight:700;">${start}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">
+                <span style="font-size:13px;color:var(--text-muted);">Ostatni punkt</span>
+                <span style="font-weight:700;">${end}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;">
+                <span style="font-size:13px;color:var(--text-muted);">Łączny czas</span>
+                <span style="font-weight:700;">${Math.floor(totalMin/60)}h ${totalMin%60}min</span>
+            </div>
+        </div>
+        <div style="margin-top:16px;">
+            <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Wszystkie punkty</div>
+            ${items.map(s=>`<div style="font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;"><span style="color:var(--accent-gold-dark);font-weight:700;min-width:45px;">${s.time}</span><span>${s.emoji||''} ${s.name}</span></div>`).join('')}
+        </div>
+    `;
+}
+
+function saveScheduleItem() {
+    const name = document.getElementById('sch-name').value.trim();
+    const time = document.getElementById('sch-time').value;
+    if (!name) { showToast('Podaj nazwę', 'error'); return; }
+    const items = getEventData('schedule');
+    items.push({
+        id: newId(),
+        name,
+        time,
+        duration: document.getElementById('sch-duration').value,
+        emoji: document.getElementById('sch-emoji').value.trim() || '📌',
+        location: document.getElementById('sch-location').value.trim(),
+        notes: document.getElementById('sch-notes').value.trim(),
+    });
+    setEventData('schedule', items);
+    closeModal('schedule-modal');
+    ['sch-name','sch-time','sch-duration','sch-emoji','sch-location','sch-notes'].forEach(id => document.getElementById(id).value = '');
+    renderSchedule();
+    showToast('Punkt harmonogramu dodany ✓');
+}
+
+function deleteScheduleItem(id) {
+    setEventData('schedule', getEventData('schedule').filter(s => s.id !== id));
+    renderSchedule();
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+const escHtml = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+// ============================================================
+// SEATING PLAN
+// ============================================================
+let unassignedFilter = 'all';
+let pendingAssignTableId = null;
+let pendingAssignSeatNum = null;
+
+const TABLE_COLORS = {
+    gold:     { bg:'var(--accent-gold-light)',     accent:'var(--accent-gold-dark)',  bar:'#c9a96e' },
+    rose:     { bg:'var(--accent-rose-light)',     accent:'var(--accent-rose-dark)',  bar:'#e8a598' },
+    sage:     { bg:'var(--accent-sage-light)',     accent:'var(--accent-sage-dark)',  bar:'#8faa8e' },
+    sky:      { bg:'var(--accent-sky-light)',      accent:'#4a8fa4',                  bar:'#7aafc4' },
+    lavender: { bg:'var(--accent-lavender-light)', accent:'var(--accent-lavender)',   bar:'#a89bc2' },
+};
+const TABLE_SHAPE_ICONS  = { round:'🔵', rect:'▭', head:'👑' };
+const TABLE_SHAPE_LABELS = { round:'Okrągły', rect:'Prostokątny', head:'Główny (podkowa)' };
+const RELATION_COLORS = {
+    rodzina:       { bg:'var(--accent-rose-light)',     text:'var(--accent-rose-dark)' },
+    przyjaciel:    { bg:'var(--accent-sage-light)',     text:'var(--accent-sage-dark)' },
+    znajomy:       { bg:'var(--accent-gold-light)',     text:'var(--accent-gold-dark)' },
+    'kolega-pracy':{ bg:'var(--accent-sky-light)',      text:'#4a8fa4' },
+    inny:          { bg:'var(--accent-lavender-light)', text:'var(--accent-lavender)' },
+};
+
+function renderSeating() {
+    const ev = getActiveEvent();
+    if (!ev) return;
+    document.getElementById('seating-subtitle').textContent = ev.name;
+
+    const tables = getEventData('tables');
+    const guests = getEventData('guests');
+
+    const totalSeats   = tables.reduce((s,t) => s + (t.seats||0), 0);
+    const assigned     = guests.filter(g => g.tableId).length;
+    const unassigned   = guests.filter(g => !g.tableId && g.rsvp !== 'declined').length;
+    const confirmed    = guests.filter(g => g.rsvp === 'confirmed').length;
+    const freeSeats    = Math.max(0, totalSeats - assigned);
+
+    document.getElementById('seating-stats').innerHTML = `
+        <div class="stat-card gold"><div class="stat-icon gold">🪑</div><div class="stat-label">Stołów</div><div class="stat-value">${tables.length}</div><div class="stat-sub">${totalSeats} miejsc łącznie</div></div>
+        <div class="stat-card sage"><div class="stat-icon sage">✅</div><div class="stat-label">Przypisanych</div><div class="stat-value">${assigned}</div><div class="stat-sub">z ${confirmed} potwierdzonych</div></div>
+        <div class="stat-card rose"><div class="stat-icon rose">⏳</div><div class="stat-label">Nieprzypisanych</div><div class="stat-value">${unassigned}</div><div class="stat-sub">gości bez miejsca</div></div>
+        <div class="stat-card lavender"><div class="stat-icon lavender">💺</div><div class="stat-label">Wolnych miejsc</div><div class="stat-value">${freeSeats}</div><div class="stat-sub">pozostało w stołach</div></div>
+    `;
+
+    const grid = document.getElementById('table-cards-grid');
+    if (tables.length === 0) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;padding:60px 20px;">
+            <div class="empty-icon">🪑</div>
+            <p>Brak stołów. Dodaj pierwszy stół, aby rozpocząć rozsadzanie gości.</p>
+            <button class="btn-primary" style="margin-top:16px;" onclick="openTableModal()">+ Dodaj pierwszy stół</button>
+        </div>`;
+    } else {
+        grid.innerHTML = tables.map(t => renderTableCard(t, guests)).join('');
+    }
+
+    renderUnassignedPanel(guests);
+}
+
+function renderTableCard(table, guests) {
+    const col = TABLE_COLORS[table.color] || TABLE_COLORS.gold;
+    const tableGuests = guests.filter(g => g.tableId === table.id);
+    const seatsCount  = table.seats || 0;
+    const occupied    = tableGuests.length;
+    const pct         = seatsCount > 0 ? Math.round(occupied / seatsCount * 100) : 0;
+
+    let seats = '';
+    for (let i = 0; i < seatsCount; i++) {
+        const g = tableGuests.find(x => x.seatNum === i);
+        if (g) {
+            const initials = g.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+            const rc = RELATION_COLORS[g.relation] || RELATION_COLORS.inny;
+            const firstName = escHtml(g.name.split(' ')[0]);
+            seats += `<div class="seat-pill" onclick="clickSeat('${table.id}',${i})" title="${escHtml(g.name)} — kliknij, aby odsuć">
+                <div class="seat-circle taken" style="background:${rc.bg};color:${rc.text};">${initials}</div>
+                <div class="seat-name">${firstName}</div>
+            </div>`;
+        } else {
+            seats += `<div class="seat-pill" onclick="clickSeat('${table.id}',${i})" title="Puste miejsce — kliknij, aby przypisać">
+                <div class="seat-circle empty">+</div>
+                <div class="seat-name" style="color:var(--text-muted);">—</div>
+            </div>`;
+        }
+    }
+
+    return `<div class="table-card">
+        <div class="table-card-head" style="background:${col.bg};">
+            <div>
+                <div class="table-card-title" style="color:${col.accent};">${TABLE_SHAPE_ICONS[table.shape]||'🔵'} ${escHtml(table.name)}</div>
+                <div class="table-card-meta">${TABLE_SHAPE_LABELS[table.shape]||table.shape} · ${seatsCount} miejsc${table.note?' · '+escHtml(table.note):''}</div>
+            </div>
+            <div class="table-card-actions">
+                <button class="btn-icon" onclick="openTableModal('${table.id}')" title="Edytuj stół">✏️</button>
+                <button class="btn-icon danger" onclick="deleteTable('${table.id}')" title="Usuń stół">🗑️</button>
+            </div>
+        </div>
+        <div class="table-card-body">
+            <div class="seats-wrap">${seats}</div>
+        </div>
+        <div class="table-card-footer">
+            <div style="display:flex;align-items:center;gap:10px;flex:1;">
+                <div class="occupancy-bar">
+                    <div class="occupancy-fill" style="width:${pct}%;background:${pct>=100?'var(--accent-ruby)':col.bar};"></div>
+                </div>
+                <span style="font-size:12px;color:var(--text-muted);white-space:nowrap;">${occupied} / ${seatsCount} zajętych</span>
+            </div>
+            ${pct>=100?'<span style="font-size:10px;font-weight:700;color:var(--accent-ruby);">Pełny</span>':''}
+        </div>
+    </div>`;
+}
+
+function renderUnassignedPanel(guests) {
+    let list = guests.filter(g => !g.tableId && g.rsvp !== 'declined');
+    if (unassignedFilter === 'confirmed') list = list.filter(g => g.rsvp === 'confirmed');
+
+    const el = document.getElementById('unassigned-guests-list');
+    const countEl = document.getElementById('unassigned-count');
+    if (countEl) countEl.textContent = list.length + ' osób';
+
+    if (list.length === 0) {
+        el.innerHTML = `<div class="empty-state" style="padding:24px 10px;"><div class="empty-icon">🎉</div>
+            <p>${unassignedFilter==='confirmed'?'Wszyscy potwierdzeni goście są przypisani!':'Brak nieprzypisanych gości'}</p></div>`;
+        return;
+    }
+    el.innerHTML = list.map(g => {
+        const initials = g.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+        const rc = RELATION_COLORS[g.relation] || RELATION_COLORS.inny;
+        return `<div class="unassigned-item">
+            <div class="unassigned-avatar" style="background:${rc.bg};color:${rc.text};">${initials}</div>
+            <div class="unassigned-info">
+                <div class="unassigned-name">${escHtml(g.name)}</div>
+                <div class="unassigned-detail">${g.relation||''}${g.rsvp==='confirmed'?' · ✅':' · ⏳'}${g.diet&&g.diet!=='standard'?' · 🍽 '+g.diet:''}</div>
+            </div>
+            <button class="unassigned-assign-btn" onclick="quickAssignGuest('${g.id}')" title="Szybkie przypisanie">→</button>
+        </div>`;
+    }).join('');
+}
+
+function setUnassignedFilter(f, btn) {
+    unassignedFilter = f;
+    document.querySelectorAll('#unassigned-filters .filter-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    renderUnassignedPanel(getEventData('guests'));
+}
+
+function openTableModal(editId) {
+    const title = editId ? 'Edytuj stół' : 'Dodaj stół';
+    document.getElementById('table-modal-title').textContent = title;
+    document.getElementById('tb-edit-id').value = editId || '';
+    if (editId) {
+        const t = getEventData('tables').find(x => x.id === editId);
+        if (t) {
+            document.getElementById('tb-name').value  = t.name;
+            document.getElementById('tb-shape').value = t.shape  || 'round';
+            document.getElementById('tb-seats').value = t.seats  || 8;
+            document.getElementById('tb-color').value = t.color  || 'gold';
+            document.getElementById('tb-note').value  = t.note   || '';
+        }
+    } else {
+        document.getElementById('tb-name').value  = '';
+        document.getElementById('tb-shape').value = 'round';
+        document.getElementById('tb-seats').value = '8';
+        document.getElementById('tb-color').value = 'gold';
+        document.getElementById('tb-note').value  = '';
+    }
+    openModal('table-modal');
+}
+
+function saveTable() {
+    const name  = document.getElementById('tb-name').value.trim();
+    const seats = parseInt(document.getElementById('tb-seats').value) || 8;
+    if (!name)  { showToast('Podaj nazwę stołu', 'error'); return; }
+    if (seats < 1 || seats > 50) { showToast('Liczba miejsc: 1–50', 'error'); return; }
+
+    const editId = document.getElementById('tb-edit-id').value;
+    const tables = getEventData('tables');
+    const item = {
+        id:    editId || newId(),
+        name,
+        shape: document.getElementById('tb-shape').value,
+        seats,
+        color: document.getElementById('tb-color').value,
+        note:  document.getElementById('tb-note').value.trim(),
+    };
+    if (editId) {
+        const idx = tables.findIndex(t => t.id === editId);
+        if (idx >= 0) tables[idx] = { ...tables[idx], ...item }; else tables.push(item);
+    } else {
+        tables.push(item);
+    }
+    setEventData('tables', tables);
+    closeModal('table-modal');
+    renderSeating();
+    showToast(`Stół "${name}" zapisany ✓`);
+}
+
+function deleteTable(id) {
+    const tables = getEventData('tables');
+    const t = tables.find(x => x.id === id);
+    if (!t) return;
+    if (!confirm(`Usunąć stół "${t.name}"? Wszyscy przypisani goście zostaną odsuci.`)) return;
+    const guests = getEventData('guests');
+    guests.forEach(g => { if (g.tableId === id) { g.tableId = null; g.seatNum = null; g.table = ''; } });
+    setEventData('guests', guests);
+    setEventData('tables', tables.filter(x => x.id !== id));
+    renderSeating();
+    showToast('Stół usunięty');
+}
+
+function clickSeat(tableId, seatNum) {
+    const guests  = getEventData('guests');
+    const occupant = guests.find(g => g.tableId === tableId && g.seatNum === seatNum);
+    if (occupant) {
+        if (confirm(`Odsuć ${occupant.name} od tego miejsca?`)) {
+            occupant.tableId = null;
+            occupant.seatNum = null;
+            occupant.table   = '';
+            setEventData('guests', guests);
+            renderSeating();
+            showToast(`${occupant.name} odsunięty/a ✓`);
+        }
+    } else {
+        openAssignModal(tableId, seatNum);
+    }
+}
+
+function openAssignModal(tableId, seatNum) {
+    pendingAssignTableId = tableId;
+    pendingAssignSeatNum = seatNum;
+    document.getElementById('assign-table-id').value = tableId;
+    document.getElementById('assign-seat-num').value = seatNum;
+    document.getElementById('assign-search').value   = '';
+    const table = getEventData('tables').find(t => t.id === tableId);
+    const label = table ? `${table.name} — miejsce ${seatNum + 1}` : `Miejsce ${seatNum + 1}`;
+    document.getElementById('assign-modal-title').textContent = `Przypisz gościa: ${label}`;
+    filterAssignList('');
+    openModal('assign-modal');
+}
+
+function filterAssignList(search) {
+    let guests = getEventData('guests').filter(g => !g.tableId && g.rsvp !== 'declined');
+    if (search) guests = guests.filter(g => g.name.toLowerCase().includes(search.toLowerCase()));
+    const el = document.getElementById('assign-guest-list');
+    if (!el) return;
+    if (guests.length === 0) {
+        el.innerHTML = `<div class="empty-state" style="padding:24px;"><p>${search?'Brak wyników dla "'+escHtml(search)+'"':'Wszyscy goście są już przypisani 🎉'}</p></div>`;
+        return;
+    }
+    el.innerHTML = guests.map(g => {
+        const initials = g.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+        const rc = RELATION_COLORS[g.relation] || RELATION_COLORS.inny;
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:background 0.15s;margin-bottom:4px;"
+                    onmouseenter="this.style.background='var(--bg-secondary)'" onmouseleave="this.style.background=''"
+                    onclick="assignGuestToSeat('${g.id}')">
+            <div style="width:40px;height:40px;border-radius:50%;background:${rc.bg};color:${rc.text};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;">${initials}</div>
+            <div style="flex:1;">
+                <div style="font-size:14px;font-weight:600;">${escHtml(g.name)}</div>
+                <div style="font-size:11px;color:var(--text-muted);">${g.relation||''}${g.rsvp==='confirmed'?' · ✅ Potwierdzony':' · ⏳ Oczekuje'}${g.diet&&g.diet!=='standard'?' · 🍽 '+g.diet:''}</div>
+            </div>
+            <span style="background:var(--accent-gold-light);color:var(--accent-gold-dark);font-size:12px;font-weight:700;padding:5px 14px;border-radius:20px;flex-shrink:0;">Przypisz</span>
+        </div>`;
+    }).join('');
+}
+
+function assignGuestToSeat(guestId) {
+    const tableId = pendingAssignTableId;
+    const seatNum = pendingAssignSeatNum;
+    if (tableId === null || tableId === undefined) return;
+    const guests = getEventData('guests');
+    const g = guests.find(x => x.id === guestId);
+    if (!g) return;
+    const table = getEventData('tables').find(t => t.id === tableId);
+    g.tableId = tableId;
+    g.seatNum = seatNum;
+    g.table   = table ? table.name : '';
+    setEventData('guests', guests);
+    closeModal('assign-modal');
+    renderSeating();
+    showToast(`${g.name} → ${table ? table.name : 'Stół'}, miejsce ${seatNum + 1} ✓`);
+}
+
+function quickAssignGuest(guestId) {
+    const tables = getEventData('tables');
+    if (tables.length === 0) { showToast('Najpierw dodaj stół', 'error'); return; }
+    const guests = getEventData('guests');
+    for (const t of tables) {
+        const takenSeats = new Set(guests.filter(x => x.tableId === t.id).map(x => x.seatNum));
+        if (takenSeats.size < (t.seats || 0)) {
+            for (let i = 0; i < t.seats; i++) {
+                if (!takenSeats.has(i)) {
+                    openAssignModal(t.id, i);
+                    setTimeout(() => {
+                        const g = guests.find(x => x.id === guestId);
+                        if (g) {
+                            const searchEl = document.getElementById('assign-search');
+                            if (searchEl) { searchEl.value = g.name; filterAssignList(g.name); }
+                        }
+                    }, 60);
+                    return;
+                }
+            }
+        }
+    }
+    showToast('Brak wolnych miejsc przy żadnym stole', 'error');
+}
+
+function autoAssignGuests() {
+    const tables = getEventData('tables');
+    if (tables.length === 0) { showToast('Najpierw dodaj stoły', 'error'); return; }
+    const guests = getEventData('guests');
+    const toAssign = guests.filter(g => !g.tableId && g.rsvp === 'confirmed');
+    if (toAssign.length === 0) { showToast('Wszyscy potwierdzeni goście są już przypisani', 'error'); return; }
+
+    let count = 0;
+    for (const g of toAssign) {
+        for (const t of tables) {
+            const takenSeats = new Set(guests.filter(x => x.tableId === t.id).map(x => x.seatNum));
+            if (takenSeats.size < (t.seats || 0)) {
+                for (let i = 0; i < t.seats; i++) {
+                    if (!takenSeats.has(i)) {
+                        g.tableId = t.id;
+                        g.seatNum = i;
+                        g.table   = t.name;
+                        takenSeats.add(i);
+                        count++;
+                        break;
+                    }
+                }
+                if (g.tableId) break;
+            }
+        }
+    }
+    setEventData('guests', guests);
+    renderSeating();
+    showToast(count > 0 ? `Automatycznie przypisano ${count} gości ✓` : 'Brak wolnych miejsc przy stołach', count > 0 ? 'success' : 'error');
+}
+
+function printSeatingChart() { window.print(); }
+
+// ============================================================
+// VENDORS
+// ============================================================
+const VENDOR_CAT_ICONS  = { photo:'📷', music:'🎵', flowers:'🌸', catering:'🍽️', venue:'📍', transport:'🚗', cake:'🎂', clothing:'👗', other:'📌' };
+const VENDOR_CAT_LABELS = { photo:'Foto/Video', music:'Muzyka/DJ', flowers:'Kwiaty/Dekoracje', catering:'Catering', venue:'Sala/Miejsce', transport:'Transport', cake:'Tort', clothing:'Stroje', other:'Inne' };
+const VENDOR_CAT_BG     = { photo:'var(--accent-sky-light)', music:'var(--accent-lavender-light)', flowers:'var(--accent-sage-light)', catering:'var(--accent-rose-light)', venue:'var(--accent-gold-light)', transport:'var(--bg-input)', cake:'var(--accent-rose-light)', clothing:'var(--accent-rose-light)', other:'var(--bg-input)' };
+const VENDOR_STATUS_LABELS = { inquiry:'Zapytanie', offer:'Oferta', signed:'Umowa ✅', paid:'Zapłacono 💳' };
+
+let activeVendorCat = 'all';
+
+function renderVendors() {
+    const ev = getActiveEvent();
+    if (!ev) return;
+    document.getElementById('vendors-subtitle').textContent = ev.name;
+    const vendors = getEventData('vendors');
+
+    const signed     = vendors.filter(v => v.status === 'signed' || v.status === 'paid').length;
+    const totalCost  = vendors.reduce((s,v) => s + (v.price||0), 0);
+
+    document.getElementById('vendor-stats').innerHTML = `
+        <div class="stat-card gold"><div class="stat-icon gold">🤝</div><div class="stat-label">Dostawców</div><div class="stat-value">${vendors.length}</div></div>
+        <div class="stat-card sage"><div class="stat-icon sage">✅</div><div class="stat-label">Z umową / Zapłacono</div><div class="stat-value">${signed}</div></div>
+        <div class="stat-card lavender"><div class="stat-icon lavender">💰</div><div class="stat-label">Szacowany koszt</div><div class="stat-value" style="font-size:16px;">${PLN(totalCost)}</div></div>
+    `;
+
+    // Category filters
+    const cats = [...new Set(vendors.map(v => v.category))];
+    document.getElementById('vendor-cat-filters').innerHTML = [
+        `<button class="filter-pill ${activeVendorCat==='all'?'active':''}" onclick="setVendorCat('all',this)">Wszyscy</button>`,
+        ...cats.map(c => `<button class="filter-pill ${activeVendorCat===c?'active':''}" onclick="setVendorCat('${c}',this)">${VENDOR_CAT_ICONS[c]||'📌'} ${VENDOR_CAT_LABELS[c]||c}</button>`)
+    ].join('');
+
+    const filtered = activeVendorCat === 'all' ? vendors : vendors.filter(v => v.category === activeVendorCat);
+
+    const list = document.getElementById('vendors-list');
+    if (vendors.length === 0) {
+        list.innerHTML = `<div class="empty-state"><div class="empty-icon">🤝</div><p>Brak dostawców. Dodaj fotografa, DJ-a, kwiaciarza i inne usługi.</p></div>`;
+        return;
+    }
+    if (filtered.length === 0) {
+        list.innerHTML = `<div class="empty-state"><p>Brak dostawców w tej kategorii</p></div>`;
+        return;
+    }
+    list.innerHTML = filtered.map(v => `
+        <div class="vendor-row">
+            <div class="vendor-icon" style="background:${VENDOR_CAT_BG[v.category]||'var(--bg-input)'};">${VENDOR_CAT_ICONS[v.category]||'📌'}</div>
+            <div class="vendor-info">
+                <div class="vendor-name">${escHtml(v.name)}</div>
+                <div class="vendor-detail">${VENDOR_CAT_LABELS[v.category]||v.category}${v.phone?' · 📞 '+v.phone:''}${v.email?' · ✉️ '+v.email:''}${v.price?' · '+PLN(v.price):''}${v.website?' · 🌐 '+escHtml(v.website):''}${v.notes?' · '+escHtml(v.notes):''}</div>
+            </div>
+            <span class="vendor-status ${v.status}">${VENDOR_STATUS_LABELS[v.status]||v.status}</span>
+            <div style="display:flex;gap:4px;">
+                <button class="btn-icon" onclick="editVendor('${v.id}')" title="Edytuj">✏️</button>
+                <button class="btn-icon danger" onclick="deleteVendor('${v.id}')" title="Usuń">🗑️</button>
+            </div>
+        </div>`).join('');
+}
+
+function setVendorCat(cat, btn) {
+    activeVendorCat = cat;
+    document.querySelectorAll('#vendor-cat-filters .filter-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    renderVendors();
+}
+
+function openVendorModal(editId) {
+    const title = editId ? 'Edytuj dostawcę' : 'Dodaj dostawcę';
+    document.getElementById('vendor-modal-title').textContent = title;
+    document.getElementById('vd-edit-id').value = editId || '';
+    if (editId) {
+        const v = getEventData('vendors').find(x => x.id === editId);
+        if (v) {
+            document.getElementById('vd-name').value     = v.name;
+            document.getElementById('vd-category').value = v.category;
+            document.getElementById('vd-status').value   = v.status;
+            document.getElementById('vd-phone').value    = v.phone   || '';
+            document.getElementById('vd-email').value    = v.email   || '';
+            document.getElementById('vd-price').value    = v.price   || '';
+            document.getElementById('vd-website').value  = v.website || '';
+            document.getElementById('vd-notes').value    = v.notes   || '';
+        }
+    } else {
+        ['vd-name','vd-phone','vd-email','vd-website','vd-notes'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('vd-price').value    = '';
+        document.getElementById('vd-category').value = 'photo';
+        document.getElementById('vd-status').value   = 'inquiry';
+    }
+    openModal('vendor-modal');
+}
+
+function saveVendor() {
+    const name = document.getElementById('vd-name').value.trim();
+    if (!name) { showToast('Podaj nazwę dostawcy', 'error'); return; }
+    const editId  = document.getElementById('vd-edit-id').value;
+    const vendors = getEventData('vendors');
+    const item = {
+        id:       editId || newId(),
+        name,
+        category: document.getElementById('vd-category').value,
+        status:   document.getElementById('vd-status').value,
+        phone:    document.getElementById('vd-phone').value.trim(),
+        email:    document.getElementById('vd-email').value.trim(),
+        price:    parseFloat(document.getElementById('vd-price').value) || 0,
+        website:  document.getElementById('vd-website').value.trim(),
+        notes:    document.getElementById('vd-notes').value.trim(),
+    };
+    if (editId) {
+        const idx = vendors.findIndex(v => v.id === editId);
+        if (idx >= 0) vendors[idx] = item; else vendors.push(item);
+    } else {
+        vendors.push(item);
+    }
+    setEventData('vendors', vendors);
+    closeModal('vendor-modal');
+    renderVendors();
+    showToast('Dostawca zapisany ✓');
+}
+
+function editVendor(id) { openVendorModal(id); }
+
+function deleteVendor(id) {
+    if (!confirm('Usunąć tego dostawcę?')) return;
+    setEventData('vendors', getEventData('vendors').filter(v => v.id !== id));
+    renderVendors();
+    showToast('Dostawca usunięty');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function initApp() {
+    events = db.get('events') || [];
+    activeEventId = db.get('active_event') || (events.length > 0 ? events[0].id : null);
+
+    document.getElementById('user-label').textContent = USER_ID === 'anonymous' ? 'Tryb lokalny' : `Konto: ${USER_ID.slice(0,10)}`;
+    document.getElementById('sidebar-date').textContent = new Date().toLocaleDateString('pl-PL', {weekday:'short',day:'numeric',month:'short'});
+
+    renderSidebar();
+    renderDashboard();
+}
+
+initApp();
+</script>
+
+<!-- ============================================================ -->
+<!-- AI VIEW                                                       -->
+<!-- ============================================================ -->
+<div class="view" id="ai-view">
+  <div class="page-header">
+    <div>
+      <div class="page-title">🤖 Asystent AI</div>
+      <div class="page-subtitle">Inteligentne wsparcie w planowaniu imprez</div>
+    </div>
+    <button class="btn-secondary" onclick="openModal('ai-settings-modal')" style="gap:6px;">⚙️ Ustawienia AI</button>
+  </div>
+
+  <div id="ai-status-bar" style="display:none;padding:10px 16px;border-radius:12px;margin-bottom:20px;font-size:13px;font-weight:600;"></div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:28px;">
+    <button class="ai-quick-btn" onclick="aiQuickAction('vendor-suggest')">🏪<span>Zaproponuj dostawców</span></button>
+    <button class="ai-quick-btn" onclick="aiQuickAction('menu-ideas')">🍽️<span>Pomysły na menu</span></button>
+    <button class="ai-quick-btn" onclick="aiQuickAction('budget-optimize')">💰<span>Optymalizacja budżetu</span></button>
+    <button class="ai-quick-btn" onclick="aiQuickAction('timeline')">📅<span>Plan dnia imprezy</span></button>
+    <button class="ai-quick-btn" onclick="aiQuickAction('seating-tips')">💺<span>Wskazówki rozmieszczenia</span></button>
+    <button class="ai-quick-btn" onclick="aiQuickAction('checklist')">✅<span>Checklista przed imprezą</span></button>
+  </div>
+
+  <div style="background:#fff;border-radius:16px;box-shadow:var(--shadow-md);overflow:hidden;">
+    <div id="ai-chat-box" style="height:380px;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;">
+      <div class="ai-msg ai-msg--assistant"><div class="ai-msg__bubble">Cześć! Jestem Twoim asystentem planowania imprez 🎉 Mogę pomóc w wyborze dostawców, tworzeniu menu, optymalizacji budżetu, układaniu harmonogramu, rozmieszczeniu gości i wielu innych kwestiach. Jak mogę Ci pomóc?</div></div>
+    </div>
+    <div style="border-top:1px solid var(--border);padding:14px 16px;display:flex;gap:10px;background:#fafafa;">
+      <input id="ai-user-input" type="text" placeholder="Napisz wiadomość do asystenta..." style="flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-family:var(--font-body);font-size:14px;background:#fff;outline:none;"
+        onkeydown="if(event.key==='Enter')sendAIChat()">
+      <button onclick="sendAIChat()" style="padding:10px 20px;background:linear-gradient(135deg,var(--accent-gold),var(--accent-rose));color:#fff;border:none;border-radius:10px;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;">Wyślij</button>
+    </div>
+  </div>
+</div>
+
+<!-- Floating AI button -->
+<button id="ai-float-btn" onclick="switchView('ai')"
+  style="position:fixed;bottom:28px;right:28px;width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--accent-gold),var(--accent-rose));border:none;font-size:24px;cursor:pointer;box-shadow:0 4px 20px rgba(201,169,110,0.45);z-index:800;display:flex;align-items:center;justify-content:center;transition:transform .2s;"
+  onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform='scale(1)'">🤖</button>
+
+<!-- AI Settings Modal -->
+<div class="modal" id="ai-settings-modal">
+  <div class="modal-box" style="max-width:460px;">
+    <div class="modal-header"><h3>⚙️ Ustawienia AI</h3><button class="modal-close" onclick="closeModal('ai-settings-modal')">✕</button></div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">Klucz API OpenRouter</label>
+        <input id="ai-key-input" type="password" placeholder="sk-or-v1-..." style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:var(--font-body);">
+        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Zdobądź klucz na <a href="https://openrouter.ai" target="_blank" style="color:var(--accent-gold-dark);">openrouter.ai</a></div>
+      </div>
+      <div id="ai-model-status" style="font-size:13px;color:var(--text-secondary);padding:10px 14px;background:var(--bg-input);border-radius:10px;min-height:40px;"></div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="testAndSaveAIKey()" style="flex:1;padding:10px;background:linear-gradient(135deg,var(--accent-gold),var(--accent-rose));color:#fff;border:none;border-radius:10px;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;">Zapisz i przetestuj</button>
+        <button onclick="clearAIKey()" style="padding:10px 16px;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;font-family:var(--font-body);font-size:13px;cursor:pointer;color:var(--text-secondary);">Wyczyść</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.ai-quick-btn{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 12px;background:#fff;border:1px solid var(--border);border-radius:14px;font-family:var(--font-body);font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer;transition:all .2s;box-shadow:var(--shadow-sm);}
+.ai-quick-btn:hover{border-color:var(--accent-gold);color:var(--accent-gold-dark);box-shadow:var(--shadow-gold);transform:translateY(-2px);}
+.ai-quick-btn span{text-align:center;line-height:1.3;}
+.ai-quick-btn{font-size:26px;}
+.ai-quick-btn span{font-size:12px;}
+.ai-msg{display:flex;max-width:80%;}
+.ai-msg--user{align-self:flex-end;flex-direction:row-reverse;}
+.ai-msg--assistant{align-self:flex-start;}
+.ai-msg__bubble{padding:12px 16px;border-radius:14px;font-size:14px;line-height:1.6;}
+.ai-msg--user .ai-msg__bubble{background:linear-gradient(135deg,var(--accent-gold),var(--accent-rose));color:#fff;border-bottom-right-radius:4px;}
+.ai-msg--assistant .ai-msg__bubble{background:var(--bg-secondary);color:var(--text-primary);border-bottom-left-radius:4px;}
+.ai-msg--loading .ai-msg__bubble{opacity:.7;font-style:italic;}
+</style>
+
+<script>
+// ============================================================
+// AI MODULE — Planer Uroczystości
+// ============================================================
+const AI_MODELS = [
+  { id: 'anthropic/claude-3.5-haiku',          name: 'Claude 3.5 Haiku' },
+  { id: 'openai/gpt-4o-mini',                   name: 'GPT-4o Mini' },
+  { id: 'google/gemini-flash-1.5-8b',           name: 'Gemini Flash 1.5 8B' },
+  { id: 'meta-llama/llama-3.1-8b-instruct',     name: 'Llama 3.1 8B' },
+  { id: 'mistralai/mistral-7b-instruct',        name: 'Mistral 7B' }
+];
+
+let aiChatHistory = [];
+
+function getAIKey()   { return db.get('ai_api_key') || ''; }
+function getAIModel() { return db.get('ai_model') || ''; }
+
+function getAISystemPrompt() {
+  const ev = (typeof getActiveEvent === 'function') ? getActiveEvent() : null;
+  let ctx = '';
+  if (ev) {
+    ctx += `Aktywna impreza: "${ev.name}" (typ: ${ev.type}, data: ${ev.date || 'brak'}, miejsce: ${ev.venue || 'brak'}).\n`;
+    const budget = (typeof getEventSingle === 'function') ? getEventSingle('budget_total', 0) : 0;
+    const spent  = (typeof getEventSingle === 'function') ? getEventSingle('budget_spent', 0) : 0;
+    const guests = (typeof getEventData  === 'function') ? getEventData('guests') : [];
+    const tasks  = (typeof getEventData  === 'function') ? getEventData('tasks')  : [];
+    const vendors= (typeof getEventData  === 'function') ? getEventData('vendors'): [];
+    ctx += `Budżet: ${budget} PLN, wydano: ${spent} PLN.\n`;
+    ctx += `Liczba gości: ${guests.length}.\n`;
+    ctx += `Zadania: ${tasks.length} (ukończone: ${tasks.filter(t=>t.done).length}).\n`;
+    ctx += `Dostawcy: ${vendors.length}.\n`;
+  }
+  return `Jesteś inteligentnym asystentem planowania imprez i uroczystości. Pomagasz w organizacji wesel, urodzin, konferencji i innych wydarzeń.
+${ctx}
+Odpowiadaj zawsze po polsku. Bądź konkretny, pomocny i kreatywny. Podawaj praktyczne wskazówki i przykłady.`;
+}
+
+async function callOpenRouter(userMessage, systemOverride) {
+  const key   = getAIKey();
+  const model = getAIModel();
+  if (!key || !model) throw new Error('Brak klucza API lub modelu. Skonfiguruj w ustawieniach AI.');
+  const messages = [
+    { role: 'system', content: systemOverride || getAISystemPrompt() },
+    ...aiChatHistory.slice(-6),
+    { role: 'user', content: userMessage }
+  ];
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, messages, max_tokens: 800 })
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || 'Brak odpowiedzi.';
+}
+
+async function testAndSaveAIKey() {
+  const key = document.getElementById('ai-key-input').value.trim();
+  if (!key) { alert('Wklej klucz API OpenRouter.'); return; }
+  const statusEl = document.getElementById('ai-model-status');
+  statusEl.textContent = '⏳ Testowanie modeli...';
+  let saved = false;
+  for (const m of AI_MODELS) {
+    statusEl.textContent = `⏳ Testuję ${m.name}...`;
+    try {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: m.id, messages: [{ role: 'user', content: 'Odpowiedz: OK' }], max_tokens: 5 })
+      });
+      if (res.ok) {
+        db.set('ai_api_key', key);
+        db.set('ai_model', m.id);
+        statusEl.innerHTML = `✅ Połączono! Aktywny model: <strong>${m.name}</strong>`;
+        statusEl.style.color = '#2d7a2d';
+        saved = true;
+        updateAIStatusBar();
+        closeModal('ai-settings-modal');
+        break;
+      }
+    } catch(e) { /* try next */ }
+  }
+  if (!saved) {
+    statusEl.textContent = '❌ Żaden model nie odpowiedział. Sprawdź klucz API.';
+    statusEl.style.color = '#c0392b';
+  }
+}
+
+function clearAIKey() {
+  db.del('ai_api_key'); db.del('ai_model');
+  document.getElementById('ai-key-input').value = '';
+  document.getElementById('ai-model-status').textContent = 'Klucz usunięty.';
+  updateAIStatusBar();
+}
+
+function updateAIStatusBar() {
+  const bar = document.getElementById('ai-status-bar');
+  if (!bar) return;
+  const key   = getAIKey();
+  const model = getAIModel();
+  const name  = AI_MODELS.find(m => m.id === model)?.name || model;
+  if (key && model) {
+    bar.style.display = 'block';
+    bar.style.background = 'linear-gradient(135deg,#e6f4e6,#d4edda)';
+    bar.style.color = '#2d7a2d';
+    bar.innerHTML = `✅ AI aktywne — model: ${name} &nbsp;·&nbsp; <a href="#" onclick="openModal('ai-settings-modal');return false;" style="color:var(--accent-gold-dark);text-decoration:none;">Zmień ustawienia</a>`;
+  } else {
+    bar.style.display = 'block';
+    bar.style.background = 'linear-gradient(135deg,#fff3cd,#ffeeba)';
+    bar.style.color = '#856404';
+    bar.innerHTML = `⚠️ AI nie skonfigurowane &nbsp;·&nbsp; <a href="#" onclick="openModal('ai-settings-modal');return false;" style="color:var(--accent-gold-dark);font-weight:700;">Dodaj klucz API →</a>`;
+  }
+  const inp = document.getElementById('ai-key-input');
+  if (inp && key) inp.value = key;
+}
+
+function addChatMessage(role, text, isLoading) {
+  const box = document.getElementById('ai-chat-box');
+  if (!box) return null;
+  const div = document.createElement('div');
+  div.className = `ai-msg ai-msg--${role}${isLoading ? ' ai-msg--loading' : ''}`;
+  div.innerHTML = `<div class="ai-msg__bubble">${text.replace(/\n/g,'<br>')}</div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+
+async function sendAIChat() {
+  const inp = document.getElementById('ai-user-input');
+  const msg = inp.value.trim();
+  if (!msg) return;
+  inp.value = '';
+  addChatMessage('user', msg);
+  aiChatHistory.push({ role: 'user', content: msg });
+  const loading = addChatMessage('assistant', '...', true);
+  try {
+    const reply = await callOpenRouter(msg);
+    loading?.remove();
+    addChatMessage('assistant', reply);
+    aiChatHistory.push({ role: 'assistant', content: reply });
+  } catch(e) {
+    loading?.remove();
+    addChatMessage('assistant', `❌ ${e.message}`);
+  }
+}
+
+async function aiQuickAction(type) {
+  const ev = (typeof getActiveEvent === 'function') ? getActiveEvent() : null;
+  const evName = ev ? ev.name : 'impreza';
+  const prompts = {
+    'vendor-suggest':  `Zaproponuj 5 kategorii dostawców niezbędnych przy organizacji imprezy "${evName}" oraz co warto sprawdzić przy ich wyborze.`,
+    'menu-ideas':      `Zaproponuj 3 propozycje menu na imprezę "${evName}" — przystawki, dania główne i desery. Weź pod uwagę różne preferencje żywieniowe.`,
+    'budget-optimize': `Podaj 5 praktycznych sposobów na optymalizację budżetu imprezy "${evName}" bez utraty jakości. Co warto negocjować z dostawcami?`,
+    'timeline':        `Stwórz szczegółowy plan dnia imprezy "${evName}" — od przygotowań rano do zakończenia. Uwzględnij bufory czasowe.`,
+    'seating-tips':    `Podaj 5 zasad optymalnego rozmieszczenia gości na imprezie "${evName}". Jak grupować gości i unikać konfliktów?`,
+    'checklist':       `Stwórz checklistę 15 rzeczy do sprawdzenia na tydzień przed imprezą "${evName}". Co najczęściej się zapomina?`
+  };
+  const prompt = prompts[type] || 'Jak mogę pomóc z planowaniem imprezy?';
+  switchView('ai');
+  addChatMessage('user', prompt);
+  aiChatHistory.push({ role: 'user', content: prompt });
+  const loading = addChatMessage('assistant', '...', true);
+  try {
+    const reply = await callOpenRouter(prompt);
+    loading?.remove();
+    addChatMessage('assistant', reply);
+    aiChatHistory.push({ role: 'assistant', content: reply });
+  } catch(e) {
+    loading?.remove();
+    addChatMessage('assistant', `❌ ${e.message}`);
+  }
+}
+
+// Init
+updateAIStatusBar();
+</script>
+
+</body>
+</html>
+

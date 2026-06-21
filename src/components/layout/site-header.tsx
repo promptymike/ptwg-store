@@ -26,7 +26,8 @@ import { cn } from "@/lib/utils";
 type PrimaryLink = { href: string; label: string; requiresBlog?: boolean };
 
 const basePrimaryLinks: PrimaryLink[] = [
-  { href: "/produkty", label: "Produkty" },
+  { href: "/planery", label: "Planery" },
+  { href: "/produkty", label: "E-booki" },
   { href: "/#use-cases", label: "Kategorie" },
   { href: "/#bundles", label: "Pakiety" },
   { href: "/blog", label: "Blog", requiresBlog: true },

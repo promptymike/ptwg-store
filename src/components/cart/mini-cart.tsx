@@ -10,6 +10,7 @@ import {
 } from "@/components/cart/cart-provider";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
+import { getProductHref } from "@/data/interactive-planners";
 
 type MiniCartProps = {
   open: boolean;
@@ -138,7 +139,7 @@ export function MiniCart({ open, onClose }: MiniCartProps) {
                     className="flex gap-3 rounded-2xl border border-border/70 bg-background/60 p-3"
                   >
                     <Link
-                      href={`/produkty/${product.slug}`}
+                      href={getProductHref(product.slug)}
                       onClick={onClose}
                       aria-label={product.name}
                       className={`relative size-16 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br ${product.coverGradient}`}
@@ -151,7 +152,7 @@ export function MiniCart({ open, onClose }: MiniCartProps) {
                     <div className="flex min-w-0 flex-1 flex-col gap-2">
                       <div className="flex items-start justify-between gap-2">
                         <Link
-                          href={`/produkty/${product.slug}`}
+                          href={getProductHref(product.slug)}
                           onClick={onClose}
                           className="line-clamp-2 break-words text-sm font-semibold text-foreground transition hover:text-primary"
                         >
@@ -219,14 +220,14 @@ export function MiniCart({ open, onClose }: MiniCartProps) {
                   className="flex items-center gap-3 rounded-2xl border border-border/60 bg-background/60 px-3 py-2"
                 >
                   <Link
-                    href={`/produkty/${product.slug}`}
+                    href={getProductHref(product.slug)}
                     onClick={onClose}
                     aria-label={product.name}
                     className={`relative size-12 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br ${product.coverGradient}`}
                   />
                   <div className="min-w-0 flex-1">
                     <Link
-                      href={`/produkty/${product.slug}`}
+                      href={getProductHref(product.slug)}
                       onClick={onClose}
                       className="line-clamp-1 break-words text-sm font-semibold text-foreground transition hover:text-primary"
                     >

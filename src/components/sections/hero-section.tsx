@@ -1,137 +1,158 @@
+"use client";
+
+import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { CheckCircle2, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 import { HeroCta } from "@/components/experiments/hero-cta";
-import { Button } from "@/components/ui/button";
-import type { SiteSectionContent, StoreStat } from "@/types/store";
+import { formatCurrency } from "@/lib/format";
+import type { Product, SiteSectionContent } from "@/types/store";
 
 type HeroSectionProps = {
   content: SiteSectionContent;
-  stats: StoreStat[];
+  products: Product[];
 };
 
-const trustPoints = [
-  {
-    icon: Zap,
-    title: "Natychmiastowy dostęp",
-    description: "Pliki w bibliotece tuż po płatności.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "14 dni na zwrot",
-    description: "Bez pytań, bez formularzy.",
-  },
-  {
-    icon: Sparkles,
-    title: "Licencja do pracy",
-    description: "Używasz w swoim biznesie bezterminowo.",
-  },
-];
+// Muted, paper-warm tints for the editorial gallery plates. Each cover reads
+// as an intentional magazine still rather than a screenshot — the real
+// product photography drops straight into these frames later.
+const COVER_TINTS = ["#e7ddcd", "#e4d8c6", "#e8dbd3", "#ece2d4", "#e2d6c6", "#e5d8d0"];
 
-export function HeroSection({ content, stats }: HeroSectionProps) {
+export function HeroSection({ content, products }: HeroSectionProps) {
+  const rootRef = useRef<HTMLElement | null>(null);
+  const ctaRef = useRef<HTMLDivElement | null>(null);
+
+  // Magnetic CTA — the button leans toward the cursor as it approaches, the
+  // small high-craft cue that signals "designed, not generated".
+  useEffect(() => {
+    const root = rootRef.current;
+    const cta = ctaRef.current;
+    if (!root || !cta) return;
+
+    function handleMove(event: PointerEvent) {
+      const rect = cta!.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dist = Math.hypot(event.clientX - cx, event.clientY - cy);
+      cta!.style.transform =
+        dist < 150
+          ? `translate(${(event.clientX - cx) * 0.22}px, ${(event.clientY - cy) * 0.22}px)`
+          : "translate(0, 0)";
+    }
+    function reset() {
+      cta!.style.transform = "translate(0, 0)";
+    }
+
+    window.addEventListener("pointermove", handleMove);
+    root.addEventListener("pointerleave", reset);
+    return () => {
+      window.removeEventListener("pointermove", handleMove);
+      root.removeEventListener("pointerleave", reset);
+    };
+  }, []);
+
+  const gallery = products.slice(0, 4);
+
   return (
-    <section className="shell section-space relative overflow-hidden">
-      <div className="surface-panel relative overflow-hidden p-6 sm:p-8 lg:p-12">
-        <div className="hero-orb -top-8 right-10 size-36 bg-primary/18" />
-        <div className="hero-orb bottom-8 left-8 size-28 bg-secondary" />
-
-        <div className="relative grid gap-10 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] xl:items-center">
-          <div className="hero-parallax space-y-7">
-            <span className="eyebrow">{content.eyebrow}</span>
-            <div className="space-y-5">
-              <h1 className="max-w-4xl text-balance break-words text-5xl leading-[1.05] text-foreground sm:text-6xl lg:text-7xl">
-                {content.title}
-              </h1>
-              <p className="max-w-2xl break-words text-base leading-8 text-muted-foreground sm:text-lg">
-                {content.description}
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row">
-              {/* Primary CTA is A/B-tested via HeroCta — pulls a sticky
-                  variant per visitor and reports impressions / clicks
-                  through the analytics provider. Add ?exp_hero_cta_v1=
-                  free_sample to force a specific variant for QA. */}
-              <HeroCta fallbackHref={content.ctaHref ?? "/produkty"} />
-              <Button
-                size="lg"
-                variant="outline"
-                render={<Link href="/#featured" />}
-              >
-                Zobacz bestsellery
-              </Button>
-            </div>
-
-            <ul className="grid gap-3 pt-2 sm:grid-cols-3">
-              {trustPoints.map((point) => (
-                <li
-                  key={point.title}
-                  className="flex items-start gap-3 rounded-[1.2rem] border border-border/70 bg-background/60 px-4 py-3"
-                >
-                  <point.icon className="mt-0.5 size-5 text-primary" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{point.title}</p>
-                    <p className="text-xs text-muted-foreground">{point.description}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
+    <section
+      ref={rootRef}
+      className="shell relative pb-12 pt-10 sm:pt-14 lg:pb-16 lg:pt-20"
+    >
+      <div className="max-w-5xl">
+        <span className="eyebrow reveal-up">{content.eyebrow}</span>
+        <h1
+          className="reveal-up mt-6 font-heading text-[clamp(2.75rem,8.2vw,6.75rem)] font-bold leading-[0.9] tracking-[-0.045em] text-foreground"
+          style={{ animationDelay: "70ms" }}
+        >
+          {content.title}
+        </h1>
+        <div
+          className="reveal-up mt-8 flex flex-col gap-6 sm:flex-row sm:items-center"
+          style={{ animationDelay: "170ms" }}
+        >
+          <div
+            ref={ctaRef}
+            className="w-fit transition-transform duration-300 ease-out will-change-transform"
+          >
+            <HeroCta fallbackHref={content.ctaHref ?? "/produkty"} />
           </div>
+          <p className="max-w-md text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
+            {content.description}
+          </p>
+        </div>
 
-          <div className="relative grid gap-4 sm:grid-cols-2">
-            <article className="rounded-[2rem] border border-border/70 bg-gradient-to-br from-[#faf5ee] via-[#efe3d4] to-[#deceb8] p-6 shadow-[0_30px_70px_-50px_rgba(132,99,49,0.45)] dark:from-[#2e2922] dark:via-[#1b1712] dark:to-[#12100d]">
-              <p className="text-xs uppercase tracking-[0.22em] text-foreground/65">
-                Bestseller tygodnia
-              </p>
-              <h2 className="mt-4 text-3xl text-foreground">Pieniądze pod kontrolą</h2>
-              <p className="mt-4 text-sm leading-7 text-foreground/72">
-                Praktyczny system budżetu domowego. Bez Excela, bez wyrzeczeń. Wdrożysz w jeden wieczór.
-              </p>
-              <ul className="mt-5 space-y-2 text-sm text-foreground/75">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-primary" /> plan tygodnia finansowego
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-primary" /> ukryte koszty i subskrypcje
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-primary" /> poduszka finansowa krok po kroku
-                </li>
-              </ul>
-            </article>
+        <ul
+          className="reveal-up mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground"
+          style={{ animationDelay: "210ms" }}
+        >
+          <li>Natychmiastowy dostęp</li>
+          <li aria-hidden className="text-foreground/25">/</li>
+          <li>14 dni na zwrot</li>
+          <li aria-hidden className="text-foreground/25">/</li>
+          <li>Bezterminowa licencja</li>
+        </ul>
+      </div>
 
-            <article className="rounded-[2rem] border border-border/70 bg-gradient-to-br from-[#fbf1ee] via-[#efd8d1] to-[#dcc2b9] p-6 shadow-[0_30px_70px_-50px_rgba(138,84,58,0.35)] dark:from-[#2f2521] dark:via-[#211713] dark:to-[#17100e]">
-              <p className="text-xs uppercase tracking-[0.22em] text-foreground/65">
-                Pakiet
-              </p>
-              <h2 className="mt-4 text-3xl text-foreground">Finanse domowe w jednym zestawie</h2>
-              <p className="mt-4 text-sm leading-7 text-foreground/72">
-                Budżet domowy + podstawy ekonomii. Wszystko, co potrzebujesz, by ogarnąć pieniądze.
-              </p>
-              <div className="mt-5 flex items-baseline gap-3">
-                <span className="text-2xl font-semibold text-foreground">79&nbsp;zł</span>
-                <span className="text-sm text-foreground/60 line-through">88&nbsp;zł</span>
-                <span className="rounded-full bg-primary/15 px-2.5 py-1 text-xs font-medium text-primary">
-                  −10%
+      <div
+        className="reveal-up mt-12 flex items-center gap-6"
+        style={{ animationDelay: "260ms" }}
+      >
+        <span className="text-[11px] font-bold uppercase tracking-[0.26em] text-muted-foreground">
+          Najczęściej wybierane
+        </span>
+        <div className="h-px flex-1 bg-border" />
+        <Link
+          href="/produkty"
+          className="group inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-foreground"
+        >
+          Cała kolekcja
+          <ArrowUpRight className="size-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        </Link>
+      </div>
+
+      <div className="mt-7 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        {gallery.map((product, index) => {
+          const dark = index % 2 === 1;
+          return (
+            <Link
+              key={product.id}
+              href={`/produkty/${product.slug}`}
+              aria-label={`Zobacz produkt: ${product.name}`}
+              className={`reveal-up paper-grain group relative flex aspect-[3/4] flex-col justify-between overflow-hidden rounded-[0.9rem] border p-5 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-1.5 ${
+                dark
+                  ? "border-white/10 bg-[#14110c] text-stone-100"
+                  : "border-stone-900/10 text-stone-900"
+              }`}
+              style={{
+                ...(dark
+                  ? {}
+                  : { backgroundColor: COVER_TINTS[index % COVER_TINTS.length] }),
+                animationDelay: `${320 + index * 90}ms`,
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-55">
+                  {product.category}
+                </span>
+                <span className="font-mono text-[11px] tabular-nums opacity-45">
+                  N°{String(index + 1).padStart(2, "0")}
                 </span>
               </div>
-            </article>
-
-            <div className="sm:col-span-2 rounded-[2rem] border border-border/70 bg-background/70 p-5">
-              <div className="grid gap-4 sm:grid-cols-3">
-                {stats.slice(0, 3).map((stat) => (
-                  <div key={stat.id}>
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-primary/80">
-                      {stat.label}
-                    </p>
-                    <p className="mt-2 text-2xl text-foreground">{stat.value}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{stat.detail}</p>
-                  </div>
-                ))}
+              <div>
+                <div className="mb-3 h-px w-8 bg-current opacity-30" />
+                <h3 className="font-heading text-xl font-bold leading-[1.0] tracking-[-0.025em] sm:text-2xl">
+                  {product.name}
+                </h3>
+                <div className="mt-3 flex items-end justify-between">
+                  <span className="text-sm font-semibold opacity-70">
+                    {formatCurrency(product.price)}
+                  </span>
+                  <ArrowUpRight className="size-4 -translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );

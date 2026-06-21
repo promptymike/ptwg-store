@@ -1021,6 +1021,51 @@ export type Database = {
           },
         ]
       }
+      planner_instances: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          product_id: string
+          updated_at: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          id?: string
+          product_id: string
+          updated_at?: string
+          user_id: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          product_id?: string
+          updated_at?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planner_instances_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planner_instances_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           accent: string

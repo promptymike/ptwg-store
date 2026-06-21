@@ -1,0 +1,5698 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GrafAI — Zaawansowany planer pracy</title>
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  
+  <!-- Chart.js for reports -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
+  <!-- SortableJS for drag & drop -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  
+  <!-- Day.js for date handling -->
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/locale/pl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/plugin/weekOfYear.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/plugin/customParseFormat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/plugin/isBetween.js"></script>
+  
+  <!-- Styles -->
+<style>
+/* ===== GRAFAI MAIN STYLES ===== */
+
+:root {
+  /* Brand Colors */
+  --color-primary: #4F46E5;
+  --color-primary-dark: #3730A3;
+  --color-primary-light: #EEF2FF;
+  --color-violet: #7C3AED;
+  --color-violet-light: #F5F3FF;
+  --color-success: #10B981;
+  --color-success-light: #ECFDF5;
+  --color-warning: #F59E0B;
+  --color-warning-light: #FFFBEB;
+  --color-danger: #EF4444;
+  --color-danger-light: #FEF2F2;
+  --color-info: #3B82F6;
+  --color-info-light: #EFF6FF;
+  
+  /* Sidebar */
+  --sidebar-bg: #1E293B;
+  --sidebar-hover: #334155;
+  --sidebar-active: #4F46E5;
+  --sidebar-text: #94A3B8;
+  --sidebar-text-active: #FFFFFF;
+  
+  /* Neutrals */
+  --color-bg: #F8FAFC;
+  --color-card: #FFFFFF;
+  --color-border: #E2E8F0;
+  --color-border-focus: #4F46E5;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #64748B;
+  --color-text-disabled: #CBD5E1;
+  
+  /* Layout */
+  --sidebar-width: 260px;
+  --header-height: 64px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --transition: all 0.2s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+
+/* ===== LAYOUT ===== */
+
+.app-shell {
+  display: flex;
+  height: 100vh;
+  background: var(--color-bg);
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  overflow-y: auto;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+}
+
+.logo-icon {
+  font-size: 24px;
+}
+
+.sidebar-user {
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+}
+
+.user-role {
+  font-size: 12px;
+  color: var(--sidebar-text);
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 12px 0;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  transition: var(--transition);
+  font-size: 14px;
+  border-left: 3px solid transparent;
+}
+
+.nav-item:hover {
+  background: var(--sidebar-hover);
+  color: white;
+}
+
+.nav-item.active {
+  background: rgba(79, 70, 229, 0.15);
+  color: white;
+  border-left-color: var(--color-primary);
+}
+
+.nav-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.sidebar-integrations {
+  padding: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.integration-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  font-size: 13px;
+  transition: var(--transition);
+}
+
+.integration-item:hover {
+  background: var(--sidebar-hover);
+  color: white;
+}
+
+.sidebar-footer {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+  font-size: 11px;
+  color: var(--sidebar-text);
+}
+
+.main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  height: var(--header-height);
+  background: var(--color-card);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header-left {
+  flex: 1;
+  max-width: 400px;
+}
+
+.header-search {
+  width: 100%;
+  padding: 8px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  font-size: 14px;
+  background: var(--color-bg);
+}
+
+.header-search:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: white;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-icon-btn,
+.header-avatar {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-icon-btn:hover {
+  background: var(--color-bg);
+}
+
+.header-icon-btn svg {
+  width: 20px;
+  height: 20px;
+  color: var(--color-text-secondary);
+}
+
+.header-avatar {
+  width: 40px;
+  height: 40px;
+}
+
+.avatar-small {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-violet));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* ===== BUTTONS ===== */
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn.btn-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.btn.btn-primary:hover {
+  background: var(--color-primary-dark);
+}
+
+.btn.btn-secondary {
+  background: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.btn.btn-secondary:hover {
+  background: #cbd5e1;
+}
+
+.btn.btn-violet {
+  background: var(--color-violet);
+  color: white;
+}
+
+.btn.btn-violet:hover {
+  background: #6d28d9;
+}
+
+.btn.btn-success {
+  background: var(--color-success);
+  color: white;
+}
+
+.btn.btn-danger {
+  background: var(--color-danger);
+  color: white;
+}
+
+.btn.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.btn.btn-lg {
+  padding: 12px 24px;
+  font-size: 16px;
+}
+
+.btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ===== FORMS ===== */
+
+.form-control,
+.form-select,
+.date-input,
+.filter-select,
+.search-input {
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-family: inherit;
+  background: white;
+}
+
+.form-control:focus,
+.filter-select:focus,
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.form-divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 16px 0;
+}
+
+.radio-group,
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.radio-group label,
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 400;
+}
+
+/* ===== BADGES & PILLS ===== */
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-success {
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.badge-warning {
+  background: var(--color-warning-light);
+  color: var(--color-warning);
+}
+
+.badge-danger {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+.badge-info {
+  background: var(--color-info-light);
+  color: var(--color-info);
+}
+
+/* ===== MODALS & OVERLAYS ===== */
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0);
+  opacity: 0;
+  pointer-events: none;
+  transition: var(--transition);
+  z-index: 999;
+}
+
+.modal-backdrop.active {
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 1;
+  pointer-events: auto;
+  backdrop-filter: blur(4px);
+}
+
+.modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.modal {
+  background: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  max-width: 560px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  pointer-events: auto;
+  animation: modalSlideIn 0.2s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  padding: 24px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close svg {
+  width: 20px;
+  height: 20px;
+  color: var(--color-text-secondary);
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* ===== TOAST NOTIFICATIONS ===== */
+
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.toast {
+  background: white;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 300px;
+  animation: toastSlideIn 0.2s ease;
+  pointer-events: auto;
+}
+
+@keyframes toastSlideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast-success {
+  border-left: 4px solid var(--color-success);
+}
+
+.toast-error {
+  border-left: 4px solid var(--color-danger);
+}
+
+.toast-warning {
+  border-left: 4px solid var(--color-warning);
+}
+
+.toast-info {
+  border-left: 4px solid var(--color-info);
+}
+
+.toast-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  flex: 1;
+  font-size: 14px;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-close svg {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-secondary);
+}
+
+/* ===== TIMELINE SLIDER ===== */
+
+.timeline-slider-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.timeline-slider-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  width: 100px;
+  white-space: nowrap;
+}
+
+.timeline-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timeline-slider {
+  flex: 1;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.timeline-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: var(--transition);
+}
+
+.timeline-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.timeline-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: var(--transition);
+}
+
+.timeline-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+}
+
+.timeline-value {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  width: 60px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.timeline-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.timeline-btn {
+  padding: 6px 10px;
+  background: var(--color-border);
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  transition: var(--transition);
+  color: var(--color-text-primary);
+}
+
+.timeline-btn:hover {
+  background: #cbd5e1;
+}
+
+.timeline-btn.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+/* ===== CARDS & PANELS ===== */
+
+.card {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.card-content {
+  padding: 16px;
+}
+
+.card-footer {
+  padding: 16px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+/* ===== KPI CARDS ===== */
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.kpi-card {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+
+.kpi-primary::before { background: var(--color-primary); }
+.kpi-success::before { background: var(--color-success); }
+.kpi-warning::before { background: var(--color-warning); }
+.kpi-danger::before { background: var(--color-danger); }
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.kpi-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 10px;
+}
+
+.kpi-icon {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  opacity: 0.15;
+}
+
+/* ===== TABLES ===== */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+thead {
+  background: var(--color-bg);
+}
+
+th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+td {
+  padding: 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+tbody tr:hover {
+  background: var(--color-bg);
+}
+
+/* ===== EMPTY STATES ===== */
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-state-icon {
+  width: 80px;
+  height: 80px;
+  color: var(--color-border);
+  margin: 0 auto 16px;
+}
+
+.empty-state h3 {
+  color: var(--color-text-secondary);
+  margin-bottom: 16px;
+}
+
+/* ===== UTILITIES ===== */
+
+.hidden {
+  display: none !important;
+}
+
+.text-primary { color: var(--color-primary); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-success { color: var(--color-success); }
+.text-warning { color: var(--color-warning); }
+.text-danger { color: var(--color-danger); }
+
+.mt-20 { margin-top: 20px; }
+.mb-20 { margin-bottom: 20px; }
+.gap-sm { gap: 8px; }
+.gap-md { gap: 16px; }
+
+small {
+  font-size: 12px;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.link {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 70px;
+  }
+  
+  .sidebar-logo,
+  .sidebar-user,
+  .user-info,
+  .sidebar-integrations span,
+  .sidebar-footer {
+    display: none;
+  }
+  
+  .nav-item span {
+    display: none;
+  }
+  
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .app-shell {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  
+  .sidebar-nav {
+    flex-direction: row;
+  }
+  
+  .header {
+    flex-direction: column;
+    height: auto;
+    padding: 12px;
+  }
+  
+  .header-left {
+    max-width: none;
+  }
+  
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal {
+    width: 95%;
+  }
+  
+  .toast-container {
+    left: 10px;
+    right: 10px;
+  }
+  
+  .toast {
+    min-width: auto;
+  }
+}
+
+/* ===== GRAFAI CALENDAR & SCHEDULE STYLES ===== */
+
+/* ===== DASHBOARD ===== */
+
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  margin-bottom: 16px;
+}
+
+.dashboard-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.dashboard-header p {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.dashboard-top-row {
+  display: grid;
+  grid-template-columns: 1.4fr 0.9fr;
+  gap: 14px;
+  margin-bottom: 16px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-top-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dashboard-status-grid,
+.compact-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+@media (max-width: 800px) {
+  .dashboard-status-grid,
+  .compact-status-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.status-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  font-size: 12px;
+}
+
+.status-card strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.position-demand-panel {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin-top: 10px;
+}
+
+.position-demand-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.position-demand-item {
+  background: rgba(99, 102, 241, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.toggle-compliance {
+  margin-top: 10px;
+}
+
+.compliance-details {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-top: 12px;
+}
+
+.compliance-details strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-start;
+  padding-top: 8px;
+}
+
+.quick-actions .btn {
+  min-width: 160px;
+  padding: 10px 14px;
+  font-size: 13px;
+}
+
+/* AI Panel */
+
+.ai-panel {
+  background: linear-gradient(135deg, var(--color-violet-light), #F3E8FF);
+  border: 2px solid var(--color-violet);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-header h2 {
+  font-size: 15px;
+}
+
+.ai-panel::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.1), transparent);
+  border-radius: 50%;
+}
+
+.ai-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.ai-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--color-violet);
+}
+
+.ai-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.ai-suggestions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.ai-suggestion {
+  background: white;
+  border-radius: var(--radius-md);
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: var(--transition);
+  min-height: 72px;
+}
+
+.ai-suggestion:hover {
+  box-shadow: 0 4px 10px rgba(124, 58, 237, 0.12);
+}
+
+.suggestion-content p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.suggestion-right .btn {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.ai-suggestion:hover {
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+}
+
+.suggestion-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--color-violet);
+}
+
+.suggestion-content {
+  flex: 1;
+}
+
+.suggestion-content p {
+  font-size: 12px;
+  color: var(--color-text-primary);
+}
+
+.suggestion-right {
+  flex-shrink: 0;
+}
+
+/* Dashboard Grid */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 0.95fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dashboard-section {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  padding: 18px;
+}
+
+.dashboard-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.dashboard-section .section-header h2 {
+  font-size: 16px;
+  margin: 0;
+}
+
+.btn-tertiary {
+  background: var(--color-border);
+  color: var(--color-text-primary);
+  border: 1px solid transparent;
+  transition: var(--transition);
+}
+
+.btn-tertiary:hover {
+  background: rgba(148, 163, 184, 0.15);
+}
+
+.schedule-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.toolbar-left,
+.toolbar-center,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.week-label {
+  font-weight: 700;
+  font-size: 13px;
+  min-width: 170px;
+}
+
+.view-toggle {
+  background: var(--color-border);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+}
+
+.view-toggle.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+.compliance-alert-item {
+  margin-bottom: 10px;
+}
+
+.schedule-grid-wrapper {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 10px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.section-header h2 {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Today's Timeline */
+
+.todays-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  transition: var(--transition);
+}
+
+.timeline-item:hover {
+  background: linear-gradient(90deg, rgba(79, 70, 229, 0.1), transparent);
+}
+
+.timeline-time {
+  font-weight: 600;
+  white-space: nowrap;
+  font-size: 12px;
+  width: 70px;
+}
+
+.timeline-shift {
+  flex: 1;
+  padding: 6px 10px;
+  background: white;
+  border-radius: var(--radius-sm);
+}
+
+.timeline-label {
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.timeline-employees {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.timeline-employee {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* Activity Feed */
+
+.activity-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.activity-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  transition: var(--transition);
+}
+
+.activity-item:hover {
+  background: linear-gradient(90deg, rgba(79, 70, 229, 0.1), transparent);
+}
+
+.activity-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.activity-content {
+  flex: 1;
+}
+
+.activity-content p {
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.activity-content small {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+
+/* Quick Actions */
+
+.quick-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding-top: 8px;
+}
+
+/* ===== SCHEDULE VIEW ===== */
+
+.schedule-container {
+  max-width: 100%;
+}
+
+.schedule-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.toolbar-left,
+.toolbar-center,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.week-label {
+  font-weight: 600;
+  font-size: 13px;
+  min-width: 180px;
+}
+
+.view-toggle {
+  background: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.view-toggle.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* Compliance Alert */
+
+.compliance-alert-item {
+  margin-bottom: 12px;
+}
+
+.kp-alert {
+  background: var(--color-danger-light);
+  border-left: 4px solid var(--color-danger);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+.kp-alert--warning {
+  background: var(--color-warning-light);
+  border-left-color: var(--color-warning);
+}
+
+.kp-alert-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.kp-alert-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  margin-left: auto;
+}
+
+.kp-alert-close svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Schedule Grid */
+
+.schedule-grid-wrapper {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  overflow-x: auto;
+  box-shadow: var(--shadow-sm);
+  max-height: 70vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* Timeline Slider */
+.timeline-slider-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 0;
+}
+
+.timeline-slider {
+  flex: 1;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.timeline-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.timeline-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.timeline-info {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  width: 120px;
+}
+
+.zoom-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.zoom-btn {
+  padding: 4px 8px;
+  background: var(--color-border);
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: var(--transition);
+}
+
+.zoom-btn:hover {
+  background: #cbd5e1;
+}
+
+/* Calendar Grid */
+.calendar-grid {
+  display: grid;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Week View Grid */
+.calendar-grid.view-week .day-headers-row {
+  grid-template-columns: 110px repeat(7, minmax(120px, 1fr));
+}
+
+.calendar-grid.view-week .shift-row {
+  grid-template-columns: 110px repeat(7, minmax(120px, 1fr));
+}
+
+/* Month View Grid */
+.calendar-grid.view-month .day-headers-row {
+  grid-template-columns: 100px repeat(31, minmax(90px, 1fr));
+}
+
+.calendar-grid.view-month .shift-row {
+  grid-template-columns: 100px repeat(31, minmax(90px, 1fr));
+}
+
+/* Quarter View Grid */
+.calendar-grid.view-quarter .day-headers-row {
+  grid-template-columns: 100px repeat(90, minmax(60px, 1fr));
+}
+
+.calendar-grid.view-quarter .shift-row {
+  grid-template-columns: 100px repeat(90, minmax(60px, 1fr));
+}
+
+.day-headers-row {
+  display: grid;
+  gap: 0;
+  background: var(--color-bg);
+  border-bottom: 2px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.shift-row {
+  display: grid;
+  gap: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-card);
+}
+
+.shift-row:nth-child(odd) {
+  background: var(--color-bg);
+}
+
+.day-header {
+  padding: 10px 6px;
+  font-weight: 600;
+  font-size: 11px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  border-right: 1px solid var(--color-border);
+  word-break: break-word;
+  line-height: 1.2;
+}
+
+.day-header.today {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.day-header.sunday {
+  background: #f5f5f5;
+  color: var(--color-text-secondary);
+}
+
+.day-name {
+  display: block;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+  font-size: 10px;
+}
+
+.day-date {
+  display: block;
+  font-size: 11px;
+}
+
+.shift-label {
+  padding: 10px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  border-right: 2px solid var(--color-primary);
+  background: linear-gradient(90deg, rgba(79, 70, 229, 0.05), transparent);
+  min-height: 60px;
+  word-break: break-word;
+}
+
+.shift-label strong {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 11px;
+}
+
+.shift-label small {
+  color: var(--color-text-secondary);
+  font-size: 10px;
+}
+
+.shift-cell {
+  padding: 4px;
+  border-right: 1px solid var(--color-border);
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: var(--transition);
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.shift-cell:hover {
+  background: linear-gradient(180deg, rgba(79, 70, 229, 0.05), transparent);
+}
+
+.shift-cell.sunday {
+  background: #f8f8f8;
+}
+
+.shift-cell-content,
+.shift-cell-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  position: relative;
+  flex-wrap: wrap;
+}
+
+.shift-cell-empty {
+  cursor: pointer;
+  opacity: 0.4;
+  transition: var(--transition);
+}
+
+.shift-cell-empty:hover {
+  opacity: 1;
+}
+
+.empty-plus {
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-secondary);
+}
+
+.sunday-rest {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  padding: 4px;
+}
+
+/* Shift Pill */
+
+.shift-pill {
+  background: linear-gradient(180deg, var(--color-info), #60a5fa);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: move;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  user-select: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.shift-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.pill-initials {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.pill-hours {
+  font-size: 10px;
+}
+
+/* Compact Shift Pill */
+.shift-pill-compact {
+  background: linear-gradient(180deg, var(--color-info), #60a5fa);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  cursor: move;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  user-select: none;
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shift-overflow {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  padding: 2px 4px;
+}
+
+/* Quarter View Styles */
+.shift-cell-quarter {
+  min-height: 40px;
+  padding: 2px;
+}
+
+.shift-label-compact {
+  min-height: 40px;
+  padding: 8px 4px;
+  font-size: 10px;
+}
+
+.shift-label-compact strong {
+  font-size: 10px;
+}
+
+.shift-indicator {
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.shift-indicator:hover {
+  transform: scale(1.3);
+}
+
+/* Past day styles in week view */
+.day-header.past {
+  background: #f3f4f6;
+  color: #9ca3af;
+}
+.shift-cell.past {
+  background: #f9fafb;
+  opacity: 0.75;
+}
+.shift-cell.past .shift-cell-empty {
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+/* ===== REAL CALENDAR MONTH VIEW ===== */
+
+.cal-month-grid {
+  width: 100%;
+}
+
+.cal-header-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: var(--color-bg);
+  border-bottom: 2px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.cal-col-header {
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cal-col-header.cal-sunday-hdr {
+  color: var(--color-danger);
+}
+
+.cal-week-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--color-border);
+  min-height: 90px;
+}
+
+.cal-day-cell {
+  padding: 5px 4px 4px;
+  border-right: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-height: 90px;
+}
+
+.cal-day-cell:last-child {
+  border-right: none;
+}
+
+.cal-day-cell:hover {
+  background: var(--color-primary-light);
+}
+
+.cal-day-num {
+  font-size: 12px;
+  font-weight: 600;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  align-self: flex-start;
+  flex-shrink: 0;
+  color: var(--color-text-primary);
+}
+
+.cal-day-cell.cal-today {
+  background: var(--color-primary-light);
+}
+
+.cal-day-cell.cal-today .cal-day-num {
+  background: var(--color-primary);
+  color: white;
+}
+
+.cal-day-cell.cal-past {
+  background: #f9fafb;
+}
+
+.cal-day-cell.cal-past .cal-day-num {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.cal-day-cell.cal-other-month {
+  opacity: 0.35;
+}
+
+.cal-day-cell.cal-sunday .cal-day-num {
+  color: var(--color-danger);
+}
+
+.cal-shift-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.cal-shift-badge {
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 9px;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.cal-shift-badge.cal-badge-empty {
+  background: transparent !important;
+  border: 1px dashed #cbd5e1;
+  color: #94a3b8;
+  font-size: 8px;
+}
+
+.cal-archived-dot {
+  font-size: 8px;
+  color: #94a3b8;
+  margin-top: auto;
+  align-self: flex-end;
+}
+
+/* Shift count selector in toolbar */
+.shift-count-selector {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.shift-add-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.shift-add-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.shift-add-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Totals Row */
+
+.totals-row {
+  display: grid;
+  grid-template-columns: 140px repeat(6, minmax(160px, 1fr));
+  gap: 0;
+  background: var(--color-bg);
+  border-top: 2px solid var(--color-border);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.totals-cell {
+  padding: 12px;
+  border-right: 1px solid var(--color-border);
+  text-align: center;
+  color: var(--color-primary);
+}
+
+/* Scheduler Form */
+
+.scheduler-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rules-list {
+  background: var(--color-bg);
+  padding: 12px;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rule {
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.scheduler-result {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.result-summary {
+  background: var(--color-success-light);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--color-success);
+}
+
+.result-summary p {
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.violations-found {
+  background: var(--color-warning-light);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--color-warning);
+}
+
+.violations-found strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* ===== EMPLOYEES ===== */
+
+.employees-container {
+  max-width: 100%;
+}
+
+.employees-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.employees-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  .employees-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .employees-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.employee-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  transition: var(--transition);
+}
+
+.employee-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+.employee-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.employee-avatar {
+  flex-shrink: 0;
+}
+
+.employee-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.employee-name strong {
+  font-size: 16px;
+}
+
+.employee-role {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.employee-position {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.employee-card-divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 12px 0;
+}
+
+.employee-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.meta-icon {
+  font-size: 14px;
+}
+
+.employee-skills {
+  margin-bottom: 12px;
+}
+
+.employee-skills strong {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.skill-tag {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.employee-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.employee-contact small {
+  color: var(--color-text-secondary);
+}
+
+.employee-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.employee-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.employee-actions .btn {
+  flex: 1;
+  min-width: 80px;
+}
+
+/* ===== TIME TRACKING ===== */
+
+.timetracking-container {
+  max-width: 100%;
+}
+
+.timetracking-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.month-label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.summary-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+  background: var(--color-card);
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.summary-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.summary-value.warning {
+  color: var(--color-warning);
+}
+
+.table-wrapper {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.tracking-table td {
+  font-size: 12px;
+}
+
+.tracking-table td.normal {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.tracking-table td.weekend {
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+}
+
+.tracking-table td.missing {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.tracking-table td.overtime {
+  background: var(--color-warning-light);
+  color: var(--color-warning);
+  font-weight: 600;
+}
+
+.qr-demo-section {
+  margin-top: 24px;
+}
+
+.qr-demo-card {
+  background: var(--color-card);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  text-align: center;
+}
+
+.demo-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.demo-header svg {
+  width: 24px;
+  height: 24px;
+  color: var(--color-primary);
+}
+
+.demo-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.demo-qr {
+  padding: 16px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+}
+
+/* ===== LEAVES ===== */
+
+.leaves-container {
+  max-width: 100%;
+}
+
+.leaves-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid var(--color-border);
+  margin-bottom: 24px;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  border-bottom: 3px solid transparent;
+  transition: var(--transition);
+  margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+  color: var(--color-text-primary);
+}
+
+.tab-btn.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.leaves-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pending-section,
+.approved-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pending-section h3,
+.approved-section h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.leave-request {
+  background: var(--color-card);
+  border-left: 4px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  transition: var(--transition);
+}
+
+.leave-request.leave-pending {
+  border-left-color: var(--color-warning);
+  background: linear-gradient(to right, var(--color-warning-light), transparent);
+}
+
+.leave-request.leave-approved {
+  border-left-color: var(--color-success);
+  background: linear-gradient(to right, var(--color-success-light), transparent);
+}
+
+.leave-request.leave-rejected {
+  border-left-color: var(--color-danger);
+  background: linear-gradient(to right, var(--color-danger-light), transparent);
+}
+
+.leave-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.leave-status {
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.leave-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.leave-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.leave-body strong {
+  color: var(--color-text-primary);
+}
+
+.leave-dates {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.leave-comment {
+  background: white;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  font-size: 12px;
+}
+
+.leave-requested {
+  color: var(--color-text-secondary);
+}
+
+.leave-calendar {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.calendar-grid-simple {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.cal-header {
+  font-weight: 700;
+  text-align: center;
+  padding: 12px;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+}
+
+.cal-day,
+.cal-empty {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.cal-day:hover {
+  transform: scale(1.05);
+}
+
+.cal-day.leave-vacation {
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.cal-day.leave-sick {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+.leave-balances {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.balances-table {
+  width: 100%;
+}
+
+.balances-table th,
+.balances-table td {
+  padding: 14px;
+  text-align: left;
+}
+
+.balance-bar {
+  width: 100%;
+  height: 20px;
+  background: var(--color-bg);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.balance-progress {
+  height: 100%;
+  transition: var(--transition);
+}
+
+/* ===== REPORTS ===== */
+
+.reports-container {
+  max-width: 100%;
+}
+
+.reports-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-input {
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.chart-card {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  padding: 20px;
+}
+
+.chart-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.chart-container {
+  position: relative;
+  height: 300px;
+}
+
+.summary-table-section {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  padding: 20px;
+}
+
+.summary-table-section h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.summary-table {
+  width: 100%;
+}
+
+.summary-table td.positive {
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+.summary-table td.negative {
+  color: var(--color-warning);
+  font-weight: 700;
+}
+
+/* ===== SETTINGS ===== */
+
+.settings-container {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 24px;
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+  .settings-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.settings-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-tab {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+}
+
+.settings-tab:hover {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+}
+
+.settings-tab.active {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.settings-panel {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  padding: 24px;
+}
+
+.settings-panel h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settings-table {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.color-box {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.notification-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.setting-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.setting-switch input {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+</style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <span class="logo-icon">◆</span>
+          <span class="logo-text">GrafAI</span>
+        </div>
+      </div>
+
+      <div class="sidebar-user">
+        <div class="user-avatar">BJ</div>
+        <div class="user-info">
+          <span class="user-name">Bartosz Jądrowski</span>
+          <span class="user-role">Admin</span>
+        </div>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <nav class="sidebar-nav">
+        <a href="#/dashboard" class="nav-item" data-route="dashboard">
+          <svg class="nav-icon" data-lucide="layout-dashboard"></svg>
+          <span>Dashboard</span>
+        </a>
+        <a href="#/schedule" class="nav-item" data-route="schedule">
+          <svg class="nav-icon" data-lucide="calendar-days"></svg>
+          <span>Grafik Pracy</span>
+        </a>
+        <a href="#/employees" class="nav-item" data-route="employees">
+          <svg class="nav-icon" data-lucide="users"></svg>
+          <span>Pracownicy</span>
+        </a>
+        <a href="#/timetracking" class="nav-item" data-route="timetracking">
+          <svg class="nav-icon" data-lucide="clock"></svg>
+          <span>Ewidencja Czasu</span>
+        </a>
+        <a href="#/leaves" class="nav-item" data-route="leaves">
+          <svg class="nav-icon" data-lucide="umbrella"></svg>
+          <span>Urlopy i Nieobecności</span>
+        </a>
+        <a href="#/reports" class="nav-item" data-route="reports">
+          <svg class="nav-icon" data-lucide="bar-chart-2"></svg>
+          <span>Raporty</span>
+        </a>
+        <a href="#/settings" class="nav-item" data-route="settings">
+          <svg class="nav-icon" data-lucide="settings"></svg>
+          <span>Ustawienia</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-footer">
+        <small>v0.9.0 beta</small>
+      </div>
+    </aside>
+
+    <!-- Main Area -->
+    <div class="main-wrapper">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-left">
+          <input type="text" class="header-search" placeholder="Szukaj pracownika, zmianę, raportu...">
+        </div>
+        <div class="header-right">
+          <button class="header-icon-btn">
+            <svg data-lucide="bell"></svg>
+          </button>
+          <button class="header-avatar">
+            <div class="avatar-small">BJ</div>
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <main class="main-content" id="mainContent">
+        <!-- Views will be rendered here by router -->
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Modal Container -->
+  <div id="modalBackdrop" class="modal-backdrop"></div>
+  <div id="modalContainer" class="modal-container"></div>
+
+  <!-- Scripts -->
+  <script>
+// ===== FILE: js/data.js =====
+// ===== MOCK DATA FOR GrafAI =====
+
+dayjs.locale('pl');
+dayjs.extend(dayjs_plugin_weekOfYear);
+dayjs.extend(dayjs_plugin_customParseFormat);
+dayjs.extend(dayjs_plugin_isBetween);
+
+// Employees Data
+const employees = [
+  { id: 1, name: "Anna Kowalska",        role: "Kelnerka",       position: "Pracownik", dept: "Sala",       avatar: "AK", contract: "UoP", hoursWeek: 40, phone: "+48 501 234 567", email: "a.kowalska@bistro.pl",   status: "active",   skills: ["kasa", "bar", "obsługa gości"] },
+  { id: 2, name: "Piotr Nowak",          role: "Barista",        position: "Pracownik", dept: "Bar",        avatar: "PN", contract: "UoP", hoursWeek: 40, phone: "+48 502 345 678", email: "p.nowak@bistro.pl",      status: "active",   skills: ["kawa", "koktajle", "kasa"] },
+  { id: 3, name: "Maria Wiśniewska",     role: "Kierownik Sali", position: "Kierownik", dept: "Sala",       avatar: "MW", contract: "UoP", hoursWeek: 40, phone: "+48 503 456 789", email: "m.wisniewska@bistro.pl",   status: "active",   skills: ["zarządzanie", "kasa", "szkolenie"] },
+  { id: 4, name: "Tomasz Zając",         role: "Kucharz",        position: "Pracownik", dept: "Kuchnia",    avatar: "TZ", contract: "UoP", hoursWeek: 40, phone: "+48 504 567 890", email: "t.zajac@bistro.pl",      status: "active",   skills: ["grill", "zupy", "desery"] },
+  { id: 5, name: "Katarzyna Lewandowska",position: "Pracownik",   role: "Kelnerka",       dept: "Sala",       avatar: "KL", contract: "UZ",  hoursWeek: 20, phone: "+48 505 678 901", email: "k.lewandowska@bistro.pl", status: "active",   skills: ["kasa", "obsługa"] },
+  { id: 6, name: "Michał Dąbrowski",     role: "Pomoc Kuchenna", position: "Pracownik", dept: "Kuchnia",    avatar: "MD", contract: "UZ",  hoursWeek: 24, phone: "+48 506 789 012", email: "m.dabrowski@bistro.pl",  status: "active",   skills: ["zmywanie", "przygotowanie"] },
+  { id: 7, name: "Agnieszka Kamińska",   role: "Barmanka",       position: "Pracownik", dept: "Bar",        avatar: "AKa",contract: "UoP", hoursWeek: 40, phone: "+48 507 890 123", email: "a.kaminska@bistro.pl",   status: "on-leave", skills: ["kawa", "kasa", "bar"] },
+  { id: 8, name: "Rafał Szymański",      role: "Kucharz",        position: "Pracownik", dept: "Kuchnia",    avatar: "RS", contract: "UoP", hoursWeek: 40, phone: "+48 508 901 234", email: "r.szymanski@bistro.pl",  status: "active",   skills: ["desery", "grill", "sauce"] },
+  { id: 9, name: "Joanna Woźniak",       role: "Kelnerka",       position: "Pracownik", dept: "Sala",       avatar: "JW", contract: "UZ",  hoursWeek: 20, phone: "+48 509 012 345", email: "j.wozniak@bistro.pl",    status: "active",   skills: ["kasa", "obsługa gości"] },
+  { id: 10, name: "Krzysztof Kozłowski",  role: "Magazynier",     position: "Pracownik", dept: "Magazyn",    avatar: "KK", contract: "UoP", hoursWeek: 40, phone: "+48 510 123 456", email: "k.kozlowski@bistro.pl",  status: "active",   skills: ["inwentaryzacja"] },
+  { id: 11, name: "Paulina Jankowska",   role: "Kelnerka",       position: "Pracownik", dept: "Sala",       avatar: "PJ", contract: "UZ",  hoursWeek: 16, phone: "+48 511 234 567", email: "p.jankowska@bistro.pl",  status: "active",   skills: ["kasa"] },
+  { id: 12, name: "Marcin Wróblewski",   role: "Ochroniarz",     position: "Pracownik", dept: "Ochrona",    avatar: "MWr",contract: "B2B", hoursWeek: 40, phone: "+48 512 345 678", email: "m.wroblewski@bistro.pl", status: "active",   skills: ["ochrona", "CCTV"] }
+];
+
+const positionDemand = [
+  { position: "Pracownik", needed: 10 },
+  { position: "Kierownik", needed: 2 },
+  { position: "Kierowca", needed: 1 }
+];
+
+// Shift Types
+const shiftTypes = [
+  { id: "morning",   label: "Poranna",      start: "06:00", end: "14:00", color: "#3B82F6" },
+  { id: "afternoon", label: "Popołudniowa", start: "14:00", end: "22:00", color: "#10B981" },
+  { id: "evening",   label: "Wieczorna",    start: "16:00", end: "00:00", color: "#8B5CF6" },
+  { id: "night",     label: "Nocna",        start: "22:00", end: "06:00", color: "#64748B" }
+];
+
+// Current week shifts (week of May 13-19, 2026)
+let shifts = [
+  // Monday 13
+  { id: 1, date: "2026-05-13", shiftType: "morning",   employees: [1, 2] },
+  { id: 2, date: "2026-05-13", shiftType: "afternoon", employees: [3, 5] },
+  { id: 3, date: "2026-05-13", shiftType: "night",     employees: [12] },
+  // Tuesday 14
+  { id: 4, date: "2026-05-14", shiftType: "morning",   employees: [4, 6] },
+  { id: 5, date: "2026-05-14", shiftType: "afternoon", employees: [7, 9] },
+  { id: 6, date: "2026-05-14", shiftType: "night",     employees: [12] },
+  // Wednesday 15
+  { id: 7, date: "2026-05-15", shiftType: "morning",   employees: [1, 10] },
+  { id: 8, date: "2026-05-15", shiftType: "afternoon", employees: [2, 3] },
+  { id: 9, date: "2026-05-15", shiftType: "night",     employees: [12] },
+  // Thursday 16
+  { id: 10, date: "2026-05-16", shiftType: "morning",  employees: [5, 6] },
+  { id: 11, date: "2026-05-16", shiftType: "afternoon",employees: [1, 11] },
+  { id: 12, date: "2026-05-16", shiftType: "night",    employees: [12] },
+  // Friday 17
+  { id: 13, date: "2026-05-17", shiftType: "morning",  employees: [2, 4] },
+  { id: 14, date: "2026-05-17", shiftType: "afternoon",employees: [3, 8] },
+  { id: 15, date: "2026-05-17", shiftType: "night",    employees: [12] },
+  // Saturday 18
+  { id: 16, date: "2026-05-18", shiftType: "morning",  employees: [1, 6] },
+  { id: 17, date: "2026-05-18", shiftType: "afternoon",employees: [9, 10] },
+  { id: 18, date: "2026-05-18", shiftType: "night",    employees: [12] }
+  // Sunday 19 - no shifts (Niedzielny odpoczynek)
+];
+
+let archivedShifts = JSON.parse(localStorage.getItem('archivedShifts') || '[]');
+
+// Leaves Data
+const leaves = [
+  { id: 1, employeeId: 7, type: "Urlop wypoczynkowy", from: "2026-05-12", to: "2026-05-23", days: 10, status: "approved",  requestedAt: "2026-04-28", comment: "" },
+  { id: 2, employeeId: 5, type: "Urlop wypoczynkowy", from: "2026-05-26", to: "2026-05-29", days: 4,  status: "pending",   requestedAt: "2026-05-10", comment: "Proszę o 4 dni" },
+  { id: 3, employeeId: 9, type: "Urlop okolicznościowy", from: "2026-05-16", to: "2026-05-16", days: 1, status: "pending", requestedAt: "2026-05-14", comment: "Ślub siostry" },
+  { id: 4, employeeId: 3, type: "L4",                from: "2026-05-13", to: "2026-05-15", days: 3,  status: "approved",  requestedAt: "2026-05-13", comment: "Zwolnienie lekarskie" },
+  { id: 5, employeeId: 1, type: "Urlop wypoczynkowy", from: "2026-06-02", to: "2026-06-13", days: 10, status: "pending",  requestedAt: "2026-05-15", comment: "Wyjazd rodzinny" }
+];
+
+// Time Tracking Data (simplified)
+const timeTracking = {
+  "1": { "2026-05-13": { in: "07:58", out: "14:05", manual: false }, "2026-05-14": { in: "08:02", out: "14:03", manual: false }, "2026-05-15": { in: "06:55", out: "14:10", manual: false } },
+  "2": { "2026-05-13": { in: "08:00", out: "14:00", manual: false }, "2026-05-14": { in: "07:59", out: "14:02", manual: false }, "2026-05-15": { in: "08:05", out: "14:08", manual: false } },
+  "3": { "2026-05-13": null, "2026-05-14": null, "2026-05-15": { in: "14:00", out: "22:05", manual: false } },
+};
+
+// Reports Data (monthly statistics)
+const reports = {
+  costsTrend: {
+    months: ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj"],
+    data: [18500, 20100, 21300, 22800, 23400]
+  },
+  overtimeByDept: {
+    depts: ["Sala", "Bar", "Kuchnia", "Ochrona", "Magazyn"],
+    hours: [12, 8, 18, 4, 2]
+  },
+  absenceTypes: {
+    labels: ["L4", "Urlop", "Okolicznościowy", "Inne"],
+    data: [45, 38, 12, 5]
+  },
+  coverageByDay: {
+    days: ["Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Niedz"],
+    planned: [10, 10, 10, 10, 11, 9, 3],
+    actual: [10, 9, 10, 10, 11, 9, 3]
+  }
+};
+
+// Settings Data
+const settings = {
+  company: {
+    name: "Bistro Warszawa Sp. z o.o.",
+    nip: "1234567890",
+    regon: "123456789",
+    address: "ul. Puławska 123, 02-595 Warszawa",
+    phone: "+48 22 123 45 67",
+    email: "admin@bistrowarszawa.pl",
+    timezone: "Europe/Warsaw"
+  },
+  laborRules: {
+    minDailyRest: 11,
+    minWeeklyRest: 35,
+    maxWeeklyHours: 40,
+    maxWeeklyWithOT: 48,
+    maxOvertimeYearly: 150,
+    sundayWorkAllowed: true
+  },
+  notifications: {
+    kpAlerts: true,
+    leaveRequests: true,
+    dailyReports: true,
+    absenceAlerts: true
+  },
+  schedule: {
+    shiftCount: 3,
+    visibleShiftTypes: ["morning", "afternoon", "night"],
+    showArchive: true
+  },
+  aiScheduler: {
+    enabled: true,
+    defaultPriority: 'balance',
+    minCoverage: 3
+  }
+};
+
+let showComplianceDetails = false;
+
+// Departments
+const departments = [
+  { id: 1, name: "Sala" },
+  { id: 2, name: "Bar" },
+  { id: 3, name: "Kuchnia" },
+  { id: 4, name: "Magazyn" },
+  { id: 5, name: "Ochrona" }
+];
+
+// Helper: Get employee by ID
+function getEmployee(id) {
+  return employees.find(e => e.id === id);
+}
+
+// Helper: Get employees for a shift
+function getShiftEmployees(shiftId) {
+  const shift = shifts.find(s => s.id === shiftId);
+  return shift ? shift.employees.map(id => getEmployee(id)) : [];
+}
+
+// Helper: Get shifts for a date
+function getShiftsForDate(date) {
+  return shifts.filter(s => s.date === date);
+}
+
+// Helper: Get active leaves for a date
+function getLeavesForDate(date) {
+  const dateObj = dayjs(date);
+  return leaves.filter(leave => {
+    const from = dayjs(leave.from);
+    const to = dayjs(leave.to);
+    return dateObj.isBetween(from, to, null, '[]');
+  });
+}
+
+// Helper: Get leave balance for employee
+function getLeaveBalance(employeeId) {
+  const earned = 26; // Annual leave days
+  const used = leaves.filter(l => l.employeeId === employeeId && l.status === 'approved').reduce((sum, l) => sum + l.days, 0);
+  const planned = leaves.filter(l => l.employeeId === employeeId && l.status === 'pending').reduce((sum, l) => sum + l.days, 0);
+  return { earned, used, planned, remaining: earned - used - planned };
+}
+
+
+
+// ===== FILE: js/components.js =====
+// ===== REUSABLE UI COMPONENTS =====
+
+// Toast Notification System
+class Toast {
+  static show(message, type = 'info', duration = 4000) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+      <svg class="toast-icon" data-lucide="${this.getIconForType(type)}"></svg>
+      <span class="toast-message">${message}</span>
+      <button class="toast-close">
+        <svg data-lucide="x"></svg>
+      </button>
+    `;
+    
+    container.appendChild(toast);
+    lucide.createIcons();
+    
+    toast.querySelector('.toast-close').addEventListener('click', () => toast.remove());
+    
+    if (duration > 0) {
+      setTimeout(() => toast.remove(), duration);
+    }
+    
+    return toast;
+  }
+  
+  static getIconForType(type) {
+    const icons = {
+      'success': 'check-circle',
+      'error': 'alert-circle',
+      'warning': 'alert-triangle',
+      'info': 'info'
+    };
+    return icons[type] || 'info';
+  }
+  
+  static success(message) { this.show(message, 'success'); }
+  static error(message) { this.show(message, 'error'); }
+  static warning(message) { this.show(message, 'warning'); }
+  static info(message) { this.show(message, 'info'); }
+}
+
+// Modal System
+class Modal {
+  constructor(title, content, buttons = []) {
+    this.title = title;
+    this.content = content;
+    this.buttons = buttons;
+  }
+  
+  show() {
+    const backdrop = document.getElementById('modalBackdrop');
+    const container = document.getElementById('modalContainer');
+    
+    backdrop.classList.add('active');
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    
+    let buttonsHTML = '';
+    if (this.buttons.length > 0) {
+      buttonsHTML = `
+        <div class="modal-footer">
+          ${this.buttons.map(btn => `
+            <button class="btn btn-${btn.type || 'secondary'}" data-action="${btn.action}">
+              ${btn.label}
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+    
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>${this.title}</h2>
+          <button class="modal-close">
+            <svg data-lucide="x"></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          ${this.content}
+        </div>
+        ${buttonsHTML}
+      </div>
+    `;
+    
+    container.appendChild(modal);
+    lucide.createIcons();
+    
+    // Event listeners
+    modal.querySelector('.modal-close').addEventListener('click', () => this.close());
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) this.close();
+    });
+    
+    this.buttons.forEach(btn => {
+      const el = modal.querySelector(`[data-action="${btn.action}"]`);
+      if (el) el.addEventListener('click', () => {
+        if (btn.handler) btn.handler();
+        this.close();
+      });
+    });
+    
+    // ESC key
+    const escHandler = (e) => {
+      if (e.key === 'Escape') {
+        this.close();
+        document.removeEventListener('keydown', escHandler);
+      }
+    };
+    document.addEventListener('keydown', escHandler);
+    
+    this.modal = modal;
+    this.backdrop = backdrop;
+  }
+  
+  close() {
+    this.modal?.remove();
+    this.backdrop?.classList.remove('active');
+  }
+}
+
+// Avatar Component
+class Avatar {
+  static render(initials, size = 'md') {
+    const sizes = { sm: '28px', md: '36px', lg: '48px', xl: '64px' };
+    const color = this.hashColor(initials);
+    return `
+      <div class="avatar avatar-${size}" style="background: ${color}">
+        ${initials}
+      </div>
+    `;
+  }
+  
+  static hashColor(text) {
+    const colors = [
+      '#4F46E5', '#7C3AED', '#EC4899', '#F43F5E',
+      '#F97316', '#EAB308', '#10B981', '#14B8A6',
+      '#06B6D4', '#0EA5E9', '#3B82F6'
+    ];
+    const hash = text.split('').reduce((h, c) => h + c.charCodeAt(0), 0);
+    return colors[hash % colors.length];
+  }
+}
+
+// Status Badge Component
+class Badge {
+  static render(status, type = 'info') {
+    const types = {
+      'success': { class: 'badge-success', text: 'Aktywna' },
+      'warning': { class: 'badge-warning', text: 'Na urlopie' },
+      'danger': { class: 'badge-danger', text: 'Nieaktywna' },
+      'info': { class: 'badge-info', text: status }
+    };
+    const badge = types[type] || types['info'];
+    return `<span class="badge ${badge.class}">${badge.text}</span>`;
+  }
+}
+
+// KP Compliance Alert
+class ComplianceAlert {
+  static render(message, type = 'warning') {
+    const icons = {
+      'warning': 'alert-triangle',
+      'error': 'shield-alert',
+      'info': 'info'
+    };
+    return `
+      <div class="kp-alert kp-alert--${type}">
+        <svg class="kp-alert-icon" data-lucide="${icons[type]}"></svg>
+        <span>${message}</span>
+        <button class="kp-alert-close">
+          <svg data-lucide="x"></svg>
+        </button>
+      </div>
+    `;
+  }
+}
+
+// Empty State
+class EmptyState {
+  static render(icon, message, action = null) {
+    let actionHTML = '';
+    if (action) {
+      actionHTML = `<button class="btn btn-primary" id="emptyStateAction">${action.label}</button>`;
+    }
+    return `
+      <div class="empty-state">
+        <svg class="empty-state-icon" data-lucide="${icon}"></svg>
+        <h3>${message}</h3>
+        ${actionHTML}
+      </div>
+    `;
+  }
+}
+
+// Card Component
+class Card {
+  static render(content, header = null, footer = null) {
+    let headerHTML = '';
+    if (header) {
+      headerHTML = `<div class="card-header">${header}</div>`;
+    }
+    let footerHTML = '';
+    if (footer) {
+      footerHTML = `<div class="card-footer">${footer}</div>`;
+    }
+    return `
+      <div class="card">
+        ${headerHTML}
+        <div class="card-content">${content}</div>
+        ${footerHTML}
+      </div>
+    `;
+  }
+}
+
+// KPI Card
+class KPICard {
+  static render(label, value, icon, color = 'primary') {
+    return `
+      <div class="kpi-card kpi-${color}">
+        <div class="kpi-label">${label}</div>
+        <div class="kpi-value">${value}</div>
+        <svg class="kpi-icon" data-lucide="${icon}"></svg>
+      </div>
+    `;
+  }
+}
+
+// Employee Card
+class EmployeeCard {
+  static render(employee) {
+    const statusType = employee.status === 'active' ? 'success' : employee.status === 'on-leave' ? 'warning' : 'danger';
+    const statusLabel = employee.status === 'active' ? '🟢 Aktywna' : employee.status === 'on-leave' ? '🟡 Na urlopie' : '🔴 Nieaktywna';
+    
+    return `
+      <div class="employee-card">
+        <div class="employee-card-header">
+          <div class="employee-avatar">${Avatar.render(employee.avatar, 'lg')}</div>
+          <div class="employee-name">
+            <strong>${employee.name}</strong>
+            <span class="employee-role">${employee.role}</span>
+            <span class="employee-position">${employee.position}</span>
+          </div>
+        </div>
+        <div class="employee-card-divider"></div>
+        <div class="employee-meta">
+          <div class="meta-item">
+            <span class="meta-icon">🏢</span>
+            <span>${employee.dept}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-icon">📄</span>
+            <span>${employee.contract}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-icon">⏱</span>
+            <span>${employee.hoursWeek}h/tydz</span>
+          </div>
+        </div>
+        <div class="employee-skills">
+          <strong>Umiejętności:</strong>
+          <div class="skills-list">
+            ${employee.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+          </div>
+        </div>
+        <div class="employee-card-divider"></div>
+        <div class="employee-contact">
+          <small>📞 ${employee.phone}</small>
+          <small>✉ ${employee.email}</small>
+        </div>
+        <div class="employee-card-divider"></div>
+        <div class="employee-status">
+          <span>${statusLabel}</span>
+        </div>
+        <div class="employee-actions">
+          <button class="btn btn-sm btn-secondary" data-action="edit">Edytuj</button>
+          <button class="btn btn-sm btn-secondary" data-action="schedule">Grafik</button>
+          <button class="btn btn-sm btn-secondary" data-action="leaves">Urlopy</button>
+        </div>
+      </div>
+    `;
+  }
+}
+
+// Leave Request Card
+class LeaveRequestCard {
+  static render(leave, employee) {
+    const statusClasses = {
+      'pending': 'pending',
+      'approved': 'approved',
+      'rejected': 'rejected'
+    };
+    const statusLabels = {
+      'pending': '🟡 OCZEKUJE',
+      'approved': '🟢 ZATWIERDZONE',
+      'rejected': '🔴 ODRZUCONE'
+    };
+    
+    const from = dayjs(leave.from).format('DD.MM.YYYY');
+    const to = dayjs(leave.to).format('DD.MM.YYYY');
+    const duration = leave.days === 1 ? `${leave.days} dzień` : `${leave.days} dni`;
+    
+    let actionButtons = '';
+    if (leave.status === 'pending') {
+      actionButtons = `
+        <button class="btn btn-sm btn-success" data-action="approve" data-id="${leave.id}">Zaakceptuj</button>
+        <button class="btn btn-sm btn-danger" data-action="reject" data-id="${leave.id}">Odrzuć</button>
+      `;
+    }
+    
+    return `
+      <div class="leave-request leave-${statusClasses[leave.status]}">
+        <div class="leave-header">
+          <span class="leave-status">${statusLabels[leave.status]}</span>
+          <div class="leave-actions">${actionButtons}</div>
+        </div>
+        <div class="leave-body">
+          <strong>${employee.name} — ${leave.type}</strong>
+          <div class="leave-dates">📅 ${from} → ${to} (${duration})</div>
+          ${leave.comment ? `<div class="leave-comment">Komentarz: "${leave.comment}"</div>` : ''}
+          <small class="leave-requested">Złożono: ${dayjs(leave.requestedAt).format('DD.MM.YYYY')}</small>
+        </div>
+      </div>
+    `;
+  }
+}
+
+// Shift Pill Component
+class ShiftPill {
+  static render(employee, shiftStart, shiftEnd) {
+    return `
+      <div class="shift-pill" title="${employee.name}" draggable="true">
+        <span class="pill-initials">${employee.avatar}</span>
+        <span class="pill-hours">${shiftStart}–${shiftEnd}</span>
+      </div>
+    `;
+  }
+  
+  static renderCompact(employee) {
+    return `
+      <div class="shift-pill-compact" title="${employee.name}" draggable="true">
+        ${employee.avatar}
+      </div>
+    `;
+  }
+}
+
+// Notification/Compliance Helper
+function showComplianceIssue(message) {
+  const alert = document.createElement('div');
+  alert.innerHTML = ComplianceAlert.render(message, 'error');
+  const container = document.querySelector('[data-compliance-alerts]') || document.body;
+  container.insertAdjacentElement('afterbegin', alert);
+  lucide.createIcons();
+  
+  alert.querySelector('.kp-alert-close').addEventListener('click', () => alert.remove());
+}
+
+// Date Range Picker Helper
+class DateRangePicker {
+  static render(fromId, toId, defaultFrom = null, defaultTo = null) {
+    const from = defaultFrom || dayjs().startOf('month').format('YYYY-MM-DD');
+    const to = defaultTo || dayjs().endOf('month').format('YYYY-MM-DD');
+    
+    return `
+      <div class="date-range">
+        <input type="date" id="${fromId}" value="${from}" class="date-input">
+        <span>→</span>
+        <input type="date" id="${toId}" value="${to}" class="date-input">
+      </div>
+    `;
+  }
+}
+
+// Initialize Icons after DOM change
+function initIcons() {
+  if (window.lucide) {
+    lucide.createIcons();
+  }
+}
+
+// Keyboard Shortcuts
+const SHORTCUTS = {
+  'gs': () => window.location.hash = '#/schedule',
+  'ge': () => window.location.hash = '#/employees',
+  'ns': () => console.log('New Shift action'),
+  'escape': () => document.querySelector('.modal-close')?.click()
+};
+
+function setupKeyboardShortcuts() {
+  let keyBuffer = '';
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey) return;
+    
+    if (e.key === 'Escape' && SHORTCUTS['escape']) {
+      SHORTCUTS['escape']();
+      return;
+    }
+    
+    keyBuffer += e.key.toLowerCase();
+    if (keyBuffer.length > 2) keyBuffer = keyBuffer.slice(-2);
+    
+    if (SHORTCUTS[keyBuffer]) {
+      SHORTCUTS[keyBuffer]();
+      keyBuffer = '';
+    }
+  });
+}
+
+
+// ===== FILE: js/dashboard.js =====
+// ===== DASHBOARD VIEW =====
+
+function renderDashboard() {
+  const mainContent = document.getElementById('mainContent');
+  
+  // Calculate KPIs
+  const today = dayjs().format('YYYY-MM-DD');
+  const todaysShifts = shifts.filter(s => s.date === today);
+  const activeTodayCount = new Set(todaysShifts.flatMap(s => s.employees)).size;
+  const pendingLeavesCount = leaves.filter(l => l.status === 'pending').length;
+  const thisWeekStart = getMonday(dayjs()).format('YYYY-MM-DD');
+  const thisWeekEnd = getMonday(dayjs()).add(6, 'day').format('YYYY-MM-DD');
+  const weekShifts = shifts.filter(s => s.date >= thisWeekStart && s.date <= thisWeekEnd);
+  const weekHours = weekShifts.reduce((sum, shift) => sum + shift.employees.length * 8, 0);
+  const complianceIssues = checkCompliance();
+  const complianceCount = complianceIssues.length;
+  const activeIntegrations = 0;
+  
+  const greetingHour = new Date().getHours();
+  const greeting = greetingHour < 12 ? 'Dzień dobry' : greetingHour < 18 ? 'Dobry wieczór' : 'Dobranoc';
+  
+  // AI Suggestions
+  const aiSuggestions = complianceCount > 0 ? [
+    {
+      id: 1,
+      icon: 'alert-triangle',
+      text: complianceIssues[0] || 'Wykryto nowe naruszenie Kodeksu Pracy — sprawdź grafik i popraw obsadę.',
+      action: 'Sprawdź',
+      handler: 'toggleComplianceDetails()'
+    },
+    {
+      id: 2,
+      icon: 'sparkles',
+      text: 'GrafAI sugeruje wygenerowanie optymalnego grafiku z uwzględnieniem obsady i kosztów.',
+      action: 'Generuj',
+      handler: 'openAutoScheduler()'
+    },
+    {
+      id: 3,
+      icon: 'check-circle',
+      text: 'System działa poprawnie. Sprawdź ustawienia lub utwórz nowy raport.', 
+      action: 'Zarządzaj',
+      handler: "router.navigate('/settings')"
+    }
+  ] : [
+    {
+      id: 1,
+      icon: 'check-circle',
+      text: 'Grafik jest zgodny z zasadami Kodeksu Pracy. Możesz wygenerować nowy grafik AI.',
+      action: 'Generuj',
+      handler: 'openAutoScheduler()'
+    },
+    {
+      id: 2,
+      icon: 'plug',
+      text: 'Dane są gotowe do eksportu CSV. Pobierz raport lub grafik.', 
+      action: 'Eksport',
+      handler: 'exportSchedule()'
+    },
+    {
+      id: 3,
+      icon: 'shield-check',
+      text: 'Skan Kodeksu Pracy: 100% zgodne z ustawieniami labor rules.',
+      action: 'Przejdź',
+      handler: "router.navigate('/settings')"
+    }
+  ];
+  
+  // Activity Feed
+  const activities = [
+    { icon: 'check', text: 'Piotr Nowak odbił się o 07:58', time: 'Dziś o 08:00' },
+    { icon: 'file-text', text: 'Wniosek urlopowy: Joanna Woźniak', time: 'Wczoraj o 14:23' },
+    { icon: 'sparkles', text: 'AI wygenerował grafik na tydzień 22', time: 'Wczoraj o 09:15' },
+    { icon: 'users', text: 'Nowy pracownik: Szymon Lewandowski', time: '2 dni temu' },
+    { icon: 'alert-circle', text: 'Naruszenie Kodeksu Pracy: Anna Kowalska (48h > 40h limit)', time: '3 dni temu' },
+    { icon: 'download', text: 'Raport maja został wygenerowany', time: '1 tydzień temu' },
+    { icon: 'link', text: 'Dane aplikacji zostały zaktualizowane', time: '1 tydzień temu' },
+    { icon: 'umbrella', text: 'Urlopu zaakceptowany: Maria Wiśniewska', time: '2 tygodnie temu' }
+  ];
+  
+  const html = `
+    <div class="dashboard-container">
+      <div class="dashboard-header">
+        <h1>${greeting}, Bartosz 👋</h1>
+        <p class="text-secondary">${dayjs().format('dddd, DD MMMM YYYY')}</p>
+      </div>
+      
+      <div class="dashboard-top-row">
+        <div>
+          <div class="kpi-grid">
+            ${KPICard.render('Pracownicy dziś', `${activeTodayCount} / 12`, 'users', 'primary')}
+            ${KPICard.render('Oczekujące urlopy', pendingLeavesCount, 'umbrella', 'warning')}
+            ${KPICard.render('Godziny w tym tyg.', `${weekHours}h`, 'clock', 'success')}
+            ${KPICard.render('Alerty Kodeksu Pracy', complianceIssues.length, 'shield-alert', 'danger')}
+          </div>
+        </div>
+        <div>
+          <div class="dashboard-status-grid compact-status-grid">
+            <div class="status-card">
+              <strong>Eksport CSV</strong>
+              <p>Gotowy do pobrania</p>
+            </div>
+            <div class="status-card">
+              <strong>Tryb AI Scheduler</strong>
+              <p>${settings.aiScheduler.enabled ? 'Włączony' : 'Wyłączony'}</p>
+            </div>
+            <div class="status-card">
+              <strong>Naruszenia Kodeksu Pracy</strong>
+              <p>${complianceCount} wykryte</p>
+            </div>
+          </div>
+          <div class="position-demand-panel">
+            <strong>Zapotrzebowanie stanowisk</strong>
+            <div class="position-demand-list">
+              ${positionDemand.map(d => `
+                <div class="position-demand-item">
+                  <span>${d.position}</span>
+                  <strong>${d.needed}</strong>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div class="toggle-compliance">
+            <button class="btn btn-secondary btn-sm" onclick="toggleComplianceDetails()">
+              ${showComplianceDetails ? 'Ukryj naruszenia' : 'Pokaż naruszenia'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      ${showComplianceDetails ? `
+        <div class="compliance-details">
+          <strong>Lista naruszeń Kodeksu Pracy</strong>
+          <ul>
+            ${complianceIssues.length > 0 ? complianceIssues.map(issue => `<li>${issue}</li>`).join('') : '<li>Brak naruszeń Kodeksu Pracy</li>'}
+          </ul>
+        </div>
+      ` : ''}
+
+      <!-- AI Panel -->
+      <div class="ai-panel">
+        <div class="ai-header">
+          <svg data-lucide="sparkles" class="ai-icon"></svg>
+          <h2>Sugestie GrafAI</h2>
+        </div>
+        <div class="ai-suggestions">
+          ${aiSuggestions.map(sug => `
+            <div class="ai-suggestion">
+              <div class="suggestion-left">
+                <svg data-lucide="${sug.icon}" class="suggestion-icon"></svg>
+              </div>
+              <div class="suggestion-content">
+                <p>${sug.text}</p>
+              </div>
+              <div class="suggestion-right">
+                <button class="btn btn-sm btn-violet" onclick="${sug.handler}">${sug.action}</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      
+      <!-- Two Column Row -->
+      <div class="dashboard-grid">
+        <!-- Left: Today's Schedule -->
+        <div class="dashboard-section">
+          <div class="section-header">
+            <h2>Grafik na dziś</h2>
+            <a href="#/schedule" class="link">Pokaż pełny grafik →</a>
+          </div>
+          <div class="todays-timeline">
+            ${renderTodaysTimeline()}
+          </div>
+        </div>
+        
+        <!-- Right: Activity Feed -->
+        <div class="dashboard-section">
+          <div class="section-header">
+            <h2>Ostatnia aktywność</h2>
+          </div>
+          <div class="activity-feed">
+            ${activities.map(act => `
+              <div class="activity-item">
+                <svg data-lucide="${act.icon}" class="activity-icon"></svg>
+                <div class="activity-content">
+                  <p>${act.text}</p>
+                  <small>${act.time}</small>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <button class="btn btn-primary btn-lg" onclick="addShift()">
+          <svg data-lucide="plus"></svg> Dodaj zmianę
+        </button>
+        <button class="btn btn-secondary btn-lg" onclick="exportSchedule()">
+          <svg data-lucide="download"></svg> Eksport CSV
+        </button>
+        <button class="btn btn-violet btn-lg" onclick="openAutoScheduler()">
+          <svg data-lucide="sparkles"></svg> Generuj grafik AI
+        </button>
+      </div>
+    </div>
+  `;
+  
+  mainContent.innerHTML = html;
+}
+
+function toggleComplianceDetails() {
+  showComplianceDetails = !showComplianceDetails;
+  renderDashboard();
+}
+
+function renderTodaysTimeline() {
+  const today = dayjs().format('YYYY-MM-DD');
+  const todaysShifts = shifts.filter(s => s.date === today);
+  
+  if (todaysShifts.length === 0) {
+    return '<p class="text-secondary">Brak zmian zaplanowanych na dzisiaj</p>';
+  }
+  
+  return todaysShifts.map(shift => {
+    const shiftType = shiftTypes.find(st => st.id === shift.shiftType);
+    const shiftEmployees = shift.employees.map(id => getEmployee(id));
+    
+    return `
+      <div class="timeline-item">
+        <div class="timeline-time">
+          <strong>${shiftType.start}</strong>–<strong>${shiftType.end}</strong>
+        </div>
+        <div class="timeline-shift" style="border-left: 4px solid ${shiftType.color}">
+          <div class="timeline-label">${shiftType.label}</div>
+          <div class="timeline-employees">
+            ${shiftEmployees.map(emp => `
+              <span class="timeline-employee" title="${emp.name}">${emp.avatar}</span>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+
+// ===== FILE: js/schedule.js =====
+// ===== SCHEDULE VIEW =====
+
+let currentWeekStart = getMonday(dayjs());
+let currentViewMode = localStorage.getItem('scheduleViewMode') || 'month'; // week, month, quarter
+let timelineZoom = parseInt(localStorage.getItem('scheduleZoom') || '100');
+let showScheduleAlerts = localStorage.getItem('scheduleShowAlerts') === null ? true : localStorage.getItem('scheduleShowAlerts') === 'true';
+let scheduleGrid = null;
+
+function getMonday(date) {
+  const today = date.startOf('day');
+  const diff = (today.day() + 6) % 7; // Monday as day 0
+  return today.subtract(diff, 'day');
+}
+
+function getActiveShiftTypes() {
+  const visible = settings.schedule.visibleShiftTypes || shiftTypes.map(st => st.id);
+  const selected = shiftTypes.filter(st => visible.includes(st.id));
+  return selected.slice(0, settings.schedule.shiftCount || selected.length);
+}
+
+function getScheduleShifts() {
+  return [...shifts, ...archivedShifts];
+}
+
+function saveArchivedShifts() {
+  localStorage.setItem('archivedShifts', JSON.stringify(archivedShifts));
+}
+
+function archivePastShifts() {
+  const today = dayjs().startOf('day');
+  const remaining = [];
+  let archivedAny = false;
+  const existingIds = new Set(archivedShifts.map(s => s.id));
+
+  shifts.forEach(shift => {
+    if (dayjs(shift.date).isBefore(today, 'day')) {
+      if (!existingIds.has(shift.id)) {
+        archivedShifts.push(shift);
+        existingIds.add(shift.id);
+        archivedAny = true;
+      }
+    } else {
+      remaining.push(shift);
+    }
+  });
+
+  shifts = remaining;
+  if (archivedAny) {
+    saveArchivedShifts();
+  }
+}
+
+function applyScheduleFilter(scheduleShifts) {
+  const dept = localStorage.getItem('scheduleFilterDept') || '';
+  if (!dept) return scheduleShifts;
+  return scheduleShifts.filter(shift => {
+    return shift.employees.some(empId => getEmployee(empId)?.dept === dept);
+  });
+}
+
+function renderSchedule() {
+  archivePastShifts();
+  const mainContent = document.getElementById('mainContent');
+  
+  let html = '';
+  
+  if (currentViewMode === 'week') {
+    html = renderScheduleWeekMode();
+  } else if (currentViewMode === 'month') {
+    html = renderScheduleMonthMode();
+  } else if (currentViewMode === 'quarter') {
+    html = renderScheduleQuarterMode();
+  }
+  
+  mainContent.innerHTML = html;
+  
+  // Attach event listeners for view toggles
+  setTimeout(() => {
+    document.querySelectorAll('.view-toggle').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.view-toggle').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentViewMode = e.target.dataset.view;
+        localStorage.setItem('scheduleViewMode', currentViewMode);
+        renderSchedule();
+        initIcons();
+      });
+    });
+  }, 0);
+}
+
+function toggleScheduleAlerts() {
+  showScheduleAlerts = !showScheduleAlerts;
+  localStorage.setItem('scheduleShowAlerts', showScheduleAlerts);
+  renderSchedule();
+  initIcons();
+}
+
+function renderScheduleWeekMode() {
+  const scheduleShifts = applyScheduleFilter(getScheduleShifts());
+  const weekEnd = currentWeekStart.add(6, 'days');
+  const weekLabel = `${currentWeekStart.format('DD.MM')}–${weekEnd.format('DD.MM.YYYY')}`;
+  const weekNumber = currentWeekStart.week();
+  
+  const violations = checkCompliance(scheduleShifts);
+  const violationAlert = showScheduleAlerts && violations.length > 0 ? violations.map(v => 
+    `<div class="compliance-alert-item">${ComplianceAlert.render(v, 'error')}</div>`
+  ).join('') : '';
+  
+  return `
+    <div class="schedule-container">
+      <div class="schedule-toolbar">
+        <div class="toolbar-left">
+          <button class="btn btn-secondary" onclick="prevWeek()">
+            <svg data-lucide="chevron-left"></svg>
+          </button>
+          <span class="week-label">Tydzień ${weekNumber} (${weekLabel})</span>
+          <button class="btn btn-secondary" onclick="nextWeek()">
+            <svg data-lucide="chevron-right"></svg>
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="todayWeek()">Dziś</button>
+        </div>
+        
+        <div class="toolbar-center">
+          <button class="btn btn-secondary btn-sm view-toggle ${currentViewMode === 'week' ? 'active' : ''}" data-view="week">Tydzień</button>
+          <button class="btn btn-secondary btn-sm view-toggle ${currentViewMode === 'month' ? 'active' : ''}" data-view="month">Miesiąc</button>
+          <button class="btn btn-secondary btn-sm view-toggle ${currentViewMode === 'quarter' ? 'active' : ''}" data-view="quarter">Kwartał</button>
+        </div>
+        
+        <div class="toolbar-right">
+          <div class="shift-count-selector">
+            Zmiany:
+            ${[1,2,3,4].map(n => `<button class="btn btn-sm ${settings.schedule.shiftCount === n ? 'btn-primary' : 'btn-secondary'}" onclick="setShiftCount(${n})">${n}</button>`).join('')}
+          </div>
+          <select class="filter-select" onchange="filterByDepartment(this.value)">
+            <option value="">Wszyscy</option>
+            <option value="Sala">Sala</option>
+            <option value="Bar">Bar</option>
+            <option value="Kuchnia">Kuchnia</option>
+            <option value="Ochrona">Ochrona</option>
+          </select>
+          <button class="btn btn-tertiary btn-sm" onclick="toggleScheduleAlerts()">
+            <svg data-lucide="eye-off"></svg> ${showScheduleAlerts ? 'Ukryj alerty' : 'Pokaż alerty'}
+          </button>
+          <button class="btn btn-violet" onclick="openAutoScheduler()">
+            <svg data-lucide="sparkles"></svg> Auto-Scheduler
+          </button>
+          <button class="btn btn-secondary" onclick="addShift()">
+            <svg data-lucide="plus"></svg> Dodaj zmianę
+          </button>
+          <button class="btn btn-secondary" onclick="exportSchedule()">
+            <svg data-lucide="download"></svg> Eksport
+          </button>
+        </div>
+      </div>
+      
+      ${violationAlert}
+      
+      <div class="schedule-grid-wrapper">
+        ${renderWeeklyGrid(scheduleShifts)}
+      </div>
+    </div>
+  `;
+}
+
+function renderScheduleMonthMode() {
+  const scheduleShifts = applyScheduleFilter(getScheduleShifts());
+  const monthStart = currentWeekStart.startOf('month');
+  const monthEnd = monthStart.endOf('month');
+  const monthLabel = monthStart.format('MMMM YYYY');
+  
+  const violations = checkCompliance(scheduleShifts);
+  const violationAlert = showScheduleAlerts && violations.length > 0 ? violations.map(v => 
+    `<div class="compliance-alert-item">${ComplianceAlert.render(v, 'error')}</div>`
+  ).join('') : '';
+  
+  return `
+    <div class="schedule-container">
+      <div class="schedule-toolbar">
+        <div class="toolbar-left">
+          <button class="btn btn-secondary" onclick="prevMonth()">
+            <svg data-lucide="chevron-left"></svg>
+          </button>
+          <span class="week-label">${monthLabel}</span>
+          <button class="btn btn-secondary" onclick="nextMonth()">
+            <svg data-lucide="chevron-right"></svg>
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="todayMonth()">Dziś</button>
+        </div>
+        
+        <div class="toolbar-center">
+          <button class="btn btn-secondary btn-sm view-toggle ${currentViewMode === 'week' ? 'active' : ''}" data-view="week">Tydzień</button>
+          <button class="btn btn-secondary btn-sm view-toggle ${currentViewMode === 'month' ? 'active' : ''}" data-view="month">Miesiąc</button>
+          <button class="btn btn-secondary btn-sm view-toggle ${currentViewMode === 'quarter' ? 'active' : ''}" data-view="quarter">Kwartał</button>
+        </div>
+        
+        <div class="toolbar-right">
+          <div class="shift-count-selector">
+            Zmiany:
+            ${[1,2,3,4].map(n => `<button class="btn btn-sm ${settings.schedule.shiftCount === n ? 'btn-primary' : 'btn-secondary'}" onclick="setShiftCount(${n})">${n}</button>`).join('')}
+          </div>
+          <select class="filter-select" onchange="filterByDepartment(this.value)">
+            <option value="">Wszyscy</option>
+            <option value="Sala">Sala</option>
+            <option value="Bar">Bar</option>
+            <option value="Kuchnia">Kuchnia</option>
+            <option value="Ochrona">Ochrona</option>
+          </select>
+          <button class="btn btn-tertiary btn-sm" onclick="toggleScheduleAlerts()">
+            <svg data-lucide="eye-off"></svg> ${showScheduleAlerts ? 'Ukryj alerty' : 'Pokaż alerty'}
+          </button>
+          <button class="btn btn-violet" onclick="openAutoScheduler()">
+            <svg data-lucide="sparkles"></svg> Auto-Scheduler
+          </button>
+          <button class="btn btn-secondary" onclick="addShift()">
+            <svg data-lucide="plus"></svg> Dodaj zmianę
+          </button>
+          <button class="btn btn-secondary" onclick="exportSchedule()">
+            <svg data-lucide="download"></svg> Eksport
+          </button>
+        </div>
+      </div>
+      
+      ${violationAlert}
+      
+      <div class="schedule-grid-wrapper">
+        ${renderMonthlyGrid(monthStart, monthEnd, scheduleShifts)}
+      </div>
+    </div>
+  `;
+}
+
+function renderScheduleQuarterMode() {
+  const scheduleShifts = applyScheduleFilter(getScheduleShifts());
+  const quarterStart = currentWeekStart.startOf('quarter');
+  const quarterEnd = quarterStart.endOf('quarter');
+  const monthNum = quarterStart.month();
+  const quarterNum = Math.floor(monthNum / 3) + 1;
+  const quarterLabel = `Q${quarterNum} ${quarterStart.format('YYYY')}`;
+  
+  const violations = checkCompliance(scheduleShifts);
+  const violationAlert = showScheduleAlerts && violations.length > 0 ? violations.map(v => 
+    `<div class="compliance-alert-item">${ComplianceAlert.render(v, 'error')}</div>`
+  ).join('') : '';
+  
+  return `
+    <div class="schedule-container">
+      <div class="schedule-toolbar">
+        <div class="toolbar-left">
+          <button class="btn btn-secondary" onclick="prevQuarter()">
+            <svg data-lucide="chevron-left"></svg>
+          </button>
+          <span class="week-label">${quarterLabel}</span>
+          <button class="btn btn-secondary" onclick="nextQuarter()">
+            <svg data-lucide="chevron-right"></svg>
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="todayQuarter()">Dziś</button>
+        </div>
+        
+        <div class="toolbar-center">
+          <button class="btn btn-secondary btn-sm view-toggle ${currentViewMode === 'week' ? 'active' : ''}" data-view="week">Tydzień</button>
+          <button class="btn btn-secondary btn-sm view-toggle ${currentViewMode === 'month' ? 'active' : ''}" data-view="month">Miesiąc</button>
+          <button class="btn btn-secondary btn-sm view-toggle ${currentViewMode === 'quarter' ? 'active' : ''}" data-view="quarter">Kwartał</button>
+        </div>
+        
+        <div class="toolbar-right">
+          <div class="shift-count-selector">
+            Zmiany:
+            ${[1,2,3,4].map(n => `<button class="btn btn-sm ${settings.schedule.shiftCount === n ? 'btn-primary' : 'btn-secondary'}" onclick="setShiftCount(${n})">${n}</button>`).join('')}
+          </div>
+          <select class="filter-select" onchange="filterByDepartment(this.value)">
+            <option value="">Wszyscy</option>
+            <option value="Sala">Sala</option>
+            <option value="Bar">Bar</option>
+            <option value="Kuchnia">Kuchnia</option>
+            <option value="Ochrona">Ochrona</option>
+          </select>
+          <button class="btn btn-tertiary btn-sm" onclick="toggleScheduleAlerts()">
+            <svg data-lucide="eye-off"></svg> ${showScheduleAlerts ? 'Ukryj alerty' : 'Pokaż alerty'}
+          </button>
+          <button class="btn btn-violet" onclick="openAutoScheduler()">
+            <svg data-lucide="sparkles"></svg> Auto-Scheduler
+          </button>
+          <button class="btn btn-secondary" onclick="addShift()">
+            <svg data-lucide="plus"></svg> Dodaj zmianę
+          </button>
+          <button class="btn btn-secondary" onclick="exportSchedule()">
+            <svg data-lucide="download"></svg> Eksport
+          </button>
+        </div>
+      </div>
+      
+      ${violationAlert}
+      
+      <div class="schedule-grid-wrapper">
+        ${renderQuarterlyGrid(quarterStart, quarterEnd, scheduleShifts)}
+      </div>
+    </div>
+  `;
+}
+
+function renderWeeklyGrid(scheduleShifts = getScheduleShifts()) {
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    days.push(currentWeekStart.add(i, 'days'));
+  }
+  
+  const todayStr = dayjs().format('YYYY-MM-DD');
+  const dayHeaders = days.map(d => {
+    const dateStr = d.format('DD.MM');
+    const dayName = d.format('ddd').toUpperCase();
+    const isToday = d.format('YYYY-MM-DD') === todayStr;
+    const isPast = d.isBefore(dayjs().startOf('day'), 'day');
+    const isSunday = d.day() === 0;
+    return `
+      <div class="day-header ${isToday ? 'today' : ''} ${isPast ? 'past' : ''} ${isSunday ? 'sunday' : ''}">
+        <span class="day-name">${dayName}</span>
+        <span class="day-date">${dateStr}</span>
+        ${isPast ? '<span style="font-size:9px;opacity:0.6;">📁</span>' : ''}
+      </div>
+    `;
+  }).join('');
+
+  const activeShiftTypes = getActiveShiftTypes();
+  const shiftRowsHTML = activeShiftTypes.map(shiftType => {
+    const cells = days.map(d => {
+      const dateStr = d.format('YYYY-MM-DD');
+      const dayShifts = scheduleShifts.filter(s => s.date === dateStr && s.shiftType === shiftType.id);
+      const isSunday = d.day() === 0;
+      const isPast = d.isBefore(dayjs().startOf('day'), 'day');
+      const hasShift = dayShifts.length > 0;
+      const employees = dayShifts.flatMap(s => s.employees).map(id => getEmployee(id));
+
+      let cellContent = '';
+      if (isSunday && !hasShift) {
+        cellContent = '<div class="sunday-rest">Niedzielny odpoczynek</div>';
+      } else if (hasShift) {
+        cellContent = `
+          <div class="shift-cell-content" data-date="${dateStr}" data-shift="${shiftType.id}">
+            ${employees.map(emp => ShiftPill.render(emp, shiftType.start, shiftType.end)).join('')}
+            ${!isPast ? `<button class="shift-add-btn" onclick="addEmployeeToShift('${dateStr}', '${shiftType.id}')" title="Dodaj pracownika"><svg data-lucide="plus"></svg></button>` : ''}
+          </div>
+        `;
+      } else {
+        cellContent = isPast ? '' : `
+          <div class="shift-cell-empty" onclick="addEmployeeToShift('${dateStr}', '${shiftType.id}')" title="Dodaj zmianę">
+            <svg data-lucide="plus" class="empty-plus"></svg>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="shift-cell ${hasShift ? 'has-shift' : ''} ${isSunday ? 'sunday' : ''} ${isPast ? 'past' : ''}">
+          ${cellContent}
+        </div>
+      `;
+    }).join('');
+    
+    return `
+      <div class="shift-row">
+        <div class="shift-label">
+          <strong>${shiftType.label}</strong>
+          <small>${shiftType.start}–${shiftType.end}</small>
+        </div>
+        ${cells}
+      </div>
+    `;
+  }).join('');
+  
+  const allShiftsForTotals = getScheduleShifts();
+  const totalRow = `
+    <div class="totals-row">
+      <div class="shift-label">Razem h/tyg</div>
+      ${days.map(d => {
+        const dateStr = d.format('YYYY-MM-DD');
+        const dayEmployees = allShiftsForTotals.filter(s => s.date === dateStr).flatMap(s => s.employees);
+        const uniqueEmployees = [...new Set(dayEmployees)];
+        const hours = uniqueEmployees.length * 8;
+        return `<div class="totals-cell">${hours}h</div>`;
+      }).join('')}
+    </div>
+  `;
+  
+  return `
+    <div class="calendar-grid view-week">
+      <div class="day-headers-row">
+        <div class="shift-label"></div>
+        ${dayHeaders}
+      </div>
+      ${shiftRowsHTML}
+      ${totalRow}
+    </div>
+  `;
+}
+
+function renderMonthlyGrid(monthStart, monthEnd, scheduleShifts = getScheduleShifts()) {
+  const today = dayjs().startOf('day');
+  const activeShiftTypes = getActiveShiftTypes();
+
+  // Calendar starts from Monday of week containing 1st of month
+  const calStart = getMonday(monthStart);
+  // Calendar ends on Sunday of week containing last day of month
+  const lastDay = monthEnd;
+  const daysToSunday = lastDay.day() === 0 ? 0 : 7 - lastDay.day();
+  const calEnd = lastDay.add(daysToSunday, 'day');
+
+  // Build week rows
+  const weeks = [];
+  let wStart = calStart;
+  while (wStart.isBefore(calEnd) || wStart.isSame(calEnd, 'day')) {
+    const week = [];
+    for (let i = 0; i < 7; i++) week.push(wStart.add(i, 'day'));
+    weeks.push(week);
+    wStart = wStart.add(7, 'day');
+  }
+
+  const dayNames = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Niedz'];
+  const headerHTML = dayNames.map((name, idx) =>
+    `<div class="cal-col-header ${idx === 6 ? 'cal-sunday-hdr' : ''}">${name}</div>`
+  ).join('');
+
+  const weeksHTML = weeks.map(week => {
+    const daysHTML = week.map(d => {
+      const dateStr = d.format('YYYY-MM-DD');
+      const isToday = d.isSame(today, 'day');
+      const isPast = d.isBefore(today, 'day');
+      const isCurrentMonth = d.month() === monthStart.month();
+      const isSunday = d.day() === 0;
+
+      const classes = [
+        'cal-day-cell',
+        isToday ? 'cal-today' : '',
+        isPast ? 'cal-past' : '',
+        !isCurrentMonth ? 'cal-other-month' : '',
+        isSunday ? 'cal-sunday' : ''
+      ].filter(Boolean).join(' ');
+
+      const shiftBadgesHTML = isSunday ? '' : activeShiftTypes.map(st => {
+        const dayShifts = scheduleShifts.filter(s => s.date === dateStr && s.shiftType === st.id);
+        const empIds = [...new Set(dayShifts.flatMap(s => s.employees))];
+        const count = empIds.length;
+        if (count === 0) {
+          return `<div class="cal-shift-badge cal-badge-empty">${st.label.substring(0, 3)}</div>`;
+        }
+        const label = `${st.label.substring(0, 1)} ${count} os.`;
+        const names = empIds.slice(0, 3).map(id => getEmployee(id)?.name || '?').join(', ')
+          + (count > 3 ? ` +${count - 3}` : '');
+        return `<div class="cal-shift-badge" style="background:${st.color};" title="${st.label}: ${names}">${label}</div>`;
+      }).join('');
+
+      const sundayContent = isSunday
+        ? `<span style="font-size:9px;color:#9ca3af;margin-top:auto;">wolne</span>`
+        : '';
+
+      const archiveDot = isPast && isCurrentMonth
+        ? `<span class="cal-archived-dot" title="Archiwum">📁</span>`
+        : '';
+
+      return `
+        <div class="${classes}" onclick="navigateToWeekOf('${dateStr}')" title="${isPast ? 'Archiwum — ' : ''}${d.format('DD.MM.YYYY')}">
+          <span class="cal-day-num">${d.format('D')}</span>
+          <div class="cal-shift-badges">${shiftBadgesHTML}${sundayContent}</div>
+          ${archiveDot}
+        </div>`;
+    }).join('');
+    return `<div class="cal-week-row">${daysHTML}</div>`;
+  }).join('');
+
+  return `
+    <div class="cal-month-grid">
+      <div class="cal-header-row">${headerHTML}</div>
+      ${weeksHTML}
+    </div>
+  `;
+}
+
+function renderQuarterlyGrid(quarterStart, quarterEnd, scheduleShifts = getScheduleShifts()) {
+  const allDays = [];
+  let current = quarterStart;
+  while (current.isBefore(quarterEnd) || current.isSame(quarterEnd, 'day')) {
+    allDays.push(current);
+    current = current.add(1, 'day');
+  }
+  
+  const dayHeaders = allDays.map(d => {
+    const dateStr = d.format('DD.MM');
+    const isToday = d.format('YYYY-MM-DD') === dayjs().format('YYYY-MM-DD');
+    const isSunday = d.day() === 0;
+    const isMonday = d.day() === 1;
+    return `
+      <div class="day-header ${isToday ? 'today' : ''} ${isSunday ? 'sunday' : ''}" ${isMonday ? 'style="border-left: 2px solid var(--color-primary);"' : ''}>
+        <span class="day-date">${d.format('DD')}</span>
+      </div>
+    `;
+  }).join('');
+  
+  const activeShiftTypes = getActiveShiftTypes();
+  const shiftRowsHTML = activeShiftTypes.map(shiftType => {
+    const cells = allDays.map(d => {
+      const dateStr = d.format('YYYY-MM-DD');
+      const dayShifts = scheduleShifts.filter(s => s.date === dateStr && s.shiftType === shiftType.id);
+      const isSunday = d.day() === 0;
+      const hasShift = dayShifts.length > 0;
+      const employees = dayShifts.flatMap(s => s.employees).map(id => getEmployee(id));
+      
+      let cellContent = '';
+      if (isSunday && !hasShift) {
+        cellContent = '';
+      } else if (hasShift) {
+        cellContent = `<div class="shift-indicator" title="${employees.map(e => e.name).join(', ')}" style="background: ${getShiftColor(shiftType.id)};">•</div>`;
+      } else {
+        cellContent = '';
+      }
+      
+      return `
+        <div class="shift-cell shift-cell-quarter ${hasShift ? 'has-shift' : ''} ${isSunday ? 'sunday' : ''}">
+          ${cellContent}
+        </div>
+      `;
+    }).join('');
+    
+    return `
+      <div class="shift-row">
+        <div class="shift-label shift-label-compact">
+          <strong>${shiftType.label.substring(0, 4)}</strong>
+        </div>
+        ${cells}
+      </div>
+    `;
+  }).join('');
+  
+  return `
+    <div class="calendar-grid view-quarter">
+      <div class="day-headers-row">
+        <div class="shift-label"></div>
+        ${dayHeaders}
+      </div>
+      ${shiftRowsHTML}
+    </div>
+  `;
+}
+
+function getShiftColor(shiftTypeId) {
+  const colors = {
+    'morning': '#3b82f6',
+    'afternoon': '#8b5cf6',
+    'night': '#1e40af'
+  };
+  return colors[shiftTypeId] || '#4f46e5';
+}
+
+function prevWeek() {
+  currentWeekStart = currentWeekStart.subtract(1, 'week');
+  renderSchedule();
+  initIcons();
+}
+
+function nextWeek() {
+  currentWeekStart = currentWeekStart.add(1, 'week');
+  renderSchedule();
+  initIcons();
+}
+
+function todayWeek() {
+  currentWeekStart = getMonday(dayjs());
+  renderSchedule();
+  initIcons();
+}
+
+function prevMonth() {
+  currentWeekStart = currentWeekStart.subtract(1, 'month');
+  renderSchedule();
+  initIcons();
+}
+
+function nextMonth() {
+  currentWeekStart = currentWeekStart.add(1, 'month');
+  renderSchedule();
+  initIcons();
+}
+
+function todayMonth() {
+  currentWeekStart = dayjs();
+  renderSchedule();
+  initIcons();
+}
+
+function prevQuarter() {
+  currentWeekStart = currentWeekStart.subtract(3, 'months');
+  renderSchedule();
+  initIcons();
+}
+
+function nextQuarter() {
+  currentWeekStart = currentWeekStart.add(3, 'months');
+  renderSchedule();
+  initIcons();
+}
+
+function todayQuarter() {
+  currentWeekStart = dayjs();
+  renderSchedule();
+  initIcons();
+}
+
+function filterByDepartment(dept) {
+  localStorage.setItem('scheduleFilterDept', dept);
+  renderSchedule();
+  initIcons();
+}
+
+function getShiftStart(shift) {
+  const shiftType = shiftTypes.find(st => st.id === shift.shiftType);
+  const start = dayjs(`${shift.date} ${shiftType.start}`, 'YYYY-MM-DD HH:mm');
+  return start;
+}
+
+function getShiftEnd(shift) {
+  const shiftType = shiftTypes.find(st => st.id === shift.shiftType);
+  let end = dayjs(`${shift.date} ${shiftType.end}`, 'YYYY-MM-DD HH:mm');
+  if (end.isBefore(getShiftStart(shift)) || shiftType.end === '00:00') {
+    end = end.add(1, 'day');
+  }
+  return end;
+}
+
+function checkCompliance(scheduleShifts = getScheduleShifts()) {
+  const violations = [];
+  const weekStart = currentWeekStart.format('YYYY-MM-DD');
+  const weekEnd = currentWeekStart.add(6, 'days').format('YYYY-MM-DD');
+  const weekShifts = scheduleShifts.filter(s => s.date >= weekStart && s.date <= weekEnd);
+  
+  const assignments = {};
+  weekShifts.forEach(shift => {
+    shift.employees.forEach(empId => {
+      assignments[empId] = assignments[empId] || [];
+      assignments[empId].push(shift);
+    });
+  });
+  
+  Object.entries(assignments).forEach(([empId, empShifts]) => {
+    const employee = getEmployee(parseInt(empId));
+    if (!employee) return;
+
+    const totalHours = empShifts.length * 8;
+    if (employee.contract === 'UoP' && totalHours > settings.laborRules.maxWeeklyHours) {
+      violations.push(`⚠ Naruszenie Kodeksu Pracy: ${employee.name} ma ${totalHours}h > ${settings.laborRules.maxWeeklyHours}h limit tygodniowy (UoP)`);
+    }
+    if (employee.contract === 'UoP' && totalHours > settings.laborRules.maxWeeklyWithOT) {
+      violations.push(`⚠ Naruszenie Kodeksu Pracy: ${employee.name} ma ${totalHours}h > ${settings.laborRules.maxWeeklyWithOT}h limit z nadgodzinami (UoP)`);
+    }
+
+    empShifts.sort((a, b) => getShiftStart(a).valueOf() - getShiftStart(b).valueOf());
+
+    for (let i = 1; i < empShifts.length; i++) {
+      const previous = empShifts[i - 1];
+      const current = empShifts[i];
+      const restHours = getShiftStart(current).diff(getShiftEnd(previous), 'hour', true);
+      const prevType = shiftTypes.find(st => st.id === previous.shiftType);
+      const currType = shiftTypes.find(st => st.id === current.shiftType);
+
+      if (restHours < settings.laborRules.minDailyRest) {
+        violations.push(`⚠ ${employee.name} ma tylko ${restHours.toFixed(1)}h odpoczynku między zmianami ${prevType.label} (${previous.date}) i ${currType.label} (${current.date})`);
+      }
+      if (previous.shiftType === 'night' && current.shiftType === 'night') {
+        violations.push(`⚠ ${employee.name} ma dwie kolejne zmiany nocne (${previous.date} i ${current.date})`);
+      }
+    }
+
+    empShifts.forEach(shift => {
+      const shiftDay = dayjs(shift.date).day();
+      if (!settings.laborRules.sundayWorkAllowed && shiftDay === 0) {
+        violations.push(`⚠ ${employee.name} ma zmianę w niedzielę ${shift.date} mimo wyłączonej pracy niedzielnej`);
+      }
+    });
+  });
+
+  return violations;
+}
+
+function navigateToWeekOf(dateStr) {
+  currentWeekStart = getMonday(dayjs(dateStr));
+  currentViewMode = 'week';
+  localStorage.setItem('scheduleViewMode', currentViewMode);
+  renderSchedule();
+  initIcons();
+}
+
+function setShiftCount(n) {
+  settings.schedule.shiftCount = n;
+  settings.schedule.visibleShiftTypes = shiftTypes.slice(0, n).map(s => s.id);
+  renderSchedule();
+  initIcons();
+  const labels = ['jedną zmianę', 'dwie zmiany', 'trzy zmiany', 'cztery zmiany'];
+  Toast.success(`Ustawiono ${labels[n - 1] || n + ' zmiany'}`);
+}
+
+function openAutoScheduler() {
+  const modal = new Modal(
+    '🤖 GrafAI Auto-Scheduler',
+    `
+      <form class="scheduler-form">
+        <div class="form-group">
+          <label>Zakres dat:</label>
+          <div class="date-range">
+            <input type="date" id="scheduleFrom" class="form-control" value="${currentWeekStart.format('YYYY-MM-DD')}">
+            <span>→</span>
+            <input type="date" id="scheduleTo" class="form-control" value="${currentWeekStart.add(6, 'days').format('YYYY-MM-DD')}">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Dział:</label>
+          <select class="form-control">
+            <option>Wszyscy</option>
+            <option>Sala</option>
+            <option>Bar</option>
+            <option>Kuchnia</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>Min. obsada dzienna:</label>
+          <input type="number" class="form-control" value="3" min="1" max="12">
+        </div>
+        
+        <div class="form-group">
+          <label>Priorytet:</label>
+          <div class="radio-group">
+            <label><input type="radio" name="priority"> Minimalizuj koszty</label>
+            <label><input type="radio" name="priority" checked> Pełna obsada</label>
+            <label><input type="radio" name="priority"> Preferencje pracowników</label>
+          </div>
+        </div>
+        
+        <div class="form-divider"></div>
+        <strong>Zasady Kodeksu Pracy:</strong>
+        <div class="rules-list">
+          <div class="rule">✅ Min 11h odpoczynku między zmianami</div>
+          <div class="rule">✅ Max 40h/tydz (UoP)</div>
+          <div class="rule">✅ Bez 2 kolejnych nocy</div>
+        </div>
+      </form>
+    `,
+    [
+      { label: 'Anuluj', type: 'secondary', action: 'cancel' },
+      { label: '🤖 Generuj grafik', type: 'primary', action: 'generate', handler: () => runAutoScheduler() }
+    ]
+  );
+  modal.show();
+  initIcons();
+}
+
+function runAutoScheduler() {
+  const fromInput = document.getElementById('scheduleFrom');
+  const toInput = document.getElementById('scheduleTo');
+  const departmentSelect = document.querySelector('.scheduler-form select');
+  const coverageInput = document.querySelector('.scheduler-form input[type="number"]');
+  const priorityValue = Array.from(document.querySelectorAll('input[name="priority"]')).find(r => r.checked)?.value || 'balance';
+
+  const fromDate = fromInput ? fromInput.value : currentWeekStart.format('YYYY-MM-DD');
+  const toDate = toInput ? toInput.value : currentWeekStart.add(6, 'days').format('YYYY-MM-DD');
+  const department = departmentSelect ? departmentSelect.value : 'Wszyscy';
+  const minCoverage = coverageInput ? parseInt(coverageInput.value, 10) : 3;
+
+  Toast.info('Analizuję dostępność pracowników...');
+  setTimeout(() => Toast.info('Optymalizuję grafik z uwzględnieniem Kodeksu Pracy...'), 1000);
+  setTimeout(() => Toast.info('Wybieram najlepszą obsadę na każdy dzień...'), 2000);
+  setTimeout(() => {
+    const scheduleResult = generateAutoSchedule(fromDate, toDate, department, minCoverage, priorityValue);
+    const violations = checkCompliance();
+    const summaryMessage = scheduleResult.assignedShiftCount > 0 ? `AI ułożył grafik dla ${scheduleResult.assignedShiftCount} zmian` : 'Nie udało się wygenerować żadnej zmiany dla wybranego zakresu.';
+    const costEstimate = scheduleResult.assignedShiftCount * 8 * 75;
+
+    const modal = new Modal(
+      'Wynik Auto-Schedulera',
+      `
+        <div class="scheduler-result">
+          <div class="result-summary">
+            <p><strong>${summaryMessage}</strong></p>
+            <p>Szacowany koszt: <strong>${costEstimate.toLocaleString('pl-PL')} PLN</strong></p>
+          </div>
+          <div class="violations-found">
+            <strong>Naruszenia:</strong>
+            <ul>
+              ${violations.length > 0 ? violations.map(v => `<li>${v}</li>`).join('') : '<li>Brak naruszeń — grafik spełnia zasady Kodeksu Pracy ✅</li>'}
+            </ul>
+          </div>
+        </div>
+      `,
+      [
+        { label: 'Anuluj', type: 'secondary', action: 'reject' },
+        { label: 'Edytuj', type: 'secondary', action: 'edit' },
+        { label: 'Zastosuj grafik ✅', type: 'primary', action: 'apply', handler: () => { renderSchedule(); initIcons(); Toast.success('Grafik zastosowany!'); } }
+      ]
+    );
+    modal.show();
+    initIcons();
+  }, 2800);
+}
+
+function generateAutoSchedule(fromDate, toDate, department, minCoverage, priority) {
+  const start = dayjs(fromDate);
+  const end = dayjs(toDate);
+  const dates = [];
+  let current = start;
+  while (current.isBefore(end) || current.isSame(end, 'day')) {
+    dates.push(current);
+    current = current.add(1, 'day');
+  }
+
+  const availableEmployees = employees.filter(emp => emp.status === 'active' && (department === 'Wszyscy' || emp.dept === department));
+  const hoursByEmployee = Object.fromEntries(availableEmployees.map(emp => [emp.id, 0]));
+  const assignments = {};
+  const resultShifts = [];
+  let nextId = shifts.reduce((max, shift) => Math.max(max, shift.id), 0) + 1;
+
+  dates.forEach(day => {
+    const dateStr = day.format('YYYY-MM-DD');
+    shiftTypes.forEach(shiftType => {
+      if (day.day() === 0 && !settings.laborRules.sundayWorkAllowed) return;
+
+      const pool = availableEmployees.filter(emp => {
+        if (getLeavesForDate(dateStr).some(leave => leave.employeeId === emp.id)) return false;
+        if (hoursByEmployee[emp.id] + 8 > settings.laborRules.maxWeeklyWithOT) return false;
+        const previousShifts = assignments[emp.id] || [];
+        if (previousShifts.length) {
+          const lastShift = previousShifts[previousShifts.length - 1];
+          const restHours = getShiftStart({ date: dateStr, shiftType: shiftType.id }).diff(getShiftEnd(lastShift), 'hour', true);
+          if (restHours < settings.laborRules.minDailyRest) return false;
+          if (lastShift.shiftType === 'night' && shiftType.id === 'night') return false;
+        }
+        return true;
+      });
+
+      const sorted = pool.sort((a, b) => hoursByEmployee[a.id] - hoursByEmployee[b.id]);
+      const selected = sorted.slice(0, minCoverage);
+      if (!selected.length) return;
+
+      const shift = { id: nextId++, date: dateStr, shiftType: shiftType.id, employees: selected.map(emp => emp.id) };
+      resultShifts.push(shift);
+      selected.forEach(emp => {
+        hoursByEmployee[emp.id] += 8;
+        assignments[emp.id] = assignments[emp.id] || [];
+        assignments[emp.id].push(shift);
+      });
+    });
+  });
+
+  shifts.length = 0;
+  shifts.push(...resultShifts);
+
+  return {
+    assignedShiftCount: resultShifts.length,
+    hoursByEmployee
+  };
+}
+
+function addEmployeeToShift(date, shiftType) {
+  Toast.info(`Dodaj pracownika do ${shiftType} na dzień ${date}`);
+}
+
+function addShift() {
+  Toast.info('Otwieranie dialog dodawania zmianę');
+}
+
+function exportSchedule() {
+  let csv = 'Data,Zmiana,Pracownik,Start,Koniec\n';
+  shifts.forEach(shift => {
+    const shiftType = shiftTypes.find(st => st.id === shift.shiftType);
+    shift.employees.forEach(empId => {
+      const emp = getEmployee(empId);
+      csv += `${shift.date},${shiftType.label},${emp ? emp.name : 'Nieznany'},${shiftType.start},${shiftType.end}\n`;
+    });
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `grafik_${currentWeekStart.format('YYYY-MM-DD')}.csv`;
+  a.click();
+
+  Toast.success('Eksport grafików CSV został wygenerowany.');
+}
+
+
+// ===== FILE: js/employees.js =====
+// ===== EMPLOYEES VIEW =====
+
+function renderEmployees() {
+  const mainContent = document.getElementById('mainContent');
+  
+  const html = `
+    <div class="employees-container">
+      <div class="employees-toolbar">
+        <div class="toolbar-left">
+          <input type="text" class="search-input" placeholder="Szukaj pracownika..." id="employeeSearch">
+        </div>
+        <div class="toolbar-right">
+          <select class="filter-select" id="deptFilter">
+            <option value="">Wszyscy</option>
+            ${departments.map(d => `<option value="${d.id}">${d.name}</option>`).join('')}
+          </select>
+          <select class="filter-select">
+            <option>Typ umowy: Wszyscy</option>
+            <option>UoP</option>
+            <option>UZ</option>
+            <option>B2B</option>
+          </select>
+          <select class="filter-select">
+            <option>Status: Wszyscy</option>
+            <option>Aktywni</option>
+            <option>Na urlopie</option>
+            <option>Nieaktywni</option>
+          </select>
+          <button class="btn btn-primary" onclick="openAddEmployee()">
+            <svg data-lucide="plus"></svg> Dodaj pracownika
+          </button>
+        </div>
+      </div>
+      
+      <div class="employees-grid" id="employeesGrid">
+        ${employees.map(emp => EmployeeCard.render(emp)).join('')}
+      </div>
+    </div>
+  `;
+  
+  mainContent.innerHTML = html;
+  
+  // Event listeners
+  document.getElementById('employeeSearch').addEventListener('input', (e) => filterEmployees());
+  document.getElementById('deptFilter').addEventListener('change', (e) => filterEmployees());
+}
+
+function filterEmployees() {
+  const search = document.getElementById('employeeSearch').value.toLowerCase();
+  const deptId = document.getElementById('deptFilter').value;
+  
+  const filtered = employees.filter(emp => {
+    const matchesSearch = emp.name.toLowerCase().includes(search) || emp.role.toLowerCase().includes(search);
+    const matchesDept = !deptId || emp.dept === (departments.find(d => d.id == deptId)?.name);
+    return matchesSearch && matchesDept;
+  });
+  
+  const grid = document.getElementById('employeesGrid');
+  if (filtered.length === 0) {
+    grid.innerHTML = EmptyState.render('search', 'Brak wyników dla wybranych filtrów');
+  } else {
+    grid.innerHTML = filtered.map(emp => EmployeeCard.render(emp)).join('');
+  }
+  initIcons();
+}
+
+function openAddEmployee() {
+  Toast.info('Otwieranie formularz dodawania pracownika');
+}
+
+
+// ===== FILE: js/timetracking.js =====
+// ===== TIME TRACKING VIEW =====
+
+function renderTimeTracking() {
+  const mainContent = document.getElementById('mainContent');
+  
+  const currentMonth = dayjs().format('MMMM YYYY');
+  
+  // Summary stats
+  const workedHours = 1847;
+  const plannedHours = 2040;
+  const overtimeHours = 34;
+  const absenceDays = 12;
+  const completeness = 89;
+  
+  const trackingTable = generateTimeTrackingTable();
+  
+  const html = `
+    <div class="timetracking-container">
+      <div class="timetracking-toolbar">
+        <div class="toolbar-left">
+          <span class="month-label">${currentMonth}</span>
+          <button class="btn btn-secondary btn-sm">
+            <svg data-lucide="chevron-left"></svg>
+          </button>
+          <button class="btn btn-secondary btn-sm">
+            <svg data-lucide="chevron-right"></svg>
+          </button>
+        </div>
+        <div class="toolbar-right">
+          <select class="filter-select" id="employeeFilter">
+            <option value="">Wszyscy pracownicy</option>
+            ${employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('')}
+          </select>
+          <button class="btn btn-secondary">
+            <svg data-lucide="download"></svg> Pobierz raport CSV
+          </button>
+          <button class="btn btn-secondary" onclick="exportTimeTracking()">
+            <svg data-lucide="upload"></svg> Eksport CSV
+          </button>
+        </div>
+      </div>
+      
+      <!-- Summary Stats -->
+      <div class="summary-bar">
+        <div class="summary-item">
+          <span class="summary-label">Przepracowane</span>
+          <span class="summary-value">${workedHours}h / ${plannedHours}h planowane</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Nadgodziny</span>
+          <span class="summary-value">${overtimeHours}h</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Nieobecności</span>
+          <span class="summary-value">${absenceDays} dni</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Kompletność wpisów</span>
+          <span class="summary-value ${completeness < 95 ? 'warning' : ''}">${completeness}%</span>
+        </div>
+      </div>
+      
+      <!-- Time Tracking Table -->
+      <div class="table-wrapper">
+        ${trackingTable}
+      </div>
+      
+      <!-- Mobile QR Check-in Demo -->
+      <div class="qr-demo-section">
+        <div class="qr-demo-card">
+          <div class="demo-header">
+            <svg data-lucide="smartphone"></svg>
+            <h3>QR Check-in dla pracowników</h3>
+          </div>
+          <div class="demo-content">
+            <div class="demo-qr">
+              <svg data-lucide="qr-code" style="width: 80px; height: 80px; color: #4F46E5;"></svg>
+            </div>
+            <p>Zeskanuj kod QR lub kliknij przycisk GPS</p>
+            <button class="btn btn-primary" onclick="simulateCheckIn()">
+              <svg data-lucide="map-pin"></svg> Testuj Check-in
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  mainContent.innerHTML = html;
+}
+
+function generateTimeTrackingTable() {
+  const daysInMonth = dayjs().daysInMonth();
+  let table = `
+    <table class="tracking-table">
+      <thead>
+        <tr>
+          <th>Pracownik</th>
+  `;
+  
+  for (let i = 1; i <= daysInMonth; i++) {
+    const day = dayjs().date(i);
+    const dayName = day.format('ddd').substring(0, 1).toUpperCase();
+    table += `<th><span class="day-num">${i}</span><span class="day-name">${dayName}</span></th>`;
+  }
+  
+  table += `<th>Suma</th><th>Status</th></tr></thead><tbody>`;
+  
+  employees.slice(0, 5).forEach(emp => {
+    table += `<tr><td>${emp.name}</td>`;
+    let weekTotal = 0;
+    
+    for (let i = 1; i <= daysInMonth; i++) {
+      const date = dayjs().date(i);
+      const isWeekend = date.day() === 0 || date.day() === 6;
+      let cellClass = 'normal';
+      let cellContent = '8h';
+      
+      if (isWeekend) {
+        cellClass = 'weekend';
+        cellContent = '-';
+      } else if (Math.random() > 0.85) {
+        cellClass = 'missing';
+        cellContent = '?';
+      } else if (Math.random() > 0.95) {
+        cellClass = 'overtime';
+        cellContent = '8.5h';
+        weekTotal += 0.5;
+      }
+      
+      table += `<td class="${cellClass}">${cellContent}</td>`;
+      if (!isWeekend) weekTotal += 8;
+    }
+    
+    const status = weekTotal > 160 ? '⚠' : '✅';
+    table += `<td>${weekTotal}h</td><td>${status}</td></tr>`;
+  });
+  
+  table += `</tbody></table>`;
+  return table;
+}
+
+function simulateCheckIn() {
+  Toast.success('✅ Anna Kowalska — odbiła się o 08:02 (lokalizacja potwierdzona)');
+}
+
+function exportTimeTracking() {
+  let csv = 'Pracownik,Data,Wejście,Wyjście,Godziny\n';
+  Object.entries(timeTracking).forEach(([empId, days]) => {
+    const emp = getEmployee(parseInt(empId, 10));
+    if (!days || !emp) return;
+    Object.entries(days).forEach(([date, record]) => {
+      if (!record) return;
+      const workHours = record.in && record.out ? Math.max(0, (dayjs(`${date} ${record.out}`, 'YYYY-MM-DD HH:mm').diff(dayjs(`${date} ${record.in}`, 'YYYY-MM-DD HH:mm'), 'hour', true))).toFixed(2) : 0;
+      csv += `${emp.name},${date},${record.in || '-'},${record.out || '-'},${workHours}\n`;
+    });
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ewidencja_czasu_${dayjs().format('YYYY-MM-DD')}.csv`;
+  a.click();
+
+  Toast.success('Eksport ewidencji czasu CSV został wygenerowany.');
+}
+
+
+// ===== FILE: js/leaves.js =====
+// ===== LEAVES VIEW =====
+
+let activeLeaveTab = 'requests';
+
+function renderLeaves() {
+  const mainContent = document.getElementById('mainContent');
+  
+  const html = `
+    <div class="leaves-container">
+      <div class="leaves-tabs">
+        <button class="tab-btn active" data-tab="requests" onclick="switchLeaveTab('requests')">
+          Wnioski (${leaves.filter(l => l.status === 'pending').length})
+        </button>
+        <button class="tab-btn" data-tab="calendar" onclick="switchLeaveTab('calendar')">
+          Kalendarz
+        </button>
+        <button class="tab-btn" data-tab="balances" onclick="switchLeaveTab('balances')">
+          Salda urlopowe
+        </button>
+      </div>
+      
+      <div class="leaves-content" id="leavesContent">
+        ${renderLeaveRequests()}
+      </div>
+    </div>
+  `;
+  
+  mainContent.innerHTML = html;
+}
+
+function switchLeaveTab(tab) {
+  activeLeaveTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+  
+  let content = '';
+  if (tab === 'requests') {
+    content = renderLeaveRequests();
+  } else if (tab === 'calendar') {
+    content = renderLeaveCalendar();
+  } else if (tab === 'balances') {
+    content = renderLeaveBalances();
+  }
+  
+  document.getElementById('leavesContent').innerHTML = content;
+  initIcons();
+}
+
+function renderLeaveRequests() {
+  const pending = leaves.filter(l => l.status === 'pending');
+  const approved = leaves.filter(l => l.status === 'approved');
+  const rejected = leaves.filter(l => l.status === 'rejected');
+  
+  let html = '<div class="leaves-section">';
+  
+  // Pending
+  if (pending.length > 0) {
+    html += '<div class="pending-section"><h3>Oczekujące</h3>';
+    pending.forEach(leave => {
+      const emp = getEmployee(leave.employeeId);
+      html += LeaveRequestCard.render(leave, emp);
+    });
+    html += '</div>';
+  }
+  
+  // Approved
+  if (approved.length > 0) {
+    html += '<div class="approved-section"><h3>Zatwierdzone</h3>';
+    approved.forEach(leave => {
+      const emp = getEmployee(leave.employeeId);
+      html += LeaveRequestCard.render(leave, emp);
+    });
+    html += '</div>';
+  }
+  
+  html += '</div>';
+  return html;
+}
+
+function renderLeaveCalendar() {
+  let calendar = '<div class="leave-calendar">';
+  const currentMonth = dayjs();
+  const daysInMonth = currentMonth.daysInMonth();
+  
+  calendar += `<h3>${currentMonth.format('MMMM YYYY')}</h3>`;
+  calendar += `
+    <div class="calendar-grid-simple">
+      <div class="cal-header">Pn</div>
+      <div class="cal-header">Wt</div>
+      <div class="cal-header">Śr</div>
+      <div class="cal-header">Cz</div>
+      <div class="cal-header">Pt</div>
+      <div class="cal-header">So</div>
+      <div class="cal-header">Nie</div>
+  `;
+  
+  const firstDay = currentMonth.startOf('month').day();
+  
+  // Empty cells before month starts
+  for (let i = 0; i < firstDay; i++) {
+    calendar += '<div class="cal-empty"></div>';
+  }
+  
+  // Days
+  for (let i = 1; i <= daysInMonth; i++) {
+    const date = currentMonth.date(i);
+    const dayLeaves = getLeavesForDate(date.format('YYYY-MM-DD'));
+    const leaveTypes = dayLeaves.map(l => l.type).join(', ');
+    const hasLeave = dayLeaves.length > 0;
+    
+    let class_list = 'cal-day';
+    let bgColor = '';
+    if (hasLeave) {
+      class_list += dayLeaves[0].type === 'L4' ? ' leave-sick' : ' leave-vacation';
+      bgColor = dayLeaves[0].type === 'L4' ? '#FEE2E2' : '#ECFDF5';
+    }
+    
+    calendar += `<div class="${class_list}" style="background: ${bgColor}" title="${leaveTypes}">${i}</div>`;
+  }
+  
+  calendar += '</div>';
+  return calendar;
+}
+
+function renderLeaveBalances() {
+  let html = '<div class="leave-balances"><table class="balances-table"><thead><tr>';
+  html += '<th>Pracownik</th><th>Przysługuje</th><th>Wykorzystane</th><th>Zaplanowane</th><th>Pozostało</th>';
+  html += '</tr></thead><tbody>';
+  
+  employees.forEach(emp => {
+    const balance = getLeaveBalance(emp.id);
+    const progressPercent = (balance.remaining / balance.earned) * 100;
+    html += `
+      <tr>
+        <td>${emp.name}</td>
+        <td>${balance.earned} dni</td>
+        <td>${balance.used} dni</td>
+        <td>${balance.planned} dni</td>
+        <td>
+          <div class="balance-bar">
+            <div class="balance-progress" style="width: ${progressPercent}%; background: ${progressPercent > 30 ? '#10B981' : progressPercent > 15 ? '#F59E0B' : '#EF4444'};"></div>
+          </div>
+          ${balance.remaining} dni
+        </td>
+      </tr>
+    `;
+  });
+  
+  html += '</tbody></table></div>';
+  return html;
+}
+
+
+// ===== FILE: js/reports.js =====
+// ===== REPORTS VIEW =====
+
+let charts = {};
+
+function renderReports() {
+  const mainContent = document.getElementById('mainContent');
+  
+  const html = `
+    <div class="reports-container">
+      <div class="reports-toolbar">
+        <div class="toolbar-left">
+          ${DateRangePicker.render('reportFrom', 'reportTo', '2026-04-01', '2026-05-31')}
+        </div>
+        <div class="toolbar-right">
+          <select class="filter-select">
+            <option>Wszyscy</option>
+            ${departments.map(d => `<option>${d.name}</option>`).join('')}
+          </select>
+          <button class="btn btn-secondary">
+            <svg data-lucide="download"></svg> Pobierz PDF
+          </button>
+          <button class="btn btn-secondary">
+            <svg data-lucide="file-text"></svg> Eksport Excel
+          </button>
+        </div>
+      </div>
+      
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>Koszty pracy — trend miesięczny</h3>
+          <div class="chart-container">
+            <canvas id="costsTrendChart"></canvas>
+          </div>
+        </div>
+        
+        <div class="chart-card">
+          <h3>Nadgodziny według działu</h3>
+          <div class="chart-container">
+            <canvas id="overtimeByDeptChart"></canvas>
+          </div>
+        </div>
+        
+        <div class="chart-card">
+          <h3>Absencje — rozkład typów</h3>
+          <div class="chart-container">
+            <canvas id="absenceTypesChart"></canvas>
+          </div>
+        </div>
+        
+        <div class="chart-card">
+          <h3>Wskaźnik wypełnienia grafiku</h3>
+          <div class="chart-container">
+            <canvas id="coverageByDayChart"></canvas>
+          </div>
+        </div>
+      </div>
+      
+      <div class="summary-table-section">
+        <h3>Podsumowanie — porównanie okresów</h3>
+        <table class="summary-table">
+          <thead>
+            <tr>
+              <th>Metryka</th>
+              <th>Kwiecień</th>
+              <th>Maj</th>
+              <th>Zmiana</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Koszt pracy (PLN)</td>
+              <td>22 800</td>
+              <td>23 400</td>
+              <td class="positive">+2.6% ✅</td>
+            </tr>
+            <tr>
+              <td>Nadgodziny (h)</td>
+              <td>38</td>
+              <td>44</td>
+              <td class="negative">+15.8% ⚠</td>
+            </tr>
+            <tr>
+              <td>Absencje (dni)</td>
+              <td>18</td>
+              <td>12</td>
+              <td class="positive">-33.3% ✅</td>
+            </tr>
+            <tr>
+              <td>Frekwencja</td>
+              <td>91%</td>
+              <td>94%</td>
+              <td class="positive">+3.3% ✅</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+  
+  mainContent.innerHTML = html;
+  
+  // Initialize charts
+  setTimeout(() => initializeCharts(), 100);
+}
+
+function initializeCharts() {
+  const chartColor = {
+    primary: '#4F46E5',
+    success: '#10B981',
+    danger: '#EF4444',
+    warning: '#F59E0B',
+    info: '#3B82F6'
+  };
+  
+  // Cost Trend Chart
+  const ctxCosts = document.getElementById('costsTrendChart');
+  if (ctxCosts) {
+    charts.costs = new Chart(ctxCosts, {
+      type: 'line',
+      data: {
+        labels: reports.costsTrend.months,
+        datasets: [{
+          label: 'Koszty (PLN)',
+          data: reports.costsTrend.data,
+          borderColor: chartColor.primary,
+          backgroundColor: 'rgba(79, 70, 229, 0.1)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: false, ticks: { callback: v => v.toLocaleString() } }
+        }
+      }
+    });
+  }
+  
+  // Overtime by Dept Chart
+  const ctxOvertime = document.getElementById('overtimeByDeptChart');
+  if (ctxOvertime) {
+    charts.overtime = new Chart(ctxOvertime, {
+      type: 'bar',
+      data: {
+        labels: reports.overtimeByDept.depts,
+        datasets: [{
+          label: 'Nadgodziny (h)',
+          data: reports.overtimeByDept.hours,
+          backgroundColor: chartColor.warning
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true } }
+      }
+    });
+  }
+  
+  // Absence Types Chart
+  const ctxAbsence = document.getElementById('absenceTypesChart');
+  if (ctxAbsence) {
+    charts.absence = new Chart(ctxAbsence, {
+      type: 'doughnut',
+      data: {
+        labels: reports.absenceTypes.labels,
+        datasets: [{
+          data: reports.absenceTypes.data,
+          backgroundColor: [chartColor.danger, chartColor.success, chartColor.primary, '#94A3B8']
+        }]
+      },
+      options: { responsive: true }
+    });
+  }
+  
+  // Coverage by Day Chart
+  const ctxCoverage = document.getElementById('coverageByDayChart');
+  if (ctxCoverage) {
+    charts.coverage = new Chart(ctxCoverage, {
+      type: 'bar',
+      data: {
+        labels: reports.coverageByDay.days,
+        datasets: [
+          {
+            label: 'Planowana obsada',
+            data: reports.coverageByDay.planned,
+            backgroundColor: chartColor.info
+          },
+          {
+            label: 'Faktyczna obsada',
+            data: reports.coverageByDay.actual,
+            backgroundColor: chartColor.success
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+}
+
+
+// ===== FILE: js/settings.js =====
+// ===== SETTINGS VIEW =====
+
+let activeSettingsPanel = 'company';
+
+function renderSettings() {
+  const mainContent = document.getElementById('mainContent');
+  
+  const html = `
+    <div class="settings-container">
+      <div class="settings-sidebar">
+        <button class="settings-tab active" data-panel="company" onclick="switchSettingsPanel('company')">
+          Firma
+        </button>
+        <button class="settings-tab" data-panel="departments" onclick="switchSettingsPanel('departments')">
+          Działy
+        </button>
+        <button class="settings-tab" data-panel="shifts" onclick="switchSettingsPanel('shifts')">
+          Typy zmian
+        </button>
+        <button class="settings-tab" data-panel="labor" onclick="switchSettingsPanel('labor')">
+          Zasady Kodeksu Pracy
+        </button>
+        <button class="settings-tab" data-panel="notifications" onclick="switchSettingsPanel('notifications')">
+          Powiadomienia
+        </button>
+        <button class="settings-tab" data-panel="users" onclick="switchSettingsPanel('users')">
+          Użytkownicy i role
+        </button>
+      </div>
+      
+      <div class="settings-content" id="settingsContent">
+        ${renderSettingsPanel('company')}
+      </div>
+    </div>
+  `;
+  
+  mainContent.innerHTML = html;
+}
+
+function switchSettingsPanel(panel) {
+  activeSettingsPanel = panel;
+  document.querySelectorAll('.settings-tab').forEach(tab => tab.classList.remove('active'));
+  document.querySelector(`[data-panel="${panel}"]`).classList.add('active');
+  document.getElementById('settingsContent').innerHTML = renderSettingsPanel(panel);
+  initIcons();
+}
+
+function renderSettingsPanel(panel) {
+  switch (panel) {
+    case 'company':
+      return renderCompanySettings();
+    case 'departments':
+      return renderDepartmentsSettings();
+    case 'shifts':
+      return renderShiftsSettings();
+    case 'labor':
+      return renderLaborSettings();
+    case 'notifications':
+      return renderNotificationsSettings();
+    case 'users':
+      return renderUsersSettings();
+    default:
+      return '';
+  }
+}
+
+function renderCompanySettings() {
+  return `
+    <div class="settings-panel">
+      <h2>Dane firmy</h2>
+      <form class="settings-form">
+        <div class="form-group">
+          <label>Nazwa firmy</label>
+          <input id="companyName" type="text" class="form-control" value="${settings.company.name}">
+        </div>
+        <div class="form-group">
+          <label>NIP</label>
+          <input id="companyNip" type="text" class="form-control" value="${settings.company.nip}">
+        </div>
+        <div class="form-group">
+          <label>REGON</label>
+          <input id="companyRegon" type="text" class="form-control" value="${settings.company.regon}">
+        </div>
+        <div class="form-group">
+          <label>Adres</label>
+          <textarea id="companyAddress" class="form-control">${settings.company.address}</textarea>
+        </div>
+        <div class="form-group">
+          <label>Telefon</label>
+          <input id="companyPhone" type="text" class="form-control" value="${settings.company.phone}">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input id="companyEmail" type="email" class="form-control" value="${settings.company.email}">
+        </div>
+        <div class="form-group">
+          <label>Strefa czasowa</label>
+          <select id="companyTimezone" class="form-control">
+            <option value="Europe/Warsaw" ${settings.company.timezone === 'Europe/Warsaw' ? 'selected' : ''}>Europe/Warsaw</option>
+            <option value="Europe/Berlin" ${settings.company.timezone === 'Europe/Berlin' ? 'selected' : ''}>Europe/Berlin</option>
+          </select>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="saveSettings()">Zapisz zmiany</button>
+      </form>
+    </div>
+  `;
+}
+
+function renderDepartmentsSettings() {
+  return `
+    <div class="settings-panel">
+      <h2>Zarządzanie działami</h2>
+      <table class="settings-table">
+        <thead>
+          <tr>
+            <th>Nazwa działu</th>
+            <th>Pracownicy</th>
+            <th>Akcje</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${departments.map(dept => {
+            const deptEmployees = employees.filter(e => e.dept === dept.name).length;
+            return `
+              <tr>
+                <td>${dept.name}</td>
+                <td>${deptEmployees}</td>
+                <td>
+                  <button class="btn btn-sm btn-secondary">Edytuj</button>
+                  <button class="btn btn-sm btn-danger">Usuń</button>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+      <button class="btn btn-primary btn-sm mt-20">+ Dodaj dział</button>
+    </div>
+  `;
+}
+
+function renderShiftsSettings() {
+  return `
+    <div class="settings-panel">
+      <h2>Typy zmian</h2>
+      <div class="form-group">
+        <label>Liczba aktywnych zmian</label>
+        <select id="scheduleShiftCount" class="form-control">
+          ${[1, 2, 3, 4].map(count => `
+            <option value="${count}" ${settings.schedule.shiftCount === count ? 'selected' : ''}>${count}</option>
+          `).join('')}
+        </select>
+      </div>
+      <table class="settings-table">
+        <thead>
+          <tr>
+            <th>Aktywna</th>
+            <th>Zmiana</th>
+            <th>Godziny</th>
+            <th>Kolor</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${shiftTypes.map(shift => `
+            <tr>
+              <td>
+                <label class="setting-switch">
+                  <input id="shiftActive-${shift.id}" type="checkbox" ${settings.schedule.visibleShiftTypes.includes(shift.id) ? 'checked' : ''}>
+                  <span></span>
+                </label>
+              </td>
+              <td>
+                <input id="shiftLabel-${shift.id}" type="text" class="form-control" value="${shift.label}">
+              </td>
+              <td>
+                <div class="shift-time-edit">
+                  <input id="shiftStart-${shift.id}" type="time" class="form-control" value="${shift.start}">
+                  <span class="shift-time-separator">–</span>
+                  <input id="shiftEnd-${shift.id}" type="time" class="form-control" value="${shift.end}">
+                </div>
+              </td>
+              <td>
+                <input id="shiftColor-${shift.id}" type="color" class="form-control color-input" value="${shift.color}">
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      <button class="btn btn-primary mt-20" onclick="saveSettings()">Zapisz typy zmian</button>
+      <p class="text-secondary small mt-10">Wybierz liczbę aktywnych zmian i dopasuj godziny oraz kolory. Starsze dni są archiwizowane automatycznie.</p>
+    </div>
+  `;
+}
+
+function renderLaborSettings() {
+  return `
+    <div class="settings-panel">
+      <h2>Zasady Kodeksu Pracy</h2>
+      <form class="settings-form">
+        <div class="form-group">
+          <label>Odpoczynek dobowy minimum (godzin)</label>
+          <input id="laborMinDailyRest" type="number" class="form-control" value="${settings.laborRules.minDailyRest}">
+        </div>
+        <div class="form-group">
+          <label>Odpoczynek tygodniowy minimum (godzin)</label>
+          <input id="laborMinWeeklyRest" type="number" class="form-control" value="${settings.laborRules.minWeeklyRest}">
+        </div>
+        <div class="form-group">
+          <label>Max tygodniowa norma dla UoP (godzin)</label>
+          <input id="laborMaxWeeklyHours" type="number" class="form-control" value="${settings.laborRules.maxWeeklyHours}">
+        </div>
+        <div class="form-group">
+          <label>Max tygodniowa z nadgodzinami (godzin)</label>
+          <input id="laborMaxWeeklyWithOT" type="number" class="form-control" value="${settings.laborRules.maxWeeklyWithOT}">
+        </div>
+        <div class="form-group">
+          <label>Max nadgodziny rocznie (godzin)</label>
+          <input id="laborMaxOvertimeYearly" type="number" class="form-control" value="${settings.laborRules.maxOvertimeYearly}">
+        </div>
+        <div class="form-group setting-switch">
+          <input id="laborSundayWork" type="checkbox" ${settings.laborRules.sundayWorkAllowed ? 'checked' : ''}>
+          <span>Praca w niedziele dozwolona</span>
+        </div>
+        <p class="text-secondary small mt-20">✅ Reguły zgodne z Kodeksem Pracy 2026 — ostatnia aktualizacja: 01.01.2026</p>
+        <button type="button" class="btn btn-primary" onclick="saveSettings()">Zapisz zmiany</button>
+      </form>
+    </div>
+  `;
+}
+
+function renderNotificationsSettings() {
+  return `
+    <div class="settings-panel">
+      <h2>Powiadomienia</h2>
+      <div class="notification-settings">
+        <label class="setting-switch">
+          <input id="notifyKpAlerts" type="checkbox" ${settings.notifications.kpAlerts ? 'checked' : ''}>
+          <span>Alerty naruszenia Kodeksu Pracy</span>
+        </label>
+        <label class="setting-switch">
+          <input id="notifyLeaveRequests" type="checkbox" ${settings.notifications.leaveRequests ? 'checked' : ''}>
+          <span>Wnioski urlopowe</span>
+        </label>
+        <label class="setting-switch">
+          <input id="notifyDailyReports" type="checkbox" ${settings.notifications.dailyReports ? 'checked' : ''}>
+          <span>Raport dzienny</span>
+        </label>
+        <label class="setting-switch">
+          <input id="notifyAbsenceAlerts" type="checkbox" ${settings.notifications.absenceAlerts ? 'checked' : ''}>
+          <span>Nieobecności pracowników</span>
+        </label>
+      </div>
+      <button class="btn btn-primary mt-20" onclick="saveSettings()">Zapisz preferencje</button>
+    </div>
+  `;
+}
+
+
+function renderUsersSettings() {
+  return `
+    <div class="settings-panel">
+      <h2>Użytkownicy i role</h2>
+      <table class="settings-table">
+        <thead>
+          <tr>
+            <th>Użytkownik</th>
+            <th>Email</th>
+            <th>Rola</th>
+            <th>Status</th>
+            <th>Akcje</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Bartosz Jądrowski</td>
+            <td>b.jadrowski@bistro.pl</td>
+            <td>Admin</td>
+            <td><span class="badge badge-success">Aktywny</span></td>
+            <td><button class="btn btn-sm btn-secondary">Edytuj</button></td>
+          </tr>
+          <tr>
+            <td>Maria Wiśniewska</td>
+            <td>m.wisniewska@bistro.pl</td>
+            <td>Kierownik</td>
+            <td><span class="badge badge-success">Aktywny</span></td>
+            <td><button class="btn btn-sm btn-secondary">Edytuj</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <button class="btn btn-primary btn-sm mt-20">+ Dodaj użytkownika</button>
+    </div>
+  `;
+}
+
+function saveSettings() {
+  if (activeSettingsPanel === 'company') {
+    settings.company.name = document.getElementById('companyName').value;
+    settings.company.nip = document.getElementById('companyNip').value;
+    settings.company.regon = document.getElementById('companyRegon').value;
+    settings.company.address = document.getElementById('companyAddress').value;
+    settings.company.phone = document.getElementById('companyPhone').value;
+    settings.company.email = document.getElementById('companyEmail').value;
+    settings.company.timezone = document.getElementById('companyTimezone').value;
+  }
+  if (activeSettingsPanel === 'labor') {
+    settings.laborRules.minDailyRest = parseInt(document.getElementById('laborMinDailyRest').value, 10);
+    settings.laborRules.minWeeklyRest = parseInt(document.getElementById('laborMinWeeklyRest').value, 10);
+    settings.laborRules.maxWeeklyHours = parseInt(document.getElementById('laborMaxWeeklyHours').value, 10);
+    settings.laborRules.maxWeeklyWithOT = parseInt(document.getElementById('laborMaxWeeklyWithOT').value, 10);
+    settings.laborRules.maxOvertimeYearly = parseInt(document.getElementById('laborMaxOvertimeYearly').value, 10);
+    settings.laborRules.sundayWorkAllowed = document.getElementById('laborSundayWork').checked;
+  }
+  if (activeSettingsPanel === 'notifications') {
+    settings.notifications.kpAlerts = document.getElementById('notifyKpAlerts').checked;
+    settings.notifications.leaveRequests = document.getElementById('notifyLeaveRequests').checked;
+    settings.notifications.dailyReports = document.getElementById('notifyDailyReports').checked;
+    settings.notifications.absenceAlerts = document.getElementById('notifyAbsenceAlerts').checked;
+  }
+  if (activeSettingsPanel === 'shifts') {
+    settings.schedule.shiftCount = parseInt(document.getElementById('scheduleShiftCount').value, 10);
+    const visible = [];
+    shiftTypes.forEach(shift => {
+      const active = document.getElementById(`shiftActive-${shift.id}`).checked;
+      shift.label = document.getElementById(`shiftLabel-${shift.id}`).value;
+      shift.start = document.getElementById(`shiftStart-${shift.id}`).value;
+      shift.end = document.getElementById(`shiftEnd-${shift.id}`).value;
+      shift.color = document.getElementById(`shiftColor-${shift.id}`).value;
+      if (active) {
+        visible.push(shift.id);
+      }
+    });
+    settings.schedule.visibleShiftTypes = visible.length > 0 ? visible.slice(0, settings.schedule.shiftCount) : shiftTypes.slice(0, settings.schedule.shiftCount).map(s => s.id);
+  }
+
+  Toast.success('Ustawienia zostały zapisane!');
+  if (activeSettingsPanel) {
+    document.getElementById('settingsContent').innerHTML = renderSettingsPanel(activeSettingsPanel);
+    initIcons();
+  }
+}
+
+
+
+// ===== FILE: js/router.js =====
+// ===== SIMPLE SPA ROUTER =====
+
+class Router {
+  constructor() {
+    this.routes = {};
+    this.currentRoute = null;
+    this.mainContent = document.getElementById('mainContent');
+  }
+  
+  register(path, handler) {
+    this.routes[path] = handler;
+  }
+  
+  navigate(path) {
+    window.location.hash = path;
+  }
+  
+  init() {
+    window.addEventListener('hashchange', () => this.handleRoute());
+    this.handleRoute(); // Initial route
+  }
+  
+  handleRoute() {
+    const hash = window.location.hash.slice(1) || '/dashboard';
+    const path = '/' + hash.split('/').slice(1).join('/');
+    
+    // Update active nav item
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.classList.remove('active');
+    });
+    const activeItem = document.querySelector(`[data-route="${path.slice(1)}"]`);
+    if (activeItem) activeItem.classList.add('active');
+    
+    // Call handler
+    const handler = this.routes[path];
+    if (handler) {
+      this.mainContent.innerHTML = '';
+      handler();
+      initIcons();
+      this.currentRoute = path;
+    } else {
+      this.mainContent.innerHTML = '<p>Strona nie znaleziona</p>';
+    }
+    
+    // Scroll to top
+    this.mainContent.scrollTop = 0;
+  }
+}
+
+// Create global router instance
+const router = new Router();
+
+// Register all routes
+router.register('/dashboard', renderDashboard);
+router.register('/schedule', renderSchedule);
+router.register('/employees', renderEmployees);
+router.register('/timetracking', renderTimeTracking);
+router.register('/leaves', renderLeaves);
+router.register('/reports', renderReports);
+router.register('/settings', renderSettings);
+
+// Initialize router when DOM is ready
+
+
+// ===== FILE: js/app.js =====
+// ===== APP INITIALIZATION =====
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Initialize Day.js
+  dayjs.locale('pl');
+  dayjs.extend(dayjs_plugin_weekOfYear);
+  
+  // Setup router
+  router.init();
+  
+  // Initialize icons
+  initIcons();
+  
+  // Setup keyboard shortcuts
+  setupKeyboardShortcuts();
+  
+  // Log app start
+  console.log('🚀 GrafAI v0.9.0 Beta — aplikacja uruchomiona');
+  console.log('Zalogowany: Bartosz Jądrowski (Admin)');
+  console.log('Pracownicy:', employees.length);
+  console.log('Zmianami:', shifts.length);
+});
+
+// Global namespace
+window.GrafAI = {
+  Toast,
+  Modal,
+  Avatar,
+  Badge,
+  EmployeeCard,
+  LeaveRequestCard,
+  ShiftPill,
+  EmptyState,
+  KPICard,
+  router,
+  employees,
+  shifts,
+  leaves,
+  departments,
+  shiftTypes,
+  reports,
+  settings
+};
+
+</script>
+</body>
+</html>
+
