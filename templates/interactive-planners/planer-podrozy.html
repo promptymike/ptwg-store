@@ -1,0 +1,2650 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planer Podróżnika ✈️</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root {
+  --bg-primary: #f8f6f2;
+  --bg-secondary: #f2ede6;
+  --bg-card: #ffffff;
+  --bg-card-hover: #fdfbf8;
+  --bg-sidebar: #1a1a2e;
+  --bg-input: #f5f0ea;
+  --accent-gold: #c9a96e;
+  --accent-gold-dark: #a07840;
+  --accent-gold-light: #eedcba;
+  --accent-rose: #e8a598;
+  --accent-rose-dark: #c97a6d;
+  --accent-rose-light: #f5d5cf;
+  --accent-sage: #8faa8e;
+  --accent-sage-dark: #6b8a6a;
+  --accent-sage-light: #d4e5d3;
+  --accent-lavender: #a89bc2;
+  --accent-lavender-light: #ddd6ed;
+  --accent-sky: #7aafc4;
+  --accent-sky-light: #cde4ef;
+  --accent-ruby: #d47070;
+  --accent-ruby-light: #f5d0d0;
+  --text-primary: #2d2d2d;
+  --text-secondary: #6b6b6b;
+  --text-muted: #a0a0a0;
+  --text-white: #ffffff;
+  --border: rgba(0,0,0,0.08);
+  --border-accent: rgba(201,169,110,0.3);
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --shadow-gold: 0 4px 20px rgba(201,169,110,0.25);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Manrope', sans-serif;
+  --nav-width: 224px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--font-body);background:var(--bg-primary);color:var(--text-primary);min-height:100vh;display:flex;overflow:hidden;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:var(--accent-sky);border-radius:3px;}
+
+/* SIDEBAR */
+.sidebar{width:var(--nav-width);min-height:100vh;background:var(--bg-sidebar);display:flex;flex-direction:column;padding:28px 0 20px;position:fixed;left:0;top:0;bottom:0;z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.15);}
+.sidebar-logo{padding:0 22px 24px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.sidebar-logo h1{font-family:var(--font-display);font-size:18px;font-weight:700;color:#fff;line-height:1.3;}
+.sidebar-logo span{display:block;font-size:10.5px;color:rgba(255,255,255,0.4);margin-top:3px;}
+.logo-gem{width:36px;height:36px;background:linear-gradient(135deg,var(--accent-sky),var(--accent-lavender));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;margin-bottom:12px;}
+.sidebar-section-label{font-size:9.5px;font-weight:700;letter-spacing:1.2px;color:rgba(255,255,255,0.25);text-transform:uppercase;padding:14px 22px 6px;}
+.sidebar-nav{flex:1;padding:10px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
+.nav-btn{display:flex;align-items:center;gap:9px;padding:10px 12px;border:none;border-radius:var(--radius-sm);background:transparent;color:rgba(255,255,255,0.55);font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;text-align:left;width:100%;}
+.nav-btn:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.85);}
+.nav-btn.active{background:rgba(122,175,196,0.2);color:#fff;box-shadow:inset 3px 0 0 var(--accent-sky);}
+.nav-icon{font-size:15px;width:20px;text-align:center;}
+.sidebar-footer{padding:14px 22px 0;border-top:1px solid rgba(255,255,255,0.08);}
+.sidebar-date{font-size:11px;color:rgba(255,255,255,0.35);margin-top:8px;}
+
+/* MAIN */
+.main{margin-left:var(--nav-width);flex:1;overflow-y:auto;height:100vh;}
+.view{display:none;padding:32px 36px;min-height:100vh;}
+.view.active{display:block;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;gap:12px;flex-wrap:wrap;}
+.page-title{font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--text-primary);}
+.page-subtitle{font-size:13px;color:var(--text-muted);margin-top:3px;}
+.header-actions{display:flex;gap:10px;flex-wrap:wrap;}
+
+/* BUTTONS */
+.btn-primary{background:var(--accent-sky);color:#fff;border:none;padding:10px 20px;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:13.5px;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.btn-primary:hover{background:#5d9ab5;box-shadow:var(--shadow-md);}
+.btn-secondary{background:var(--bg-secondary);color:var(--text-secondary);border:1px solid var(--border);padding:10px 18px;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:13.5px;font-weight:500;cursor:pointer;transition:all 0.2s;}
+.btn-secondary:hover{background:var(--bg-card);}
+.btn-danger{background:var(--accent-ruby-light);color:var(--accent-ruby);border:none;padding:7px 14px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.btn-danger:hover{background:var(--accent-ruby);color:#fff;}
+.btn-sm{padding:6px 12px;font-size:12px;}
+.btn-icon{background:none;border:none;cursor:pointer;font-size:16px;padding:4px 6px;border-radius:6px;transition:background 0.2s;}
+.btn-icon:hover{background:var(--bg-secondary);}
+
+/* CARDS */
+.card{background:var(--bg-card);border-radius:var(--radius-md);padding:22px;border:1px solid var(--border);box-shadow:var(--shadow-sm);transition:box-shadow 0.2s;}
+.card:hover{box-shadow:var(--shadow-md);}
+.card-title{font-family:var(--font-display);font-size:16px;font-weight:600;margin-bottom:14px;}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+@media(max-width:1100px){.grid-4{grid-template-columns:repeat(2,1fr);}.grid-3{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:750px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}}
+
+/* KPI */
+.kpi-card{background:var(--bg-card);border-radius:var(--radius-md);padding:18px 20px;border:1px solid var(--border);box-shadow:var(--shadow-sm);}
+.kpi-label{font-size:11.5px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px;}
+.kpi-value{font-family:var(--font-display);font-size:26px;font-weight:700;}
+.kpi-sub{font-size:12px;color:var(--text-muted);margin-top:4px;}
+
+/* MODALS */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:999;align-items:center;justify-content:center;padding:20px;}
+.modal.active{display:flex;}
+.modal-content{background:var(--bg-card);border-radius:var(--radius-lg);padding:30px;max-width:600px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);}
+.modal-content.wide{max-width:820px;}
+.modal-title{font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:22px;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;padding-top:18px;border-top:1px solid var(--border);}
+.modal-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);margin-top:-4px;}
+
+/* FORMS */
+.form-group{margin-bottom:16px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+label{display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+input,select,textarea{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:13.5px;background:var(--bg-input);color:var(--text-primary);outline:none;transition:border-color 0.2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent-sky);}
+textarea{resize:vertical;min-height:80px;}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+.badge-sky{background:var(--accent-sky-light);color:#3d7a94;}
+.badge-sage{background:var(--accent-sage-light);color:var(--accent-sage-dark);}
+.badge-gold{background:var(--accent-gold-light);color:var(--accent-gold-dark);}
+.badge-rose{background:var(--accent-rose-light);color:var(--accent-rose-dark);}
+.badge-lavender{background:var(--accent-lavender-light);color:#6b5a8c;}
+.badge-ruby{background:var(--accent-ruby-light);color:var(--accent-ruby);}
+.badge-muted{background:var(--bg-secondary);color:var(--text-muted);}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:600;opacity:0;transform:translateY(10px);transition:all .3s;z-index:9999;pointer-events:none;}
+#toast.show{opacity:1;transform:translateY(0);}
+#toast.success{background:#2d6a4f;color:#fff;}
+#toast.error{background:var(--accent-ruby);color:#fff;}
+#toast.info{background:var(--accent-sky);color:#fff;}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);}
+.empty-icon{font-size:44px;margin-bottom:14px;}
+.empty-state p{font-size:14px;line-height:1.7;}
+
+/* TRIP CARDS */
+.trip-card{background:var(--bg-card);border-radius:var(--radius-md);border:1px solid var(--border);box-shadow:var(--shadow-sm);overflow:hidden;cursor:pointer;transition:all 0.25s;position:relative;}
+.trip-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);}
+.trip-card.archived{opacity:0.6;}
+.trip-card-cover{height:90px;display:flex;align-items:center;justify-content:center;font-size:38px;position:relative;}
+.trip-card-body{padding:16px 18px 18px;}
+.trip-card-name{font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:5px;}
+.trip-card-meta{font-size:12px;color:var(--text-muted);display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.trip-card-progress{background:var(--bg-secondary);border-radius:3px;height:5px;margin-top:10px;}
+.trip-card-progress-fill{height:5px;border-radius:3px;background:linear-gradient(90deg,var(--accent-sky),var(--accent-lavender));transition:width .4s;}
+.trip-card-actions{display:flex;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);}
+
+/* STAGE PILLS */
+.stage-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:var(--bg-secondary);font-size:12px;font-weight:600;border:1px solid var(--border);cursor:pointer;transition:all 0.2s;}
+.stage-pill.active{background:var(--accent-sky);color:#fff;border-color:var(--accent-sky);}
+
+/* CHECKLIST */
+.checklist-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.checklist-item:last-child{border-bottom:none;}
+.checklist-item input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent-sky);cursor:pointer;margin-top:1px;flex-shrink:0;}
+.checklist-item label{font-size:13.5px;cursor:pointer;flex:1;margin:0;font-weight:400;text-transform:none;letter-spacing:0;line-height:1.5;}
+.checklist-item.done label{text-decoration:line-through;color:var(--text-muted);}
+.checklist-item .item-tag{font-size:10px;color:var(--text-muted);background:var(--bg-secondary);border-radius:4px;padding:1px 6px;white-space:nowrap;}
+
+/* DAY PLAN */
+.day-block{border-left:3px solid var(--accent-sky);padding:0 0 18px 18px;position:relative;margin-top:8px;}
+.day-block::before{content:'';position:absolute;left:-7px;top:0;width:11px;height:11px;border-radius:50%;background:var(--accent-sky);border:2px solid var(--bg-card);}
+.day-block-header{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:10px;}
+.time-slot{display:flex;gap:12px;margin-bottom:8px;align-items:flex-start;}
+.time-label{font-size:11px;font-weight:700;color:var(--text-muted);min-width:42px;padding-top:2px;}
+.time-activity{background:var(--bg-secondary);border-radius:var(--radius-sm);padding:8px 12px;flex:1;font-size:13px;}
+.time-activity-name{font-weight:600;margin-bottom:2px;}
+.time-activity-note{font-size:11.5px;color:var(--text-muted);}
+
+/* BUDGET TABLE */
+.budget-table{width:100%;border-collapse:collapse;font-size:13.5px;}
+.budget-table th{background:var(--bg-secondary);padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);}
+.budget-table td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.budget-table tr:last-child td{border-bottom:none;}
+.budget-table tr:hover td{background:var(--bg-secondary);}
+
+/* PROGRESS BAR */
+.progress-bar{background:var(--bg-secondary);border-radius:4px;height:8px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent-sky),var(--accent-lavender));transition:width .4s;}
+
+/* TABS */
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:22px;}
+.tab-btn{background:none;border:none;padding:10px 18px;font-family:var(--font-body);font-size:13.5px;font-weight:600;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;}
+.tab-btn.active{color:var(--accent-sky);border-bottom-color:var(--accent-sky);}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+/* NOTES */
+.note-card{background:var(--bg-secondary);border-radius:var(--radius-sm);padding:14px 16px;border-left:3px solid var(--accent-gold);margin-bottom:10px;}
+.note-date{font-size:10.5px;color:var(--text-muted);margin-top:6px;}
+
+/* WEATHER WIDGET */
+.weather-widget{display:flex;gap:12px;flex-wrap:wrap;}
+.weather-day{background:var(--bg-secondary);border-radius:var(--radius-sm);padding:10px 14px;text-align:center;flex:1;min-width:70px;}
+.weather-icon{font-size:22px;margin-bottom:4px;}
+.weather-temp{font-size:14px;font-weight:700;}
+.weather-day-name{font-size:10px;color:var(--text-muted);}
+
+/* PACKING LIST */
+.packing-category{margin-bottom:18px;}
+.packing-cat-title{font-size:13px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;display:flex;align-items:center;gap:7px;}
+.packing-items{display:flex;flex-wrap:wrap;gap:7px;}
+.packing-item-chip{display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:20px;background:var(--bg-secondary);font-size:12.5px;border:1px solid var(--border);cursor:pointer;transition:all 0.2s;}
+.packing-item-chip.checked{background:var(--accent-sage-light);border-color:var(--accent-sage);color:var(--accent-sage-dark);text-decoration:line-through;}
+
+/* DIARY */
+.diary-entry{background:var(--bg-card);border-radius:var(--radius-md);padding:20px;border:1px solid var(--border);margin-bottom:14px;}
+.diary-entry-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.diary-entry-date{font-size:12px;color:var(--text-muted);}
+.diary-entry-mood{font-size:20px;}
+.diary-entry-text{font-size:13.5px;line-height:1.7;color:var(--text-primary);}
+.diary-entry-photos{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.diary-photo-thumb{width:60px;height:60px;border-radius:8px;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid var(--border);}
+
+/* CONTACTS */
+.contact-card{background:var(--bg-secondary);border-radius:var(--radius-sm);padding:12px 15px;display:flex;gap:12px;align-items:flex-start;margin-bottom:8px;}
+.contact-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:var(--accent-sky-light);}
+
+/* SECTIONS */
+.section{margin-bottom:30px;}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.section-title{font-family:var(--font-display);font-size:17px;font-weight:700;}
+
+/* TRIP DETAIL HEADER */
+.trip-hero{background:linear-gradient(135deg,var(--accent-sky),var(--accent-lavender));border-radius:var(--radius-lg);padding:30px;color:#fff;margin-bottom:24px;position:relative;overflow:hidden;}
+.trip-hero::after{content:'✈️';position:absolute;right:20px;bottom:-10px;font-size:80px;opacity:.15;}
+.trip-hero-name{font-family:var(--font-display);font-size:28px;font-weight:700;margin-bottom:6px;}
+.trip-hero-meta{font-size:14px;opacity:.85;display:flex;gap:18px;flex-wrap:wrap;}
+.trip-hero-badge{background:rgba(255,255,255,0.2);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;display:inline-block;margin-top:10px;}
+
+/* SEPARATOR */
+.sep{height:1px;background:var(--border);margin:20px 0;}
+
+/* SCROLLABLE */
+.scroll-x{overflow-x:auto;padding-bottom:6px;}
+
+/* TOOLTIP */
+[data-tip]{position:relative;}
+[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;font-size:11px;padding:4px 9px;border-radius:5px;white-space:nowrap;z-index:10;pointer-events:none;}
+
+/* COUNTDOWN */
+.countdown-widget{background:linear-gradient(135deg,#1a1a2e,#2a2a4e);color:#fff;border-radius:var(--radius-md);padding:20px 24px;display:flex;align-items:center;gap:20px;}
+.countdown-num{font-family:var(--font-display);font-size:40px;font-weight:700;color:var(--accent-sky);}
+.countdown-label{font-size:13px;opacity:.7;margin-top:2px;}
+.countdown-dest{font-family:var(--font-display);font-size:18px;}
+
+/* CHIPS ROW */
+.chips-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+
+/* INSURANCE CARD */
+.insurance-card{background:linear-gradient(135deg,var(--accent-gold),#b8860b);color:#fff;border-radius:var(--radius-md);padding:18px 22px;}
+
+/* STAR RATING */
+.stars{display:flex;gap:3px;cursor:pointer;}
+.star{font-size:16px;opacity:.3;transition:opacity .15s;}
+.star.lit{opacity:1;}
+
+/* VISA BADGES */
+.badge-green{background:#d4edda;color:#155724;}
+.badge-yellow{background:#fff3cd;color:#856404;}
+.badge-orange{background:#fde8c8;color:#b06000;}
+
+/* MAP */
+#map-leaflet{border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow-sm);}
+.leaflet-container{font-family:Manrope,sans-serif;}
+
+/* CURRENCY */
+.currency-result{background:linear-gradient(135deg,var(--accent-sky-light),var(--accent-lavender-light));border-radius:var(--radius-md);padding:18px 22px;margin:14px 0;text-align:center;}
+.currency-amount{font-family:var(--font-display);font-size:32px;font-weight:700;color:var(--accent-sky);}
+.curr-rate-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.curr-rate-row:last-child{border-bottom:none;}
+.curr-rate-input{width:90px;padding:4px 8px;font-size:12.5px;border:1.5px solid var(--border);border-radius:6px;background:var(--bg-input);font-family:var(--font-body);}
+
+/* GROUP SPLIT */
+.participant-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:var(--accent-sky-light);color:#3d7a94;font-size:13px;font-weight:600;margin:3px;}
+.split-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg-secondary);border-radius:var(--radius-sm);margin-bottom:8px;}
+.split-arrow{font-size:18px;color:var(--accent-gold);}
+
+/* PRINT */
+@media print{
+  .sidebar,.nav-btn,.btn-primary,.btn-secondary,.btn-danger,.btn-icon,.tabs,.tab-btn,.modal{display:none!important;}
+  .main{margin-left:0!important;}
+  .view{display:block!important;padding:0!important;}
+  body{background:#fff!important;color:#000!important;}
+  .card{box-shadow:none!important;border:1px solid #ddd!important;break-inside:avoid;}
+  .trip-hero{background:#1a1a2e!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .page-break{break-before:page;}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-gem">✈️</div>
+    <h1>TravelFlow</h1>
+    <span id="user-label">Ładowanie...</span>
+  </div>
+  <div class="sidebar-nav">
+    <div class="sidebar-section-label">Nawigacja</div>
+    <button class="nav-btn active" data-view="dashboard"><span class="nav-icon">🏠</span> Dashboard</button>
+    <button class="nav-btn" data-view="trips"><span class="nav-icon">🌍</span> Moje Podróże</button>
+    <button class="nav-btn" data-view="archive"><span class="nav-icon">📦</span> Archiwum</button>
+    <div class="sidebar-section-label" style="margin-top:8px">Zarządzanie</div>
+    <button class="nav-btn" data-view="budget-global"><span class="nav-icon">💰</span> Budżety</button>
+    <button class="nav-btn" data-view="documents"><span class="nav-icon">📋</span> Dokumenty</button>
+    <button class="nav-btn" data-view="contacts"><span class="nav-icon">👥</span> Kontakty</button>
+    <button class="nav-btn" data-view="diary"><span class="nav-icon">📖</span> Pamiętnik</button>
+    <button class="nav-btn" data-view="wishlist"><span class="nav-icon">⭐</span> Lista Marzeń</button>
+    <div class="sidebar-section-label" style="margin-top:8px">Narzędzia</div>
+    <button class="nav-btn" data-view="packing"><span class="nav-icon">🎒</span> Bagaż</button>
+    <button class="nav-btn" data-view="phrases"><span class="nav-icon">🗣️</span> Zwroty</button>
+    <button class="nav-btn" data-view="stats"><span class="nav-icon">📊</span> Statystyki</button>
+    <div class="sidebar-section-label" style="margin-top:8px">Mapa & Info</div>
+    <button class="nav-btn" data-view="map"><span class="nav-icon">🗺️</span> Mapa Trasy</button>
+    <button class="nav-btn" data-view="visa"><span class="nav-icon">🛂</span> Wizy</button>
+    <button class="nav-btn" data-view="ai"><span class="nav-icon">🤖</span> Asystent AI</button>
+    <button class="nav-btn" data-view="currency"><span class="nav-icon">💱</span> Waluty</button>
+  </div>
+  <div class="sidebar-footer">
+    <div class="sidebar-date" id="sidebar-date"></div>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+<!-- ============================================================ DASHBOARD -->
+<div id="dashboard-view" class="view active">
+  <div class="page-header">
+    <div><div class="page-title">Dashboard</div><div class="page-subtitle">Witaj, podróżniku! Twój przegląd podróży</div></div>
+    <button class="btn-primary" onclick="openNewTripModal()">+ Nowa Podróż</button>
+  </div>
+
+  <div id="countdown-container" style="margin-bottom:24px;"></div>
+
+  <div class="grid-4" style="margin-bottom:24px;">
+    <div class="kpi-card">
+      <div class="kpi-label">Aktywne podróże</div>
+      <div class="kpi-value" id="kpi-active" style="color:var(--accent-sky)">0</div>
+      <div class="kpi-sub">zaplanowanych</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Odwiedzone kraje</div>
+      <div class="kpi-value" id="kpi-countries" style="color:var(--accent-sage)">0</div>
+      <div class="kpi-sub">przez całe życie</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Przebyte km</div>
+      <div class="kpi-value" id="kpi-km" style="color:var(--accent-gold)">0</div>
+      <div class="kpi-sub">szacunkowo</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Budżet w drodze</div>
+      <div class="kpi-value" id="kpi-budget" style="color:var(--accent-rose)">0 zł</div>
+      <div class="kpi-sub">wszystkie podróże</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Nadchodzące podróże</div>
+      <div id="dash-upcoming"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Do zrobienia (pilne)</div>
+      <div id="dash-todo"></div>
+    </div>
+  </div>
+  <div class="sep"></div>
+  <div class="card" style="margin-top:0">
+    <div class="card-title">Ostatnio edytowane</div>
+    <div id="dash-recent"></div>
+  </div>
+</div>
+
+<!-- ============================================================ TRIPS -->
+<div id="trips-view" class="view">
+  <div class="page-header">
+    <div><div class="page-title">Moje Podróże</div><div class="page-subtitle">Planuj i zarządzaj wszystkimi wyjazdami</div></div>
+    <div class="header-actions">
+      <select id="trips-filter" onchange="renderTrips()" style="padding:9px 13px;font-size:13px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--bg-input);">
+        <option value="all">Wszystkie</option>
+        <option value="planning">W planowaniu</option>
+        <option value="upcoming">Nadchodzące</option>
+        <option value="ongoing">W trakcie</option>
+        <option value="completed">Zakończone</option>
+      </select>
+      <button class="btn-primary" onclick="openNewTripModal()">+ Nowa Podróż</button>
+    </div>
+  </div>
+  <div id="trips-grid" class="grid-3"></div>
+</div>
+
+<!-- ============================================================ ARCHIVE -->
+<div id="archive-view" class="view">
+  <div class="page-header">
+    <div><div class="page-title">Archiwum</div><div class="page-subtitle">Zakończone i zarchiwizowane podróże</div></div>
+  </div>
+  <div id="archive-grid" class="grid-3"></div>
+</div>
+
+<!-- ============================================================ TRIP DETAIL -->
+<div id="trip-detail-view" class="view">
+  <div style="margin-bottom:18px;">
+    <button class="btn-secondary btn-sm" onclick="switchView('trips')">← Powrót do listy</button>
+  </div>
+  <div id="trip-detail-content"></div>
+</div>
+
+<!-- ============================================================ BUDGET GLOBAL -->
+<div id="budget-global-view" class="view">
+  <div class="page-header">
+    <div><div class="page-title">Budżety Podróży</div><div class="page-subtitle">Przegląd finansów wszystkich wyjazdów</div></div>
+  </div>
+  <div id="budget-global-content"></div>
+</div>
+
+<!-- ============================================================ DOCUMENTS -->
+<div id="documents-view" class="view">
+  <div class="page-header">
+    <div><div class="page-title">Dokumenty & Ubezpieczenia</div><div class="page-subtitle">Ważne daty, polisy, numery dokumentów</div></div>
+    <button class="btn-primary" onclick="openModal('doc-modal')">+ Dodaj dokument</button>
+  </div>
+  <div id="docs-content"></div>
+</div>
+
+<!-- ============================================================ CONTACTS -->
+<div id="contacts-view" class="view">
+  <div class="page-header">
+    <div><div class="page-title">Kontakty Podróżne</div><div class="page-subtitle">Ambasady, hotele, lokalne numery alarmowe</div></div>
+    <button class="btn-primary" onclick="openModal('contact-modal')">+ Dodaj kontakt</button>
+  </div>
+  <div id="contacts-content"></div>
+</div>
+
+<!-- ============================================================ DIARY -->
+<div id="diary-view" class="view">
+  <div class="page-header">
+    <div><div class="page-title">Pamiętnik Podróżnika</div><div class="page-subtitle">Wspomnienia, wrażenia, refleksje</div></div>
+    <button class="btn-primary" onclick="openModal('diary-modal')">+ Nowy wpis</button>
+  </div>
+  <div id="diary-content"></div>
+</div>
+
+<!-- ============================================================ WISHLIST -->
+<div id="wishlist-view" class="view">
+  <div class="page-header">
+    <div><div class="page-title">Lista Marzeń</div><div class="page-subtitle">Miejsca, które chcesz odwiedzić</div></div>
+    <button class="btn-primary" onclick="openModal('wish-modal')">+ Dodaj marzenie</button>
+  </div>
+  <div id="wishlist-content"></div>
+</div>
+
+<!-- ============================================================ PACKING -->
+<div id="packing-view" class="view">
+  <div class="page-header">
+    <div><div class="page-title">Menedżer Bagażu</div><div class="page-subtitle">Szablony pakowania i listy dla każdej podróży</div></div>
+    <button class="btn-primary" onclick="openModal('packing-modal')">+ Dodaj przedmiot</button>
+  </div>
+  <div id="packing-content"></div>
+</div>
+
+<!-- ============================================================ PHRASES -->
+<div id="phrases-view" class="view">
+  <div class="page-header">
+    <div><div class="page-title">Zwroty Językowe</div><div class="page-subtitle">Przydatne zwroty w różnych językach</div></div>
+    <button class="btn-primary" onclick="openModal('phrase-modal')">+ Dodaj zwrot</button>
+  </div>
+  <div id="phrases-content"></div>
+</div>
+
+<!-- ============================================================ STATS -->
+<div id="stats-view" class="view">
+  <div class="page-header">
+    <div><div class="page-title">Statystyki</div><div class="page-subtitle">Twoja mapa podróżnicza i osiągnięcia</div></div>
+  </div>
+  <div id="stats-content"></div>
+</div>
+
+<!-- ============================================================ MAP -->
+<div id="map-view" class="view">
+  <div class="page-header">
+    <div><div class="page-title">Mapa Trasy</div><div class="page-subtitle">Interaktywna mapa — przeciągaj piny, planuj trasę</div></div>
+    <div class="header-actions">
+      <select id="map-trip-filter" onchange="renderMap()" style="padding:9px 13px;font-size:13px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--bg-input);">
+        <option value="">Wszystkie podróże</option>
+      </select>
+      <button class="btn-primary" onclick="openMapPinModal()">+ Dodaj pin</button>
+    </div>
+  </div>
+  <div id="map-leaflet" style="height:480px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow-md);margin-bottom:24px;"></div>
+  <div id="map-pins-list"></div>
+</div>
+
+<!-- ============================================================ VISA -->
+<div id="visa-view" class="view">
+  <div class="page-header">
+    <div><div class="page-title">Wymagania Wizowe</div><div class="page-subtitle">Informacje dla obywateli Polski — stan na 2025</div></div>
+  </div>
+  <div class="card" style="margin-bottom:20px;">
+    <div class="form-row" style="margin-bottom:0;">
+      <div class="form-group" style="margin-bottom:0;"><input id="visa-search" placeholder="🔍 Szukaj kraju..." oninput="renderVisa()" style="font-size:14px;padding:10px 14px;"></div>
+      <div class="form-group" style="margin-bottom:0;"><select id="visa-filter" onchange="renderVisa()">
+        <option value="">Wszystkie kategorie</option>
+        <option value="bezwizowo">✅ Bezwizowo</option>
+        <option value="e-wiza">🖥️ E-wiza / eTA</option>
+        <option value="wiza-granicy">🚧 Wiza na granicy</option>
+        <option value="wiza-wymagana">🔴 Wiza wymagana</option>
+      </select></div>
+    </div>
+  </div>
+  <div id="visa-grid" class="grid-3"></div>
+</div>
+
+<!-- ============================================================ CURRENCY -->
+<div id="currency-view" class="view">
+  <div class="page-header">
+    <div><div class="page-title">Kalkulator Walut</div><div class="page-subtitle">Offline — kursy przybliżone, możesz edytować ręcznie</div></div>
+  </div>
+  <div class="grid-2" style="align-items:flex-start;">
+    <div class="card">
+      <div class="card-title">Przelicz walutę</div>
+      <div class="form-group"><label>Kwota</label><input type="number" id="curr-amount" value="100" oninput="convertCurrency()" min="0" step="0.01"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Z waluty</label><select id="curr-from" onchange="convertCurrency()"></select></div>
+        <div class="form-group" style="display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:4px;"><button class="btn-icon" style="font-size:22px;" onclick="swapCurrencies()" title="Zamień">⇄</button></div>
+        <div class="form-group"><label>Na walutę</label><select id="curr-to" onchange="convertCurrency()"></select></div>
+      </div>
+      <div class="currency-result">
+        <div class="currency-amount" id="curr-result-amount">—</div>
+        <div id="curr-result-label" style="font-size:13px;color:var(--text-secondary);margin-top:6px;"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div class="card-title" style="margin-bottom:0;">Kursy do PLN</div>
+        <button class="btn-secondary btn-sm" onclick="resetCurrencyRates()">↺ Domyślne</button>
+      </div>
+      <div id="currency-rate-grid" style="max-height:400px;overflow-y:auto;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== MODALS ============================== -->
+
+<!-- NEW TRIP MODAL -->
+<div id="trip-modal" class="modal">
+  <div class="modal-content wide">
+    <div class="modal-title">✈️ <span id="trip-modal-title">Nowa Podróż</span></div>
+    <div class="form-row">
+      <div class="form-group"><label>Nazwa podróży *</label><input id="trip-name" placeholder="np. Japonia - Sakura Season"></div>
+      <div class="form-group"><label>Emoji / ikona</label><input id="trip-emoji" placeholder="🗼" maxlength="4"></div>
+    </div>
+    <div class="form-row-3">
+      <div class="form-group"><label>Kraj / Kierunek *</label><input id="trip-dest" placeholder="Japonia"></div>
+      <div class="form-group"><label>Miasto docelowe</label><input id="trip-city" placeholder="Tokio, Kioto"></div>
+      <div class="form-group"><label>Styl podróży</label>
+        <select id="trip-style"><option value="backpacking">Backpacking</option><option value="luxury">Luxury</option><option value="family">Rodzinna</option><option value="business">Służbowa</option><option value="adventure">Przygodowa</option><option value="city">City break</option><option value="beach">Plażowa</option><option value="cultural">Kulturalna</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Data wyjazdu</label><input type="date" id="trip-start"></div>
+      <div class="form-group"><label>Data powrotu</label><input type="date" id="trip-end"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Budżet całkowity (zł)</label><input type="number" id="trip-budget" placeholder="5000"></div>
+      <div class="form-group"><label>Waluta lokalna</label><input id="trip-currency" placeholder="JPY"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Liczba osób</label><input type="number" id="trip-persons" placeholder="2" min="1"></div>
+      <div class="form-group"><label>Status</label>
+        <select id="trip-status"><option value="planning">W planowaniu</option><option value="upcoming">Zaplanowana</option><option value="ongoing">W trakcie</option><option value="completed">Zakończona</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label>Opis / notatki</label><textarea id="trip-desc" placeholder="O czym marzysz w tej podróży?"></textarea></div>
+    <div class="form-group"><label>Kolory gradientu karty</label>
+      <div class="form-row">
+        <input type="color" id="trip-color1" value="#7aafc4" style="height:42px;cursor:pointer;">
+        <input type="color" id="trip-color2" value="#a89bc2" style="height:42px;cursor:pointer;">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('trip-modal')">Anuluj</button>
+      <button class="btn-primary" onclick="saveTrip()">Zapisz podróż</button>
+    </div>
+  </div>
+</div>
+
+<!-- STAGE MODAL -->
+<div id="stage-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-title">📍 <span id="stage-modal-title">Nowy Etap</span></div>
+    <div class="form-group"><label>Nazwa etapu *</label><input id="stage-name" placeholder="np. Tokio — pierwsze dni"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Miasto</label><input id="stage-city" placeholder="Tokio"></div>
+      <div class="form-group"><label>Typ etapu</label>
+        <select id="stage-type"><option value="city">Miasto</option><option value="transit">Tranzyt</option><option value="beach">Plaża</option><option value="mountain">Góry</option><option value="village">Wioska</option><option value="cruise">Rejs</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Data od</label><input type="date" id="stage-start"></div>
+      <div class="form-group"><label>Data do</label><input type="date" id="stage-end"></div>
+    </div>
+    <div class="form-group"><label>Zakwaterowanie</label><input id="stage-hotel" placeholder="Hotel Shinjuku / AirBnB"></div>
+    <div class="form-group"><label>Transport do etapu</label><input id="stage-transport" placeholder="Shinkansen z Tokio, bilet nr 123"></div>
+    <div class="form-group"><label>Notatki</label><textarea id="stage-notes"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('stage-modal')">Anuluj</button>
+      <button class="btn-primary" onclick="saveStage()">Zapisz etap</button>
+    </div>
+  </div>
+</div>
+
+<!-- DAY PLAN MODAL -->
+<div id="day-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-title">🗓️ Planowanie Dnia</div>
+    <div class="form-row">
+      <div class="form-group"><label>Data</label><input type="date" id="day-date"></div>
+      <div class="form-group"><label>Godzina</label><input type="time" id="day-time" value="09:00"></div>
+    </div>
+    <div class="form-group"><label>Atrakcja / Aktywność *</label><input id="day-activity" placeholder="Sensō-ji Temple"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Kategoria</label>
+        <select id="day-cat"><option value="sight">🏛️ Zwiedzanie</option><option value="food">🍜 Jedzenie</option><option value="transport">🚆 Transport</option><option value="hotel">🏨 Zakwaterowanie</option><option value="shopping">🛍️ Zakupy</option><option value="nature">🌿 Natura</option><option value="activity">🎯 Aktywność</option><option value="free">😊 Wolny czas</option></select>
+      </div>
+      <div class="form-group"><label>Szacunkowy koszt (zł)</label><input type="number" id="day-cost" placeholder="0"></div>
+    </div>
+    <div class="form-group"><label>Notatki / adres</label><textarea id="day-notes" placeholder="Adres, godziny otwarcia, wskazówki..."></textarea></div>
+    <input type="hidden" id="day-edit-id">
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('day-modal')">Anuluj</button>
+      <button class="btn-primary" onclick="saveDayPlan()">Dodaj do planu</button>
+    </div>
+  </div>
+</div>
+
+<!-- BUDGET ITEM MODAL -->
+<div id="budget-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-title">💰 Wydatek</div>
+    <div class="form-group"><label>Opis *</label><input id="bud-desc" placeholder="np. Lot Tokio → Kioto"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Kwota (zł)</label><input type="number" id="bud-amount" placeholder="0"></div>
+      <div class="form-group"><label>Kategoria</label>
+        <select id="bud-cat"><option value="flight">✈️ Lot</option><option value="hotel">🏨 Hotel</option><option value="food">🍜 Jedzenie</option><option value="transport">🚆 Transport</option><option value="attraction">🏛️ Atrakcje</option><option value="shopping">🛍️ Zakupy</option><option value="insurance">🛡️ Ubezpieczenie</option><option value="visa">📋 Wiza</option><option value="other">📌 Inne</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Data</label><input type="date" id="bud-date"></div>
+      <div class="form-group"><label>Status</label>
+        <select id="bud-status"><option value="planned">Planowany</option><option value="paid">Opłacony</option><option value="partial">Częściowo</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label>Kto zapłacił?</label>
+      <select id="bud-paid-by">
+        <option value="">— Wspólny / nieokreślony —</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Notatki</label><input id="bud-notes" placeholder="Numer rezerwacji, link..."></div>
+    <input type="hidden" id="bud-edit-id">
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('budget-modal')">Anuluj</button>
+      <button class="btn-primary" onclick="saveBudgetItem()">Zapisz wydatek</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKLIST ITEM MODAL -->
+<div id="check-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-title">✅ Dodaj do checklists</div>
+    <div class="form-group"><label>Zadanie *</label><input id="check-text" placeholder="np. Zarezerwuj bilety"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Kategoria</label>
+        <select id="check-cat">
+          <option value="documents">📋 Dokumenty</option>
+          <option value="booking">🏨 Rezerwacje</option>
+          <option value="health">💊 Zdrowie</option>
+          <option value="packing">🎒 Pakowanie</option>
+          <option value="money">💰 Finanse</option>
+          <option value="transport">🚗 Transport</option>
+          <option value="other">📌 Inne</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Priorytet</label>
+        <select id="check-priority"><option value="high">🔴 Wysoki</option><option value="med">🟡 Średni</option><option value="low">🟢 Niski</option></select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('check-modal')">Anuluj</button>
+      <button class="btn-primary" onclick="saveCheckItem()">Dodaj</button>
+    </div>
+  </div>
+</div>
+
+<!-- DOC MODAL -->
+<div id="doc-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-title">📋 Dokument</div>
+    <div class="form-row">
+      <div class="form-group"><label>Typ dokumentu</label>
+        <select id="doc-type"><option>Paszport</option><option>Wiza</option><option>Ubezpieczenie</option><option>Karta EKUZ</option><option>Prawo jazdy</option><option>Karta zdrowia</option><option>Bilet lotniczy</option><option>Rezerwacja hotelu</option><option>Inne</option></select>
+      </div>
+      <div class="form-group"><label>Nazwa / nr</label><input id="doc-name" placeholder="nr PA12345678"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Ważność do</label><input type="date" id="doc-expires"></div>
+      <div class="form-group"><label>Powiązana podróż</label><select id="doc-trip"></select></div>
+    </div>
+    <div class="form-group"><label>Notatki</label><textarea id="doc-notes" placeholder="Numer polisy, ważne informacje..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('doc-modal')">Anuluj</button>
+      <button class="btn-primary" onclick="saveDoc()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT MODAL -->
+<div id="contact-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-title">👤 Kontakt</div>
+    <div class="form-row">
+      <div class="form-group"><label>Nazwa / Imię</label><input id="con-name" placeholder="Ambasada RP w Tokio"></div>
+      <div class="form-group"><label>Typ</label>
+        <select id="con-type"><option value="embassy">🏛️ Ambasada</option><option value="hotel">🏨 Hotel</option><option value="emergency">🚨 Alarmowy</option><option value="tour">🗺️ Przewodnik</option><option value="friend">👤 Znajomy</option><option value="transfer">🚗 Transfer</option><option value="other">📌 Inne</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Telefon</label><input id="con-phone" placeholder="+81 3 5224 2695"></div>
+      <div class="form-group"><label>Email</label><input id="con-email" placeholder="tokyo@msz.gov.pl"></div>
+    </div>
+    <div class="form-group"><label>Adres / Kraj</label><input id="con-address" placeholder="Japonia, Tokio"></div>
+    <div class="form-group"><label>Notatki</label><input id="con-notes" placeholder="Godziny pracy, wskazówki..."></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('contact-modal')">Anuluj</button>
+      <button class="btn-primary" onclick="saveContact()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- DIARY MODAL -->
+<div id="diary-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-title">📖 Nowy wpis w pamiętniku</div>
+    <div class="form-row">
+      <div class="form-group"><label>Data</label><input type="date" id="diary-date"></div>
+      <div class="form-group"><label>Nastrój</label>
+        <select id="diary-mood"><option value="😄">😄 Świetnie</option><option value="😊">😊 Dobrze</option><option value="😐">😐 Neutralnie</option><option value="😴">😴 Zmęczony/a</option><option value="🤩">🤩 Zachwycony/a</option><option value="😤">😤 Frustracja</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label>Tytuł wpisu</label><input id="diary-title" placeholder="Pierwszy dzień w Tokio"></div>
+    <div class="form-group"><label>Powiązana podróż</label><select id="diary-trip"></select></div>
+    <div class="form-group"><label>Treść</label><textarea id="diary-text" style="min-height:140px;" placeholder="Co dzisiaj przeżyłeś/aś? Czym cię zaskoczyło to miejsce?"></textarea></div>
+    <div class="form-group"><label>Ocena dnia (1-5)</label>
+      <div class="stars" id="diary-stars">
+        <span class="star" data-val="1">⭐</span><span class="star" data-val="2">⭐</span><span class="star" data-val="3">⭐</span><span class="star" data-val="4">⭐</span><span class="star" data-val="5">⭐</span>
+      </div>
+    </div>
+    <input type="hidden" id="diary-rating" value="5">
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('diary-modal')">Anuluj</button>
+      <button class="btn-primary" onclick="saveDiaryEntry()">Zapisz wpis</button>
+    </div>
+  </div>
+</div>
+
+<!-- WISH MODAL -->
+<div id="wish-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-title">⭐ Marzenie podróżnicze</div>
+    <div class="form-row">
+      <div class="form-group"><label>Miejsce / Kraj *</label><input id="wish-dest" placeholder="Islandia — Zorza polarna"></div>
+      <div class="form-group"><label>Priorytet</label>
+        <select id="wish-priority"><option value="dream">💫 Wielkie marzenie</option><option value="high">🔥 Wysoki</option><option value="med">⭐ Średni</option><option value="low">📌 Niski</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label>Szacunkowy budżet (zł)</label><input type="number" id="wish-budget" placeholder="8000"></div>
+    <div class="form-group"><label>Notatki / inspiracja</label><textarea id="wish-notes" placeholder="Dlaczego chcesz tam pojechać?"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('wish-modal')">Anuluj</button>
+      <button class="btn-primary" onclick="saveWish()">Dodaj marzenie</button>
+    </div>
+  </div>
+</div>
+
+<!-- PACKING MODAL -->
+<div id="packing-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-title">🎒 Dodaj do bagażu</div>
+    <div class="form-group"><label>Przedmiot *</label><input id="pack-item" placeholder="np. Adapter podróżny"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Kategoria</label>
+        <select id="pack-cat"><option value="documents">📋 Dokumenty</option><option value="clothes">👕 Ubrania</option><option value="health">💊 Zdrowie</option><option value="electronics">🔋 Elektronika</option><option value="hygiene">🧴 Higiena</option><option value="accessories">👜 Akcesoria</option><option value="food">🍎 Jedzenie</option><option value="other">📌 Inne</option></select>
+      </div>
+      <div class="form-group"><label>Powiązana podróż</label><select id="pack-trip"></select></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('packing-modal')">Anuluj</button>
+      <button class="btn-primary" onclick="savePackItem()">Dodaj</button>
+    </div>
+  </div>
+</div>
+
+<!-- PHRASE MODAL -->
+<div id="phrase-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-title">🗣️ Zwrot językowy</div>
+    <div class="form-row">
+      <div class="form-group"><label>Język</label><input id="ph-lang" placeholder="Japoński"></div>
+      <div class="form-group"><label>Kategoria</label>
+        <select id="ph-cat"><option value="greeting">👋 Powitanie</option><option value="food">🍜 Jedzenie</option><option value="transport">🚆 Transport</option><option value="emergency">🚨 Nagłe przypadki</option><option value="shopping">🛍️ Zakupy</option><option value="hotel">🏨 Hotel</option><option value="other">💬 Inne</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Po polsku</label><input id="ph-pl" placeholder="Dziękuję"></div>
+      <div class="form-group"><label>W obcym języku</label><input id="ph-foreign" placeholder="ありがとう"></div>
+    </div>
+    <div class="form-group"><label>Wymowa</label><input id="ph-pronun" placeholder="Arigatō"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('phrase-modal')">Anuluj</button>
+      <button class="btn-primary" onclick="savePhrase()">Dodaj zwrot</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAP PIN MODAL -->
+<div id="map-pin-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-title">📍 Pin na mapie</div>
+    <div class="form-group"><label>Nazwa *</label><input id="pin-name" placeholder="np. Hotel w Tokio"></div>
+    <div class="form-group"><label>Opis</label><input id="pin-desc" placeholder="Notatka o tym miejscu"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Kategoria</label>
+        <select id="pin-cat">
+          <option value="hotel">🏨 Hotel</option>
+          <option value="attraction">🏛️ Atrakcja</option>
+          <option value="food">🍜 Jedzenie</option>
+          <option value="transport">🚆 Transport</option>
+          <option value="other">📌 Inne</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Powiązana podróż</label><select id="pin-trip"></select></div>
+    </div>
+    <input type="hidden" id="pin-edit-id">
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('map-pin-modal')">Anuluj</button>
+      <button class="btn-primary" onclick="saveMapPin()">Zapisz pin</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+// ============================================================
+// CONFIG & STORAGE
+// ============================================================
+const APP_ID = 'planer-podroznika';
+function getUserId(){const u=new URLSearchParams(window.location.search).get('userId');return u||localStorage.getItem('app_current_user')||'anonymous';}
+const USER_ID=getUserId();
+function sKey(k){return `${APP_ID}_${USER_ID}_${k}`;}
+const db={
+  get(k){try{const r=localStorage.getItem(sKey(k));return r?JSON.parse(r):null;}catch{return null;}},
+  set(k,v){try{localStorage.setItem(sKey(k),JSON.stringify(v));return true;}catch{return false;}},
+  del(k){try{localStorage.removeItem(sKey(k));return true;}catch{return false;}}
+};
+const newId=()=>Date.now()+'_'+Math.random().toString(36).slice(2,6);
+const fDate=d=>d?new Date(d).toLocaleDateString('pl-PL',{day:'numeric',month:'short',year:'numeric'}):'—';
+const today=()=>new Date().toISOString().split('T')[0];
+
+// ============================================================
+// STATE
+// ============================================================
+let trips=[], stages=[], dayPlans=[], budgetItems=[], checkItems=[], docs=[], contacts=[], diaryEntries=[], wishes=[], packItems=[], phrases=[];
+let currentTripId=null;
+let currentStageId=null;
+let editingStageId=null;
+let charts={};
+let diaryRating=5;
+
+// ============================================================
+// TOAST & MODAL
+// ============================================================
+function showToast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className=type+' show';setTimeout(()=>{t.className='';},3200);}
+function openModal(id){document.getElementById(id)?.classList.add('active');}
+function closeModal(id){document.getElementById(id)?.classList.remove('active');}
+document.addEventListener('click',e=>{if(e.target.classList.contains('modal'))e.target.classList.remove('active');});
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function switchView(view){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(view+'-view')?.classList.add('active');
+  if(view==='dashboard')renderDashboard();
+  if(view==='trips')renderTrips();
+  if(view==='archive')renderArchive();
+  if(view==='budget-global')renderBudgetGlobal();
+  if(view==='documents')renderDocs();
+  if(view==='contacts')renderContacts();
+  if(view==='diary')renderDiary();
+  if(view==='wishlist')renderWishlist();
+  if(view==='packing')renderPacking();
+  if(view==='phrases')renderPhrases();
+  if(view==='stats')renderStats();
+  if(view==='map')renderMap();
+  if(view==='visa')renderVisa();
+  if(view==='currency'){initCurrencyRates();renderCurrency();}
+  if(view==='ai')updateAIStatusBar();
+}
+document.querySelectorAll('.nav-btn').forEach(btn=>btn.addEventListener('click',()=>switchView(btn.dataset.view)));
+
+// ============================================================
+// TRIPS CRUD
+// ============================================================
+function openNewTripModal(id=null){
+  const t=id?trips.find(x=>x.id===id):null;
+  document.getElementById('trip-modal-title').textContent=t?'Edytuj Podróż':'Nowa Podróż';
+  document.getElementById('trip-name').value=t?.name||'';
+  document.getElementById('trip-emoji').value=t?.emoji||'🌍';
+  document.getElementById('trip-dest').value=t?.dest||'';
+  document.getElementById('trip-city').value=t?.city||'';
+  document.getElementById('trip-style').value=t?.style||'backpacking';
+  document.getElementById('trip-start').value=t?.start||'';
+  document.getElementById('trip-end').value=t?.end||'';
+  document.getElementById('trip-budget').value=t?.budget||'';
+  document.getElementById('trip-currency').value=t?.currency||'EUR';
+  document.getElementById('trip-persons').value=t?.persons||1;
+  document.getElementById('trip-status').value=t?.status||'planning';
+  document.getElementById('trip-desc').value=t?.desc||'';
+  document.getElementById('trip-color1').value=t?.color1||'#7aafc4';
+  document.getElementById('trip-color2').value=t?.color2||'#a89bc2';
+  document.getElementById('trip-modal').dataset.editId=id||'';
+  openModal('trip-modal');
+}
+function saveTrip(){
+  const name=document.getElementById('trip-name').value.trim();
+  const dest=document.getElementById('trip-dest').value.trim();
+  if(!name||!dest){showToast('Wypełnij wymagane pola','error');return;}
+  const editId=document.getElementById('trip-modal').dataset.editId;
+  const trip={
+    id:editId||newId(),name,dest,
+    emoji:document.getElementById('trip-emoji').value||'🌍',
+    city:document.getElementById('trip-city').value,
+    style:document.getElementById('trip-style').value,
+    start:document.getElementById('trip-start').value,
+    end:document.getElementById('trip-end').value,
+    budget:parseFloat(document.getElementById('trip-budget').value)||0,
+    currency:document.getElementById('trip-currency').value||'EUR',
+    persons:parseInt(document.getElementById('trip-persons').value)||1,
+    status:document.getElementById('trip-status').value,
+    desc:document.getElementById('trip-desc').value,
+    color1:document.getElementById('trip-color1').value,
+    color2:document.getElementById('trip-color2').value,
+    archived:false,
+    createdAt:editId?(trips.find(x=>x.id===editId)?.createdAt||Date.now()):Date.now()
+  };
+  if(editId){const i=trips.findIndex(x=>x.id===editId);if(i>-1)trips[i]={...trips[i],...trip};}
+  else{
+    trips.push(trip);
+    addDefaultChecklist(trip.id);
+  }
+  db.set('trips',trips);
+  closeModal('trip-modal');
+  showToast(editId?'Podróż zaktualizowana!':'Podróż dodana! Tworzę checklistę...');
+  renderTrips();renderDashboard();
+}
+function deleteTrip(id){
+  if(!confirm('Usunąć tę podróż?'))return;
+  trips=trips.filter(t=>t.id!==id);
+  stages=stages.filter(s=>s.tripId!==id);
+  dayPlans=dayPlans.filter(d=>d.tripId!==id);
+  budgetItems=budgetItems.filter(b=>b.tripId!==id);
+  checkItems=checkItems.filter(c=>c.tripId!==id);
+  db.set('trips',trips);db.set('stages',stages);db.set('dayPlans',dayPlans);
+  db.set('budgetItems',budgetItems);db.set('checkItems',checkItems);
+  showToast('Podróż usunięta','error');
+  renderTrips();renderDashboard();
+}
+function archiveTrip(id){
+  const t=trips.find(x=>x.id===id);
+  if(!t)return;
+  t.archived=!t.archived;
+  t.status=t.archived?'completed':t.status;
+  db.set('trips',trips);
+  showToast(t.archived?'Podróż zarchiwizowana 📦':'Podróż przywrócona ✈️');
+  renderTrips();renderArchive();renderDashboard();
+}
+function openTripDetail(id){
+  currentTripId=id;
+  renderTripDetail();
+  switchView('trip-detail');
+}
+
+// ============================================================
+// DEFAULT CHECKLIST
+// ============================================================
+const DEFAULT_CHECKLIST=[
+  {text:'Sprawdź ważność paszportu (min. 6 miesięcy)',cat:'documents',priority:'high'},
+  {text:'Sprawdź wymagania wizowe dla celu podróży',cat:'documents',priority:'high'},
+  {text:'Złóż wniosek o wizę (jeśli wymagana)',cat:'documents',priority:'high'},
+  {text:'Wyrobij kartę EKUZ (dla krajów UE)',cat:'documents',priority:'high'},
+  {text:'Wykup ubezpieczenie podróżne',cat:'documents',priority:'high'},
+  {text:'Sprawdź szczepienia obowiązkowe / zalecane',cat:'health',priority:'high'},
+  {text:'Zrób kserokopie dokumentów (paszport, ubezpieczenie)',cat:'documents',priority:'high'},
+  {text:'Zapisz skany dokumentów w chmurze',cat:'documents',priority:'high'},
+  {text:'Kup bilety lotnicze',cat:'booking',priority:'high'},
+  {text:'Zarezerwuj hotel / nocleg na każdą noc',cat:'booking',priority:'high'},
+  {text:'Zarezerwuj transfer z / na lotnisko',cat:'transport',priority:'med'},
+  {text:'Sprawdź bagaż: wymiary i dozwolona waga',cat:'transport',priority:'med'},
+  {text:'Poinformuj bank o wyjeździe',cat:'money',priority:'high'},
+  {text:'Wymień walutę lub sprawdź kursy',cat:'money',priority:'med'},
+  {text:'Aktywuj kartę do płatności za granicą',cat:'money',priority:'high'},
+  {text:'Pobierz offline mapy (Google Maps / Maps.me)',cat:'other',priority:'med'},
+  {text:'Sprawdź prognozy pogody',cat:'other',priority:'low'},
+  {text:'Pobierz tłumacz offline',cat:'other',priority:'low'},
+  {text:'Napisz itinerary dla rodziny / przyjaciela',cat:'documents',priority:'med'},
+  {text:'Spakuj podstawowe leki (ból głowy, biegunka, plastry)',cat:'health',priority:'med'},
+  {text:'Zrób check-in online 24h przed lotem',cat:'transport',priority:'high'},
+  {text:'Naładuj wszystkie urządzenia',cat:'other',priority:'low'},
+  {text:'Kup adapter do gniazdek elektrycznych',cat:'other',priority:'med'},
+  {text:'Zaplanuj co zrobić ze zwierzęciem / roślinami',cat:'other',priority:'med'},
+  {text:'Zamknąć i zabezpieczyć mieszkanie',cat:'other',priority:'med'},
+];
+function addDefaultChecklist(tripId){
+  DEFAULT_CHECKLIST.forEach(item=>{
+    checkItems.push({id:newId(),tripId,text:item.text,cat:item.cat,priority:item.priority,done:false,createdAt:Date.now()});
+  });
+  db.set('checkItems',checkItems);
+}
+
+// ============================================================
+// STAGES CRUD
+// ============================================================
+function openStageModal(id=null){
+  editingStageId=id;
+  const s=id?stages.find(x=>x.id===id):null;
+  document.getElementById('stage-modal-title').textContent=s?'Edytuj Etap':'Nowy Etap';
+  document.getElementById('stage-name').value=s?.name||'';
+  document.getElementById('stage-city').value=s?.city||'';
+  document.getElementById('stage-type').value=s?.type||'city';
+  document.getElementById('stage-start').value=s?.start||'';
+  document.getElementById('stage-end').value=s?.end||'';
+  document.getElementById('stage-hotel').value=s?.hotel||'';
+  document.getElementById('stage-transport').value=s?.transport||'';
+  document.getElementById('stage-notes').value=s?.notes||'';
+  openModal('stage-modal');
+}
+function saveStage(){
+  const name=document.getElementById('stage-name').value.trim();
+  if(!name){showToast('Podaj nazwę etapu','error');return;}
+  const s={
+    id:editingStageId||newId(),tripId:currentTripId,
+    name,city:document.getElementById('stage-city').value,
+    type:document.getElementById('stage-type').value,
+    start:document.getElementById('stage-start').value,
+    end:document.getElementById('stage-end').value,
+    hotel:document.getElementById('stage-hotel').value,
+    transport:document.getElementById('stage-transport').value,
+    notes:document.getElementById('stage-notes').value,
+  };
+  if(editingStageId){const i=stages.findIndex(x=>x.id===editingStageId);if(i>-1)stages[i]=s;}
+  else stages.push(s);
+  db.set('stages',stages);
+  closeModal('stage-modal');
+  showToast('Etap zapisany!');
+  renderTripDetail();
+}
+function deleteStage(id){
+  if(!confirm('Usunąć ten etap?'))return;
+  stages=stages.filter(s=>s.id!==id);
+  db.set('stages',stages);
+  showToast('Etap usunięty','error');
+  renderTripDetail();
+}
+
+// ============================================================
+// DAY PLANS
+// ============================================================
+function openDayModal(id=null){
+  const d=id?dayPlans.find(x=>x.id===id):null;
+  document.getElementById('day-date').value=d?.date||today();
+  document.getElementById('day-time').value=d?.time||'09:00';
+  document.getElementById('day-activity').value=d?.activity||'';
+  document.getElementById('day-cat').value=d?.cat||'sight';
+  document.getElementById('day-cost').value=d?.cost||'';
+  document.getElementById('day-notes').value=d?.notes||'';
+  document.getElementById('day-edit-id').value=id||'';
+  openModal('day-modal');
+}
+function saveDayPlan(){
+  const activity=document.getElementById('day-activity').value.trim();
+  if(!activity){showToast('Podaj nazwę aktywności','error');return;}
+  const editId=document.getElementById('day-edit-id').value;
+  const d={
+    id:editId||newId(),tripId:currentTripId,stageId:currentStageId||null,
+    date:document.getElementById('day-date').value,
+    time:document.getElementById('day-time').value,
+    activity,cat:document.getElementById('day-cat').value,
+    cost:parseFloat(document.getElementById('day-cost').value)||0,
+    notes:document.getElementById('day-notes').value,
+  };
+  if(editId){const i=dayPlans.findIndex(x=>x.id===editId);if(i>-1)dayPlans[i]=d;}
+  else dayPlans.push(d);
+  db.set('dayPlans',dayPlans);
+  closeModal('day-modal');
+  showToast('Aktywność dodana!');
+  renderTripDetail();
+}
+function deleteDayPlan(id){dayPlans=dayPlans.filter(d=>d.id!==id);db.set('dayPlans',dayPlans);renderTripDetail();}
+
+// ============================================================
+// BUDGET
+// ============================================================
+function openBudgetModal(id=null){
+  const b=id?budgetItems.find(x=>x.id===id):null;
+  document.getElementById('bud-desc').value=b?.desc||'';
+  document.getElementById('bud-amount').value=b?.amount||'';
+  document.getElementById('bud-cat').value=b?.cat||'flight';
+  document.getElementById('bud-date').value=b?.date||today();
+  document.getElementById('bud-status').value=b?.status||'planned';
+  document.getElementById('bud-notes').value=b?.notes||'';
+  document.getElementById('bud-edit-id').value=id||'';
+  populatePaidBySelect(currentTripId);
+  const paidBySel=document.getElementById('bud-paid-by');
+  if(paidBySel) paidBySel.value=b?.paidBy||'';
+  openModal('budget-modal');
+}
+function saveBudgetItem(){
+  const desc=document.getElementById('bud-desc').value.trim();
+  const amount=parseFloat(document.getElementById('bud-amount').value);
+  if(!desc||isNaN(amount)){showToast('Wypełnij wymagane pola','error');return;}
+  const editId=document.getElementById('bud-edit-id').value;
+  const b={
+    id:editId||newId(),tripId:currentTripId,desc,amount,
+    cat:document.getElementById('bud-cat').value,
+    date:document.getElementById('bud-date').value,
+    status:document.getElementById('bud-status').value,
+    notes:document.getElementById('bud-notes').value,
+    paidBy:document.getElementById('bud-paid-by')?.value||'',
+  };
+  if(editId){const i=budgetItems.findIndex(x=>x.id===editId);if(i>-1)budgetItems[i]=b;}
+  else budgetItems.push(b);
+  db.set('budgetItems',budgetItems);
+  closeModal('budget-modal');
+  showToast('Wydatek zapisany!');
+  renderTripDetail();
+}
+function deleteBudgetItem(id){budgetItems=budgetItems.filter(b=>b.id!==id);db.set('budgetItems',budgetItems);renderTripDetail();}
+
+// ============================================================
+// CHECKLIST
+// ============================================================
+function openCheckModal(){openModal('check-modal');document.getElementById('check-text').value='';}
+function saveCheckItem(){
+  const text=document.getElementById('check-text').value.trim();
+  if(!text){showToast('Podaj treść','error');return;}
+  checkItems.push({id:newId(),tripId:currentTripId,text,cat:document.getElementById('check-cat').value,priority:document.getElementById('check-priority').value,done:false,createdAt:Date.now()});
+  db.set('checkItems',checkItems);
+  closeModal('check-modal');
+  showToast('Dodano do checklists!');
+  renderTripDetail();
+}
+function toggleCheck(id){
+  const c=checkItems.find(x=>x.id===id);
+  if(c){c.done=!c.done;db.set('checkItems',checkItems);renderTripDetail();}
+}
+function deleteCheckItem(id){checkItems=checkItems.filter(c=>c.id!==id);db.set('checkItems',checkItems);renderTripDetail();}
+
+// ============================================================
+// DOCS
+// ============================================================
+function saveDoc(){
+  const name=document.getElementById('doc-name').value.trim();
+  docs.push({id:newId(),type:document.getElementById('doc-type').value,name,expires:document.getElementById('doc-expires').value,tripId:document.getElementById('doc-trip').value,notes:document.getElementById('doc-notes').value});
+  db.set('docs',docs);
+  closeModal('doc-modal');
+  showToast('Dokument zapisany!');
+  renderDocs();
+}
+function deleteDoc(id){docs=docs.filter(d=>d.id!==id);db.set('docs',docs);renderDocs();showToast('Usunięto','error');}
+
+// ============================================================
+// CONTACTS
+// ============================================================
+function saveContact(){
+  const name=document.getElementById('con-name').value.trim();
+  if(!name)return;
+  contacts.push({id:newId(),name,type:document.getElementById('con-type').value,phone:document.getElementById('con-phone').value,email:document.getElementById('con-email').value,address:document.getElementById('con-address').value,notes:document.getElementById('con-notes').value});
+  db.set('contacts',contacts);
+  closeModal('contact-modal');
+  showToast('Kontakt zapisany!');
+  renderContacts();
+}
+function deleteContact(id){contacts=contacts.filter(c=>c.id!==id);db.set('contacts',contacts);renderContacts();showToast('Usunięto','error');}
+
+// ============================================================
+// DIARY
+// ============================================================
+document.querySelectorAll('#diary-stars .star').forEach(s=>{
+  s.addEventListener('click',()=>{
+    diaryRating=parseInt(s.dataset.val);
+    document.getElementById('diary-rating').value=diaryRating;
+    document.querySelectorAll('#diary-stars .star').forEach((st,i)=>st.classList.toggle('lit',i<diaryRating));
+  });
+});
+function openDiaryModal(){
+  document.getElementById('diary-date').value=today();
+  document.getElementById('diary-title').value='';
+  document.getElementById('diary-text').value='';
+  document.getElementById('diary-mood').value='😊';
+  diaryRating=5;
+  document.querySelectorAll('#diary-stars .star').forEach(s=>s.classList.add('lit'));
+  populateTripSelect('diary-trip');
+  openModal('diary-modal');
+}
+function saveDiaryEntry(){
+  const text=document.getElementById('diary-text').value.trim();
+  if(!text){showToast('Napisz coś 😊','error');return;}
+  diaryEntries.push({id:newId(),date:document.getElementById('diary-date').value,title:document.getElementById('diary-title').value,tripId:document.getElementById('diary-trip').value,mood:document.getElementById('diary-mood').value,text,rating:diaryRating,createdAt:Date.now()});
+  db.set('diaryEntries',diaryEntries);
+  closeModal('diary-modal');
+  showToast('Wpis zapisany! 📖');
+  renderDiary();
+}
+function deleteDiaryEntry(id){diaryEntries=diaryEntries.filter(d=>d.id!==id);db.set('diaryEntries',diaryEntries);renderDiary();showToast('Wpis usunięty','error');}
+
+// ============================================================
+// WISHLIST
+// ============================================================
+function saveWish(){
+  const dest=document.getElementById('wish-dest').value.trim();
+  if(!dest)return;
+  wishes.push({id:newId(),dest,priority:document.getElementById('wish-priority').value,budget:parseFloat(document.getElementById('wish-budget').value)||0,notes:document.getElementById('wish-notes').value,done:false,createdAt:Date.now()});
+  db.set('wishes',wishes);
+  closeModal('wish-modal');
+  showToast('Marzenie dodane! ⭐');
+  renderWishlist();
+}
+function toggleWish(id){const w=wishes.find(x=>x.id===id);if(w){w.done=!w.done;db.set('wishes',wishes);renderWishlist();}}
+function deleteWish(id){wishes=wishes.filter(w=>w.id!==id);db.set('wishes',wishes);renderWishlist();showToast('Usunięto','error');}
+
+// ============================================================
+// PACKING
+// ============================================================
+function savePackItem(){
+  const item=document.getElementById('pack-item').value.trim();
+  if(!item)return;
+  packItems.push({id:newId(),item,cat:document.getElementById('pack-cat').value,tripId:document.getElementById('pack-trip').value,checked:false});
+  db.set('packItems',packItems);
+  closeModal('packing-modal');
+  showToast('Dodano do bagażu!');
+  renderPacking();
+}
+function togglePack(id){const p=packItems.find(x=>x.id===id);if(p){p.checked=!p.checked;db.set('packItems',packItems);renderPacking();}}
+function deletePack(id){packItems=packItems.filter(p=>p.id!==id);db.set('packItems',packItems);renderPacking();showToast('Usunięto','error');}
+
+// ============================================================
+// PHRASES
+// ============================================================
+function savePhrase(){
+  const pl=document.getElementById('ph-pl').value.trim();
+  const foreign=document.getElementById('ph-foreign').value.trim();
+  if(!pl||!foreign)return;
+  phrases.push({id:newId(),lang:document.getElementById('ph-lang').value,cat:document.getElementById('ph-cat').value,pl,foreign,pronun:document.getElementById('ph-pronun').value});
+  db.set('phrases',phrases);
+  closeModal('phrase-modal');
+  showToast('Zwrot dodany!');
+  renderPhrases();
+}
+function deletePhrase(id){phrases=phrases.filter(p=>p.id!==id);db.set('phrases',phrases);renderPhrases();showToast('Usunięto','error');}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function populateTripSelect(elId){
+  const sel=document.getElementById(elId);
+  if(!sel)return;
+  sel.innerHTML='<option value="">— Brak powiązania —</option>'+trips.filter(t=>!t.archived).map(t=>`<option value="${t.id}">${t.emoji||'🌍'} ${t.name}</option>`).join('');
+}
+function tripStatusBadge(status){
+  const map={planning:['badge-muted','W planowaniu'],upcoming:['badge-sky','Zaplanowana'],ongoing:['badge-sage','W trakcie'],completed:['badge-lavender','Zakończona']};
+  const[cls,label]=map[status]||['badge-muted',status];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+function styleLabel(style){
+  const map={backpacking:'🎒 Backpacking',luxury:'💎 Luxury',family:'👨‍👩‍👧 Rodzinna',business:'💼 Służbowa',adventure:'🏔️ Przygodowa',city:'🏙️ City break',beach:'🏖️ Plażowa',cultural:'🏛️ Kulturalna'};
+  return map[style]||style;
+}
+function daysLeft(dateStr){
+  if(!dateStr)return null;
+  const d=Math.ceil((new Date(dateStr)-new Date())/86400000);
+  return d;
+}
+function tripDays(t){
+  if(!t.start||!t.end)return 0;
+  return Math.max(1,Math.ceil((new Date(t.end)-new Date(t.start))/86400000)+1);
+}
+function tripProgress(id){
+  const total=checkItems.filter(c=>c.tripId===id).length;
+  const done=checkItems.filter(c=>c.tripId===id&&c.done).length;
+  return total?Math.round(done/total*100):0;
+}
+function catIcon(cat){
+  const map={documents:'📋',booking:'🏨',health:'💊',packing:'🎒',money:'💰',transport:'🚗',other:'📌',flight:'✈️',food:'🍜',sight:'🏛️',hotel:'🏨',shopping:'🛍️',nature:'🌿',activity:'🎯',free:'😊',transit:'🚆',attraction:'🏛️'};
+  return map[cat]||'📌';
+}
+function priorityBadge(p){
+  if(p==='high')return '<span class="badge badge-ruby">🔴 Pilne</span>';
+  if(p==='med')return '<span class="badge badge-gold">🟡 Średni</span>';
+  return '<span class="badge badge-sage">🟢 Niski</span>';
+}
+
+// ============================================================
+// RENDER DASHBOARD
+// ============================================================
+function renderDashboard(){
+  const active=trips.filter(t=>!t.archived&&t.status!=='completed');
+  const countries=[...new Set(trips.filter(t=>t.archived||t.status==='completed').map(t=>t.dest))].length;
+  const km=trips.filter(t=>t.archived||t.status==='completed').length*800;
+  const totalBudget=budgetItems.reduce((s,b)=>s+b.amount,0);
+  document.getElementById('kpi-active').textContent=active.length;
+  document.getElementById('kpi-countries').textContent=countries;
+  document.getElementById('kpi-km').textContent=km.toLocaleString('pl-PL');
+  document.getElementById('kpi-budget').textContent=totalBudget.toLocaleString('pl-PL',{style:'currency',currency:'PLN',minimumFractionDigits:0});
+
+  // Countdown
+  const upcoming=trips.filter(t=>!t.archived&&t.start&&daysLeft(t.start)>0).sort((a,b)=>new Date(a.start)-new Date(b.start));
+  const cc=document.getElementById('countdown-container');
+  if(upcoming.length){
+    const next=upcoming[0];const dl=daysLeft(next.start);
+    cc.innerHTML=`<div class="countdown-widget"><div><div class="countdown-num">${dl}</div><div class="countdown-label">dni do wyjazdu</div></div><div style="border-left:1px solid rgba(255,255,255,.2);padding-left:20px;"><div class="countdown-dest">${next.emoji||'🌍'} ${next.name}</div><div style="font-size:12px;opacity:.6;margin-top:4px;">${fDate(next.start)} → ${fDate(next.end)}</div></div></div>`;
+  }else{cc.innerHTML='';}
+
+  // Upcoming list
+  const dul=document.getElementById('dash-upcoming');
+  if(!upcoming.length){dul.innerHTML='<div class="empty-state" style="padding:30px 0"><div class="empty-icon">🗺️</div><p>Brak zaplanowanych podróży</p></div>';return;}
+  dul.innerHTML=upcoming.slice(0,3).map(t=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="openTripDetail('${t.id}')">
+      <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,${t.color1||'#7aafc4'},${t.color2||'#a89bc2'});display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">${t.emoji||'🌍'}</div>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:14px;">${t.name}</div>
+        <div style="font-size:11.5px;color:var(--text-muted);">${fDate(t.start)} · ${tripDays(t)} dni</div>
+      </div>
+      ${tripStatusBadge(t.status)}
+    </div>`).join('');
+
+  // Todo
+  const urgent=checkItems.filter(c=>!c.done&&c.priority==='high').slice(0,6);
+  document.getElementById('dash-todo').innerHTML=urgent.length?urgent.map(c=>`
+    <div class="checklist-item ${c.done?'done':''}" onclick="toggleCheck('${c.id}')">
+      <input type="checkbox" ${c.done?'checked':''} onclick="event.stopPropagation();toggleCheck('${c.id}')">
+      <label>${c.text}</label>
+    </div>`).join(''):'<div class="empty-state" style="padding:30px 0"><div class="empty-icon">✅</div><p>Wszystko gotowe!</p></div>';
+
+  // Recent
+  const recent=[...trips].sort((a,b)=>b.createdAt-a.createdAt).slice(0,4);
+  document.getElementById('dash-recent').innerHTML=recent.length?recent.map(t=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="openTripDetail('${t.id}')">
+      <span style="font-size:22px;">${t.emoji||'🌍'}</span>
+      <div style="flex:1;"><div style="font-weight:600;font-size:13.5px;">${t.name}</div><div style="font-size:11px;color:var(--text-muted);">${t.dest}</div></div>
+      ${tripStatusBadge(t.status)}
+    </div>`).join(''):'<div class="empty-state" style="padding:20px 0"><p>Dodaj pierwszą podróż!</p></div>';
+}
+
+// ============================================================
+// RENDER TRIPS
+// ============================================================
+function renderTrips(){
+  const filter=document.getElementById('trips-filter')?.value||'all';
+  let list=trips.filter(t=>!t.archived);
+  if(filter!=='all')list=list.filter(t=>t.status===filter);
+  list.sort((a,b)=>(a.start||'').localeCompare(b.start||''));
+  document.getElementById('trips-grid').innerHTML=list.length?list.map(tripCard).join(''):`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">✈️</div><p>Brak podróży.<br>Kliknij <strong>+ Nowa Podróż</strong> by zacząć!</p></div>`;
+}
+function renderArchive(){
+  const list=trips.filter(t=>t.archived);
+  document.getElementById('archive-grid').innerHTML=list.length?list.map(t=>tripCard(t,true)).join(''):`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📦</div><p>Archiwum jest puste</p></div>`;
+}
+function tripCard(t,isArchive=false){
+  const prog=tripProgress(t.id);
+  const dl=t.start?daysLeft(t.start):null;
+  return `<div class="trip-card ${t.archived?'archived':''}">
+    <div class="trip-card-cover" style="background:linear-gradient(135deg,${t.color1||'#7aafc4'},${t.color2||'#a89bc2'})">
+      <span style="font-size:42px;">${t.emoji||'🌍'}</span>
+      <div style="position:absolute;top:10px;right:10px;">${tripStatusBadge(t.status)}</div>
+    </div>
+    <div class="trip-card-body">
+      <div class="trip-card-name">${t.name}</div>
+      <div class="trip-card-meta">
+        <span>📍 ${t.dest}${t.city?', '+t.city:''}</span>
+        ${t.start?`<span>📅 ${fDate(t.start)}</span>`:''}
+        ${t.persons>1?`<span>👥 ${t.persons} os.</span>`:''}
+      </div>
+      ${dl!==null&&dl>0?`<div class="badge badge-sky" style="margin-bottom:8px;">⏳ Za ${dl} dni</div>`:''}
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Przygotowanie: ${prog}%</div>
+      <div class="trip-card-progress"><div class="trip-card-progress-fill" style="width:${prog}%"></div></div>
+      <div class="trip-card-actions">
+        <button class="btn-primary btn-sm" style="flex:1" onclick="openTripDetail('${t.id}')">Otwórz →</button>
+        <button class="btn-icon" title="Edytuj" onclick="openNewTripModal('${t.id}')">✏️</button>
+        <button class="btn-icon" title="${t.archived?'Przywróć':'Archiwizuj'}" onclick="archiveTrip('${t.id}')">${t.archived?'📤':'📦'}</button>
+        <button class="btn-icon" title="Usuń" onclick="deleteTrip('${t.id}')">🗑️</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// RENDER TRIP DETAIL
+// ============================================================
+function renderTripDetail(){
+  const t=trips.find(x=>x.id===currentTripId);
+  if(!t){document.getElementById('trip-detail-content').innerHTML='<p>Podróż nie znaleziona</p>';return;}
+  const tripStages=stages.filter(s=>s.tripId===currentTripId).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
+  const tripChecks=checkItems.filter(c=>c.tripId===currentTripId);
+  const tripBudget=budgetItems.filter(b=>b.tripId===currentTripId);
+  const tripDayPlans=dayPlans.filter(d=>d.tripId===currentTripId).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+  const totalBudget=tripBudget.reduce((s,b)=>s+b.amount,0);
+  const paidBudget=tripBudget.filter(b=>b.status==='paid').reduce((s,b)=>s+b.amount,0);
+  const prog=tripProgress(currentTripId);
+  const doneChecks=tripChecks.filter(c=>c.done).length;
+
+  // Group day plans by date
+  const byDate={};
+  tripDayPlans.forEach(d=>{if(!byDate[d.date])byDate[d.date]=[];byDate[d.date].push(d);});
+
+  // Group checklist by cat
+  const checkByCat={};
+  tripChecks.forEach(c=>{if(!checkByCat[c.cat])checkByCat[c.cat]=[];checkByCat[c.cat].push(c);});
+
+  const catLabels={documents:'📋 Dokumenty',booking:'🏨 Rezerwacje',health:'💊 Zdrowie',packing:'🎒 Pakowanie',money:'💰 Finanse',transport:'🚗 Transport',other:'📌 Inne'};
+
+  document.getElementById('trip-detail-content').innerHTML=`
+  <div class="trip-hero">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div style="font-size:36px;margin-bottom:6px;">${t.emoji||'🌍'}</div>
+        <div class="trip-hero-name">${t.name}</div>
+        <div class="trip-hero-meta">
+          <span>📍 ${t.dest}${t.city?', '+t.city:''}</span>
+          ${t.start?`<span>📅 ${fDate(t.start)} → ${fDate(t.end)}</span>`:''}
+          <span>⏱️ ${tripDays(t)} dni</span>
+          ${t.persons>1?`<span>👥 ${t.persons} osób</span>`:''}
+          <span>${styleLabel(t.style)}</span>
+        </div>
+        <div class="trip-hero-badge">${tripStatusBadge(t.status)}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-secondary btn-sm" onclick="openNewTripModal('${t.id}')">✏️ Edytuj</button>
+        <button class="btn-secondary btn-sm" onclick="archiveTrip('${t.id}')">${t.archived?'📤 Przywróć':'📦 Archiwizuj'}</button>
+        <button class="btn-primary btn-sm" onclick="exportTripPDF()">📄 Eksport PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-4" style="margin-bottom:24px;">
+    <div class="kpi-card"><div class="kpi-label">Budżet całkowity</div><div class="kpi-value" style="color:var(--accent-gold);font-size:20px;">${(t.budget||0).toLocaleString('pl-PL')} zł</div><div class="kpi-sub">${t.currency||'EUR'}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Wydano / zaplanowano</div><div class="kpi-value" style="color:var(--accent-rose);font-size:20px;">${totalBudget.toLocaleString('pl-PL')} zł</div><div class="kpi-sub">Opłacono: ${paidBudget.toLocaleString('pl-PL')} zł</div></div>
+    <div class="kpi-card"><div class="kpi-label">Etapy</div><div class="kpi-value" style="color:var(--accent-sky);font-size:20px;">${tripStages.length}</div><div class="kpi-sub">${Object.keys(byDate).length} dni zaplanowanych</div></div>
+    <div class="kpi-card"><div class="kpi-label">Gotowość</div><div class="kpi-value" style="color:var(--accent-sage);font-size:20px;">${prog}%</div><div class="kpi-sub">${doneChecks}/${tripChecks.length} zadań</div></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'tab-stages')">📍 Etapy</button>
+    <button class="tab-btn" onclick="switchTab(this,'tab-itinerary')">🗓️ Itinerary</button>
+    <button class="tab-btn" onclick="switchTab(this,'tab-checklist')">✅ Checklista</button>
+    <button class="tab-btn" onclick="switchTab(this,'tab-budget')">💰 Budżet</button>
+    <button class="tab-btn" onclick="switchTab(this,'tab-notes')">📝 Notatki</button>
+  </div>
+
+  <!-- TAB: STAGES -->
+  <div id="tab-stages" class="tab-pane active">
+    <div class="section-header">
+      <div class="section-title">Etapy podróży</div>
+      <button class="btn-primary btn-sm" onclick="openStageModal()">+ Dodaj etap</button>
+    </div>
+    ${tripStages.length?tripStages.map(s=>{
+      const typeIcons={city:'🏙️',transit:'🚆',beach:'🏖️',mountain:'🏔️',village:'🏡',cruise:'🚢'};
+      const stageDays=dayPlans.filter(d=>d.tripId===currentTripId&&d.date>=s.start&&d.date<=s.end).length;
+      return `<div class="card" style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+          <div>
+            <div style="font-family:var(--font-display);font-size:16px;font-weight:700;">${typeIcons[s.type]||'📍'} ${s.name}</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px;display:flex;gap:12px;flex-wrap:wrap;">
+              ${s.city?`<span>📍 ${s.city}</span>`:''}
+              ${s.start?`<span>📅 ${fDate(s.start)} → ${fDate(s.end)}</span>`:''}
+              ${s.hotel?`<span>🏨 ${s.hotel}</span>`:''}
+              ${s.transport?`<span>🚆 ${s.transport}</span>`:''}
+            </div>
+            ${s.notes?`<div style="font-size:12.5px;color:var(--text-secondary);margin-top:8px;">${s.notes}</div>`:''}
+          </div>
+          <div style="display:flex;gap:6px;">
+            <span class="badge badge-sky">${stageDays} aktywności</span>
+            <button class="btn-icon" onclick="openStageModal('${s.id}')">✏️</button>
+            <button class="btn-icon" onclick="deleteStage('${s.id}')">🗑️</button>
+          </div>
+        </div>
+      </div>`;}).join(''):`<div class="empty-state"><div class="empty-icon">📍</div><p>Dodaj etapy swojej podróży<br><small>np. Tokio → Kioto → Osaka</small></p></div>`}
+  </div>
+
+  <!-- TAB: ITINERARY -->
+  <div id="tab-itinerary" class="tab-pane">
+    <div class="section-header">
+      <div class="section-title">Plan zwiedzania</div>
+      <button class="btn-primary btn-sm" onclick="openDayModal()">+ Dodaj aktywność</button>
+    </div>
+    ${Object.keys(byDate).length?Object.keys(byDate).sort().map(date=>`
+      <div class="day-block">
+        <div class="day-block-header">${new Date(date).toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'})}</div>
+        ${byDate[date].map(d=>`
+          <div class="time-slot">
+            <div class="time-label">${d.time}</div>
+            <div class="time-activity" style="flex:1;">
+              <div class="time-activity-name">${catIcon(d.cat)} ${d.activity}</div>
+              ${d.notes?`<div class="time-activity-note">${d.notes}</div>`:''}
+              ${d.cost?`<div class="time-activity-note">💰 ${d.cost} zł</div>`:''}
+            </div>
+            <button class="btn-icon" onclick="deleteDayPlan('${d.id}')">🗑️</button>
+          </div>`).join('')}
+      </div>`).join(''):`<div class="empty-state"><div class="empty-icon">🗓️</div><p>Zaplanuj dzień po dniu<br><small>Dodaj aktywności, restauracje, muzea...</small></p></div>`}
+  </div>
+
+  <!-- TAB: CHECKLIST -->
+  <div id="tab-checklist" class="tab-pane">
+    <div class="section-header">
+      <div class="section-title">Checklista przygotowań</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="badge badge-sky">${doneChecks}/${tripChecks.length} gotowe</span>
+        <button class="btn-primary btn-sm" onclick="openCheckModal()">+ Dodaj</button>
+      </div>
+    </div>
+    <div class="progress-bar" style="margin-bottom:20px;"><div class="progress-fill" style="width:${prog}%"></div></div>
+    ${Object.keys(catLabels).map(cat=>{
+      const items=checkByCat[cat]||[];
+      if(!items.length)return '';
+      return `<div class="section">
+        <div class="section-title" style="font-size:14px;margin-bottom:10px;">${catLabels[cat]}</div>
+        ${items.map(c=>`<div class="checklist-item ${c.done?'done':''}">
+          <input type="checkbox" id="chk-${c.id}" ${c.done?'checked':''} onchange="toggleCheck('${c.id}')">
+          <label for="chk-${c.id}">${c.text}</label>
+          ${priorityBadge(c.priority)}
+          <button class="btn-icon" style="font-size:13px;" onclick="deleteCheckItem('${c.id}')">✕</button>
+        </div>`).join('')}
+      </div>`;}).join('')}
+    ${(checkByCat['other-custom']||[]).length?'':''/* custom items */}
+  </div>
+
+  <!-- TAB: BUDGET -->
+  <div id="tab-budget" class="tab-pane">
+    <div class="section-header">
+      <div class="section-title">Budżet podróży</div>
+      <button class="btn-primary btn-sm" onclick="openBudgetModal()">+ Dodaj wydatek</button>
+    </div>
+    <div class="grid-3" style="margin-bottom:20px;">
+      <div class="kpi-card"><div class="kpi-label">Zaplanowany budżet</div><div class="kpi-value" style="font-size:18px;color:var(--accent-gold)">${(t.budget||0).toLocaleString('pl-PL')} zł</div></div>
+      <div class="kpi-card"><div class="kpi-label">Zaplanowane wydatki</div><div class="kpi-value" style="font-size:18px;color:var(--accent-rose)">${totalBudget.toLocaleString('pl-PL')} zł</div></div>
+      <div class="kpi-card"><div class="kpi-label">Pozostaje</div><div class="kpi-value" style="font-size:18px;color:var(--accent-sage)">${((t.budget||0)-totalBudget).toLocaleString('pl-PL')} zł</div></div>
+    </div>
+    ${tripBudget.length?`<div class="scroll-x"><table class="budget-table">
+      <thead><tr><th>Kategoria</th><th>Opis</th><th>Kwota</th><th>Status</th><th>Data</th><th>Kto zapłacił</th><th></th></tr></thead>
+      <tbody>${tripBudget.map(b=>`<tr>
+        <td>${catIcon(b.cat)} ${b.cat}</td>
+        <td>${b.desc}${b.notes?`<br><small style="color:var(--text-muted)">${b.notes}</small>`:''}</td>
+        <td><strong>${b.amount.toLocaleString('pl-PL')} zł</strong></td>
+        <td><span class="badge ${b.status==='paid'?'badge-sage':b.status==='partial'?'badge-gold':'badge-muted'}">${b.status==='paid'?'✅ Opłacony':b.status==='partial'?'🔸 Częściowo':'⏳ Planowany'}</span></td>
+        <td style="font-size:12px;color:var(--text-muted)">${b.date?fDate(b.date):'—'}</td>
+        <td style="font-size:12px;">${b.paidBy||'—'}</td>
+        <td><button class="btn-icon" onclick="openBudgetModal('${b.id}')">✏️</button><button class="btn-icon" onclick="deleteBudgetItem('${b.id}')">🗑️</button></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`:`<div class="empty-state"><div class="empty-icon">💰</div><p>Dodaj wydatki do śledzenia budżetu</p></div>`}
+    ${renderGroupSplit(currentTripId)}
+  </div>
+
+  <!-- TAB: NOTES -->
+  <div id="tab-notes" class="tab-pane">
+    <div class="section-title" style="margin-bottom:16px;">Notatki & Opis</div>
+    ${t.desc?`<div class="note-card"><div>${t.desc}</div></div>`:'<p style="color:var(--text-muted);font-size:13px;">Brak opisu dla tej podróży.</p>'}
+    <div class="sep"></div>
+    <div class="section-title" style="margin-bottom:12px;">Szybkie notatki podróżnicze</div>
+    <div id="quick-notes-${t.id}"></div>
+    <div style="margin-top:12px;">
+      <textarea id="qn-input-${t.id}" placeholder="Zapisz szybką notatkę... (Enter zatwierdza)" style="width:100%;min-height:70px;"></textarea>
+      <button class="btn-secondary btn-sm" style="margin-top:8px;" onclick="addQuickNote('${t.id}')">+ Dodaj notatkę</button>
+    </div>
+    ${renderQuickNotes(t.id)}
+  </div>
+  `;
+}
+
+// ============================================================
+// QUICK NOTES
+// ============================================================
+function addQuickNote(tripId){
+  const el=document.getElementById(`qn-input-${tripId}`);
+  const text=el?.value.trim();
+  if(!text)return;
+  let notes=db.get(`qnotes_${tripId}`)||[];
+  notes.push({id:newId(),text,date:today()});
+  db.set(`qnotes_${tripId}`,notes);
+  el.value='';
+  renderTripDetail();
+  showToast('Notatka zapisana!');
+}
+function deleteQuickNote(tripId,noteId){
+  let notes=db.get(`qnotes_${tripId}`)||[];
+  notes=notes.filter(n=>n.id!==noteId);
+  db.set(`qnotes_${tripId}`,notes);
+  renderTripDetail();
+}
+function renderQuickNotes(tripId){
+  const notes=db.get(`qnotes_${tripId}`)||[];
+  return notes.map(n=>`<div class="note-card"><div>${n.text}</div><div class="note-date">${fDate(n.date)}<button class="btn-icon" style="font-size:12px;float:right;" onclick="deleteQuickNote('${tripId}','${n.id}')">✕</button></div></div>`).join('');
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(btn, paneId){
+  btn.closest('.tabs').querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById(paneId)?.classList.add('active');
+}
+
+// ============================================================
+// BUDGET GLOBAL
+// ============================================================
+function renderBudgetGlobal(){
+  const activeTrips=trips.filter(t=>!t.archived);
+  document.getElementById('budget-global-content').innerHTML=activeTrips.length?activeTrips.map(t=>{
+    const items=budgetItems.filter(b=>b.tripId===t.id);
+    const total=items.reduce((s,b)=>s+b.amount,0);
+    const paid=items.filter(b=>b.status==='paid').reduce((s,b)=>s+b.amount,0);
+    const pct=t.budget?Math.min(100,Math.round(total/t.budget*100)):0;
+    const byCat={};
+    items.forEach(b=>{byCat[b.cat]=(byCat[b.cat]||0)+b.amount;});
+    return `<div class="card" style="margin-bottom:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <div style="font-family:var(--font-display);font-size:17px;font-weight:700;">${t.emoji||'🌍'} ${t.name}</div>
+        <div style="display:flex;gap:10px;">
+          <div class="badge badge-gold">Budżet: ${(t.budget||0).toLocaleString('pl-PL')} zł</div>
+          <div class="badge badge-rose">Wydano: ${total.toLocaleString('pl-PL')} zł</div>
+          <div class="badge badge-sage">Opłacono: ${paid.toLocaleString('pl-PL')} zł</div>
+        </div>
+      </div>
+      <div class="progress-bar" style="margin-bottom:14px;"><div class="progress-fill" style="width:${pct}%;background:${pct>90?'var(--accent-ruby)':''}"></div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        ${Object.entries(byCat).map(([cat,amt])=>`<span class="badge badge-muted">${catIcon(cat)} ${cat}: ${amt.toLocaleString('pl-PL')} zł</span>`).join('')}
+      </div>
+    </div>`;}).join(''):`<div class="empty-state"><div class="empty-icon">💰</div><p>Brak podróży z budżetem</p></div>`;
+}
+
+// ============================================================
+// DOCS
+// ============================================================
+function renderDocs(){
+  populateTripSelect('doc-trip');
+  const now=new Date();
+  const sorted=[...docs].sort((a,b)=>(a.expires||'9999').localeCompare(b.expires||'9999'));
+  document.getElementById('docs-content').innerHTML=sorted.length?`
+    <div class="grid-3">${sorted.map(d=>{
+      const exp=d.expires?new Date(d.expires):null;
+      const expired=exp&&exp<now;
+      const soon=exp&&!expired&&(exp-now)<30*86400000;
+      return `<div class="card ${expired?'':''}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-size:20px;margin-bottom:6px;">${d.type==='Paszport'?'🛂':d.type==='Wiza'?'📋':d.type==='Ubezpieczenie'?'🛡️':'📄'}</div>
+            <div style="font-weight:700;font-size:14px;">${d.type}</div>
+            ${d.name?`<div style="font-size:12.5px;color:var(--text-secondary);margin-top:2px;">${d.name}</div>`:''}
+            ${d.notes?`<div style="font-size:11.5px;color:var(--text-muted);margin-top:5px;">${d.notes}</div>`:''}
+          </div>
+          <button class="btn-icon" onclick="deleteDoc('${d.id}')">🗑️</button>
+        </div>
+        ${d.expires?`<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:${expired?'var(--accent-ruby)':soon?'var(--accent-gold)':'var(--text-muted)'};">
+          ${expired?'⚠️ Wygasł':'⏳ Ważny do'}: ${fDate(d.expires)}
+          ${expired?'<span class="badge badge-ruby" style="margin-left:6px;">WYGASŁY</span>':soon?'<span class="badge badge-gold" style="margin-left:6px;">WKRÓTCE</span>':''}
+        </div>`:''}
+      </div>`;}).join('')}</div>`:`<div class="empty-state"><div class="empty-icon">📋</div><p>Brak dokumentów.<br>Dodaj paszport, wizę, ubezpieczenie...</p></div>`;
+}
+
+// ============================================================
+// CONTACTS
+// ============================================================
+const contactTypeIcons={embassy:'🏛️',hotel:'🏨',emergency:'🚨',tour:'🗺️',friend:'👤',transfer:'🚗',other:'📌'};
+function renderContacts(){
+  document.getElementById('contacts-content').innerHTML=contacts.length?`
+  <div class="grid-2">${contacts.map(c=>`<div class="contact-card">
+    <div class="contact-avatar">${contactTypeIcons[c.type]||'👤'}</div>
+    <div style="flex:1;">
+      <div style="font-weight:700;font-size:14px;">${c.name}</div>
+      ${c.phone?`<div style="font-size:12.5px;margin-top:3px;">📞 ${c.phone}</div>`:''}
+      ${c.email?`<div style="font-size:12.5px;">✉️ ${c.email}</div>`:''}
+      ${c.address?`<div style="font-size:12.5px;color:var(--text-muted);">📍 ${c.address}</div>`:''}
+      ${c.notes?`<div style="font-size:11.5px;color:var(--text-muted);margin-top:4px;">${c.notes}</div>`:''}
+    </div>
+    <button class="btn-icon" onclick="deleteContact('${c.id}')">🗑️</button>
+  </div>`).join('')}</div>`:`<div class="empty-state"><div class="empty-icon">👥</div><p>Dodaj kontakty alarmowe,<br>dane hoteli i ambasad</p></div>`;
+}
+
+// ============================================================
+// DIARY
+// ============================================================
+function renderDiary(){
+  const sorted=[...diaryEntries].sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('diary-content').innerHTML=sorted.length?sorted.map(d=>{
+    const trip=trips.find(t=>t.id===d.tripId);
+    return `<div class="diary-entry">
+      <div class="diary-entry-header">
+        <div>
+          <div style="font-family:var(--font-display);font-size:17px;font-weight:700;">${d.title||'Wpis z podróży'}</div>
+          <div class="diary-entry-date">${fDate(d.date)}${trip?` · ${trip.emoji||'🌍'} ${trip.name}`:''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="diary-entry-mood">${d.mood}</div>
+          <div>${'⭐'.repeat(d.rating||5)}</div>
+          <button class="btn-icon" onclick="deleteDiaryEntry('${d.id}')">🗑️</button>
+        </div>
+      </div>
+      <div class="diary-entry-text">${d.text.replace(/\n/g,'<br>')}</div>
+    </div>`;}).join(''):`<div class="empty-state"><div class="empty-icon">📖</div><p>Twój pamiętnik podróżnika jest pusty.<br>Zacznij zapisywać wspomnienia!</p></div>`;
+}
+
+// ============================================================
+// WISHLIST
+// ============================================================
+const priorityLabels={dream:['badge-lavender','💫 Wielkie marzenie'],high:['badge-ruby','🔥 Wysoki'],med:['badge-gold','⭐ Średni'],low:['badge-muted','📌 Niski']};
+function renderWishlist(){
+  const sorted=[...wishes].sort((a,b)=>{const order={dream:0,high:1,med:2,low:3};return(order[a.priority]||2)-(order[b.priority]||2);});
+  document.getElementById('wishlist-content').innerHTML=sorted.length?`<div class="grid-3">${sorted.map(w=>{
+    const[cls,label]=priorityLabels[w.priority]||['badge-muted','Niski'];
+    return `<div class="card ${w.done?'':''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div style="font-size:26px;margin-bottom:6px;">🌟</div>
+          <div style="font-family:var(--font-display);font-size:16px;font-weight:700;${w.done?'text-decoration:line-through;color:var(--text-muted)':''};">${w.dest}</div>
+          <span class="badge ${cls}" style="margin-top:6px;">${label}</span>
+          ${w.budget?`<div style="font-size:12.5px;color:var(--text-muted);margin-top:6px;">💰 Szacunkowy budżet: ${w.budget.toLocaleString('pl-PL')} zł</div>`:''}
+          ${w.notes?`<div style="font-size:12.5px;color:var(--text-secondary);margin-top:8px;">${w.notes}</div>`:''}
+        </div>
+        <div style="display:flex;gap:4px;">
+          <button class="btn-icon" title="${w.done?'Odznacz':'Oznacz jako spełnione'}" onclick="toggleWish('${w.id}')">${w.done?'↩️':'✅'}</button>
+          <button class="btn-icon" onclick="deleteWish('${w.id}')">🗑️</button>
+        </div>
+      </div>
+    </div>`;}).join('')}</div>`:`<div class="empty-state"><div class="empty-icon">⭐</div><p>Twoja lista marzeń jest pusta.<br>Gdzie chciałbyś pojechać?</p></div>`;
+}
+
+// ============================================================
+// PACKING
+// ============================================================
+const packCatLabels={documents:'📋 Dokumenty',clothes:'👕 Ubrania',health:'💊 Zdrowie & Apteczka',electronics:'🔋 Elektronika',hygiene:'🧴 Higiena',accessories:'👜 Akcesoria',food:'🍎 Jedzenie & Napoje',other:'📌 Inne'};
+const defaultPackItems={
+  documents:['Paszport','Karta EKUZ / ubezpieczenie','Prawo jazdy','Kopia dokumentów'],
+  clothes:['Koszulki (x5)','Spodnie (x2)','Bielizna (x7)','Skarpetki (x7)','Sweter / bluza','Kurtka przeciwdeszczowa','Buty wyjściowe','Buty na co dzień','Sandały / klapki'],
+  health:['Leki na ból głowy','Leki na biegunkę','Plastry','Środek odkażający','Krem z filtrem SPF50','Tabletki na chorobę lokomocyjną'],
+  electronics:['Ładowarka smartfona','Powerbank','Adapter podróżny','Słuchawki','Aparat fotograficzny','Karta pamięci'],
+  hygiene:['Szczoteczka do zębów','Pasta do zębów','Szampon','Żel pod prysznic','Dezodorant','Maszynka do golenia'],
+};
+function renderPacking(){
+  populateTripSelect('pack-trip');
+  const allItems=[...packItems];
+  const byTrip={};
+  allItems.forEach(p=>{const key=p.tripId||'_global';if(!byTrip[key])byTrip[key]=[];byTrip[key].push(p);});
+  const byCat={};
+  allItems.forEach(p=>{if(!byCat[p.cat])byCat[p.cat]=[];byCat[p.cat].push(p);});
+  const totalPacked=allItems.filter(p=>p.checked).length;
+
+  document.getElementById('packing-content').innerHTML=`
+    <div class="kpi-card" style="margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><div class="kpi-label">Spakowane</div><div class="kpi-value" style="color:var(--accent-sage)">${totalPacked}/${allItems.length}</div></div>
+        <div style="flex:1;margin:0 20px;"><div class="progress-bar"><div class="progress-fill" style="width:${allItems.length?Math.round(totalPacked/allItems.length*100):0}%"></div></div></div>
+        <button class="btn-secondary btn-sm" onclick="loadDefaultPacking()">📦 Załaduj szablon</button>
+      </div>
+    </div>
+    ${Object.keys(packCatLabels).map(cat=>{
+      const items=byCat[cat]||[];
+      if(!items.length)return `<div class="packing-category"><div class="packing-cat-title">${packCatLabels[cat]} <span style="color:var(--text-muted);font-weight:400;font-size:11px;">(0)</span></div><p style="font-size:12px;color:var(--text-muted);">Brak przedmiotów</p></div>`;
+      return `<div class="packing-category">
+        <div class="packing-cat-title">${packCatLabels[cat]} <span style="color:var(--text-muted);font-weight:400;font-size:11px;">(${items.filter(i=>i.checked).length}/${items.length})</span></div>
+        <div class="packing-items">${items.map(p=>`<div class="packing-item-chip ${p.checked?'checked':''}" onclick="togglePack('${p.id}')">
+          ${p.checked?'✓ ':''}${p.item}
+          <span onclick="event.stopPropagation();deletePack('${p.id}')" style="color:var(--text-muted);font-size:11px;cursor:pointer;">✕</span>
+        </div>`).join('')}</div>
+      </div>`;}).join('')}`;
+}
+function loadDefaultPacking(){
+  const tripSel=document.getElementById('pack-trip')?.value||'';
+  Object.entries(defaultPackItems).forEach(([cat,items])=>{
+    items.forEach(item=>{
+      if(!packItems.find(p=>p.item===item&&p.tripId===(tripSel||undefined))){
+        packItems.push({id:newId(),item,cat,tripId:tripSel||'',checked:false});
+      }
+    });
+  });
+  db.set('packItems',packItems);
+  showToast('Szablon załadowany! 🎒');
+  renderPacking();
+}
+
+// ============================================================
+// PHRASES
+// ============================================================
+const phraseCatLabels={greeting:'👋 Powitania',food:'🍜 Jedzenie',transport:'🚆 Transport',emergency:'🚨 Nagłe przypadki',shopping:'🛍️ Zakupy',hotel:'🏨 Hotel',other:'💬 Inne'};
+const defaultPhrases=[
+  {lang:'Angielski',cat:'greeting',pl:'Dzień dobry',foreign:'Good morning',pronun:'Gud mo-ning'},
+  {lang:'Angielski',cat:'emergency',pl:'Potrzebuję pomocy',foreign:'I need help',pronun:'Aj ni-d help'},
+  {lang:'Angielski',cat:'food',pl:'Jestem wegetarianinem',foreign:"I'm vegetarian",pronun:'Ajm vedżi-te-rian'},
+  {lang:'Japoński',cat:'greeting',pl:'Dziękuję',foreign:'ありがとう',pronun:'Arigatō'},
+  {lang:'Japoński',cat:'food',pl:'Pyszne!',foreign:'おいしい',pronun:'Oishii'},
+  {lang:'Hiszpański',cat:'greeting',pl:'Proszę',foreign:'Por favor',pronun:'Por fa-bor'},
+  {lang:'Włoski',cat:'food',pl:'Rachunek proszę',foreign:'Il conto per favore',pronun:'Il kon-to per fa-vo-re'},
+  {lang:'Tajski',cat:'greeting',pl:'Dziękuję',foreign:'ขอบคุณ',pronun:'Khob khun'},
+];
+function renderPhrases(){
+  const data=phrases.length?phrases:defaultPhrases;
+  const byLang={};
+  data.forEach(p=>{if(!byLang[p.lang])byLang[p.lang]=[];byLang[p.lang].push(p);});
+  document.getElementById('phrases-content').innerHTML=`
+    ${!phrases.length?`<div class="card" style="margin-bottom:18px;background:var(--accent-sky-light);border-color:var(--accent-sky)"><div style="font-size:13px;"><strong>💡 Przykładowe zwroty</strong> — dodaj własne lub usuń przykłady</div></div>`:''}
+    ${Object.entries(byLang).map(([lang,items])=>`
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-title">${lang}</div>
+      ${Object.keys(phraseCatLabels).map(cat=>{
+        const ci=items.filter(p=>p.cat===cat);
+        if(!ci.length)return '';
+        return `<div class="packing-category"><div class="packing-cat-title">${phraseCatLabels[cat]}</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;">
+          ${ci.map(p=>`<div style="background:var(--bg-secondary);border-radius:var(--radius-sm);padding:10px 13px;">
+            <div style="font-size:13.5px;font-weight:700;">${p.foreign}</div>
+            <div style="font-size:12px;color:var(--text-secondary);">${p.pl}</div>
+            ${p.pronun?`<div style="font-size:11px;color:var(--text-muted);font-style:italic;">[${p.pronun}]</div>`:''}
+            ${phrases.includes(p)?`<button class="btn-icon" style="font-size:11px;float:right;" onclick="deletePhrase('${p.id}')">✕</button>`:''}
+          </div>`).join('')}</div>
+        </div>`;}).join('')}
+    </div>`).join('')}`;
+}
+
+// ============================================================
+// STATS
+// ============================================================
+function renderStats(){
+  const completed=trips.filter(t=>t.archived||t.status==='completed');
+  const countries=[...new Set(trips.map(t=>t.dest))];
+  const totalDays=completed.reduce((s,t)=>s+tripDays(t),0);
+  const totalSpent=budgetItems.reduce((s,b)=>s+b.amount,0);
+  const diaryCount=diaryEntries.length;
+  const wishCount=wishes.filter(w=>!w.done).length;
+  const styleCount={};
+  trips.forEach(t=>{styleCount[t.style]=(styleCount[t.style]||0)+1;});
+  const topStyle=Object.entries(styleCount).sort((a,b)=>b[1]-a[1])[0];
+
+  document.getElementById('stats-content').innerHTML=`
+    <div class="grid-4" style="margin-bottom:24px;">
+      <div class="kpi-card"><div class="kpi-label">Wszystkich podróży</div><div class="kpi-value" style="color:var(--accent-sky)">${trips.length}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Zakończonych</div><div class="kpi-value" style="color:var(--accent-sage)">${completed.length}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Krajów odwiedzonych</div><div class="kpi-value" style="color:var(--accent-gold)">${countries.length}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Dni w podróży</div><div class="kpi-value" style="color:var(--accent-lavender)">${totalDays}</div></div>
+    </div>
+    <div class="grid-3" style="margin-bottom:24px;">
+      <div class="kpi-card"><div class="kpi-label">Łączne wydatki</div><div class="kpi-value" style="font-size:18px;color:var(--accent-rose)">${totalSpent.toLocaleString('pl-PL')} zł</div></div>
+      <div class="kpi-card"><div class="kpi-label">Wpisów w pamiętniku</div><div class="kpi-value" style="font-size:18px;color:var(--accent-sky)">${diaryCount}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Marzeń do spełnienia</div><div class="kpi-value" style="font-size:18px;color:var(--accent-lavender)">${wishCount}</div></div>
+    </div>
+    ${topStyle?`<div class="card" style="margin-bottom:18px;"><div class="card-title">🎯 Twój styl podróżowania</div><div style="font-size:18px;">${styleLabel(topStyle[0])} <span class="badge badge-sky">${topStyle[1]}x</span></div></div>`:''}
+    <div class="card">
+      <div class="card-title">🌍 Odwiedzone miejsca</div>
+      ${countries.length?`<div class="chips-row">${countries.map(c=>`<span class="badge badge-sky">📍 ${c}</span>`).join('')}</div>`:'<p style="color:var(--text-muted);font-size:13px;">Jeszcze żadnych podróży — czas to zmienić! ✈️</p>'}
+    </div>
+    <div class="card" style="margin-top:18px;">
+      <div class="card-title">⭐ Lista marzeń</div>
+      ${wishes.length?`<div class="chips-row">${wishes.map(w=>`<span class="badge ${w.done?'badge-sage':'badge-lavender'}">${w.done?'✅':'💫'} ${w.dest}</span>`).join('')}</div>`:'<p style="color:var(--text-muted);font-size:13px;">Dodaj pierwsze marzenie!</p>'}
+    </div>`;
+}
+
+// ============================================================
+// NEW CONSTANTS
+// ============================================================
+const CURRENCY_DEFAULTS={
+  EUR:{name:'Euro',symbol:'€',rate:4.25},
+  USD:{name:'Dolar amer.',symbol:'$',rate:3.90},
+  GBP:{name:'Funt szterling',symbol:'£',rate:4.95},
+  CHF:{name:'Frank szwajcarski',symbol:'CHF',rate:4.35},
+  JPY:{name:'Jen japoński',symbol:'¥',rate:0.0265},
+  CZK:{name:'Korona czeska',symbol:'Kč',rate:0.168},
+  HUF:{name:'Forint węgierski',symbol:'Ft',rate:0.0105},
+  SEK:{name:'Korona szwedzka',symbol:'kr',rate:0.356},
+  NOK:{name:'Korona norweska',symbol:'kr',rate:0.357},
+  DKK:{name:'Korona duńska',symbol:'kr',rate:0.569},
+  TRY:{name:'Lira turecka',symbol:'₺',rate:0.114},
+  THB:{name:'Bat tajski',symbol:'฿',rate:0.114},
+  AUD:{name:'Dolar australijski',symbol:'A$',rate:2.47},
+  CAD:{name:'Dolar kanadyjski',symbol:'C$',rate:2.78},
+  NZD:{name:'Dolar nowozelandzki',symbol:'NZ$',rate:2.25},
+  SGD:{name:'Dolar singapurski',symbol:'S$',rate:2.89},
+  HKD:{name:'Dolar hongkoński',symbol:'HK$',rate:0.50},
+  MYR:{name:'Ringgit malezyjski',symbol:'RM',rate:0.86},
+  IDR:{name:'Rupia indonezyjska',symbol:'Rp',rate:0.000241},
+  INR:{name:'Rupia indyjska',symbol:'₹',rate:0.0468},
+  MXN:{name:'Peso meksykańskie',symbol:'MX$',rate:0.196},
+  BRL:{name:'Real brazylijski',symbol:'R$',rate:0.658},
+  AED:{name:'Dirham ZEA',symbol:'د.إ',rate:1.062},
+  ILS:{name:'Nowy szekel',symbol:'₪',rate:1.040},
+  UAH:{name:'Hrywna ukraińska',symbol:'₴',rate:0.0942},
+  GEL:{name:'Lari gruzińskie',symbol:'₾',rate:1.446},
+  EGP:{name:'Funt egipski',symbol:'£E',rate:0.0793},
+  KRW:{name:'Won koreański',symbol:'₩',rate:0.00279},
+  CNY:{name:'Yuan chiński',symbol:'¥',rate:0.536},
+  RON:{name:'Lej rumuński',symbol:'lei',rate:0.853},
+};
+
+const VISA_DB=[
+  {c:'Austria',f:'🇦🇹',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Belgia',f:'🇧🇪',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Chorwacja',f:'🇭🇷',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Czechy',f:'🇨🇿',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Dania',f:'🇩🇰',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Estonia',f:'🇪🇪',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Finlandia',f:'🇫🇮',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Francja',f:'🇫🇷',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Grecja',f:'🇬🇷',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Hiszpania',f:'🇪🇸',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Holandia',f:'🇳🇱',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Irlandia',f:'🇮🇪',cat:'bezwizowo',days:90,note:'UE (poza Schengen)',emb:''},
+  {c:'Islandia',f:'🇮🇸',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Liechtenstein',f:'🇱🇮',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Litwa',f:'🇱🇹',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Łotwa',f:'🇱🇻',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Luksemburg',f:'🇱🇺',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Malta',f:'🇲🇹',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Niemcy',f:'🇩🇪',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Norwegia',f:'🇳🇴',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Portugalia',f:'🇵🇹',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Słowacja',f:'🇸🇰',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Słowenia',f:'🇸🇮',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Szwajcaria',f:'🇨🇭',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Szwecja',f:'🇸🇪',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Węgry',f:'🇭🇺',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Włochy',f:'🇮🇹',cat:'bezwizowo',days:90,note:'Strefa Schengen',emb:''},
+  {c:'Albania',f:'🇦🇱',cat:'bezwizowo',days:90,note:'Bez wizy',emb:''},
+  {c:'Bośnia i Herceg.',f:'🇧🇦',cat:'bezwizowo',days:90,note:'Bez wizy',emb:''},
+  {c:'Brazylia',f:'🇧🇷',cat:'bezwizowo',days:90,note:'Bez wizy (od 2024)',emb:''},
+  {c:'Czarnogóra',f:'🇲🇪',cat:'bezwizowo',days:90,note:'Bez wizy',emb:''},
+  {c:'Gruzja',f:'🇬🇪',cat:'bezwizowo',days:365,note:'Do roku bez wizy',emb:''},
+  {c:'Izrael',f:'🇮🇱',cat:'bezwizowo',days:90,note:'Bez wizy',emb:''},
+  {c:'Japonia',f:'🇯🇵',cat:'bezwizowo',days:90,note:'Bez wizy',emb:''},
+  {c:'Korea Południowa',f:'🇰🇷',cat:'bezwizowo',days:90,note:'Bez wizy',emb:''},
+  {c:'Malezja',f:'🇲🇾',cat:'bezwizowo',days:90,note:'Bez wizy',emb:''},
+  {c:'Mołdawia',f:'🇲🇩',cat:'bezwizowo',days:90,note:'Bez wizy',emb:''},
+  {c:'Serbia',f:'🇷🇸',cat:'bezwizowo',days:90,note:'Bez wizy',emb:''},
+  {c:'Singapur',f:'🇸🇬',cat:'bezwizowo',days:30,note:'Bez wizy',emb:''},
+  {c:'Tajwan',f:'🇹🇼',cat:'bezwizowo',days:90,note:'Bez wizy',emb:''},
+  {c:'Ukraina',f:'🇺🇦',cat:'bezwizowo',days:90,note:'Bez wizy',emb:''},
+  {c:'ZEA (Dubaj)',f:'🇦🇪',cat:'bezwizowo',days:90,note:'Bez wizy',emb:''},
+  {c:'Wielka Brytania',f:'🇬🇧',cat:'bezwizowo',days:180,note:'ETA wymagana od 2025',emb:''},
+  {c:'Australia',f:'🇦🇺',cat:'e-wiza',days:90,note:'ETA online',emb:'immi.homeaffairs.gov.au'},
+  {c:'Bahrajn',f:'🇧🇭',cat:'e-wiza',days:14,note:'E-wiza online',emb:'evisa.gov.bh'},
+  {c:'Egipt',f:'🇪🇬',cat:'e-wiza',days:30,note:'E-wiza online',emb:'visa2egypt.gov.eg'},
+  {c:'Etiopia',f:'🇪🇹',cat:'e-wiza',days:30,note:'E-wiza online',emb:'evisa.gov.et'},
+  {c:'Indie',f:'🇮🇳',cat:'e-wiza',days:30,note:'e-Tourist Visa',emb:'indianvisaonline.gov.in'},
+  {c:'Kanada',f:'🇨🇦',cat:'e-wiza',days:180,note:'eTA wymagana do lotu',emb:'canada.ca/eta'},
+  {c:'Kenia',f:'🇰🇪',cat:'e-wiza',days:90,note:'E-wiza online',emb:'evisa.go.ke'},
+  {c:'Rwanda',f:'🇷🇼',cat:'e-wiza',days:30,note:'E-wiza online',emb:'irembo.gov.rw'},
+  {c:'Arabia Saudyjska',f:'🇸🇦',cat:'e-wiza',days:90,note:'E-wiza turystyczna',emb:'visa.visitsaudi.com'},
+  {c:'Sri Lanka',f:'🇱🇰',cat:'e-wiza',days:30,note:'ETA online',emb:'eta.gov.lk'},
+  {c:'Tanzania',f:'🇹🇿',cat:'e-wiza',days:90,note:'E-wiza online',emb:'eservices.immigration.go.tz'},
+  {c:'Turcja',f:'🇹🇷',cat:'e-wiza',days:90,note:'E-wiza online',emb:'evisa.gov.tr'},
+  {c:'USA',f:'🇺🇸',cat:'e-wiza',days:90,note:'ESTA (program bezwizowy)',emb:'esta.cbp.dhs.gov'},
+  {c:'Wietnam',f:'🇻🇳',cat:'e-wiza',days:90,note:'E-wiza online',emb:'evisa.xuatnhapcanh.gov.vn'},
+  {c:'Bangladesz',f:'🇧🇩',cat:'wiza-granicy',days:30,note:'Visa on arrival',emb:''},
+  {c:'Indonezja',f:'🇮🇩',cat:'wiza-granicy',days:30,note:'Visa on arrival',emb:''},
+  {c:'Kambodża',f:'🇰🇭',cat:'wiza-granicy',days:30,note:'Visa on arrival',emb:''},
+  {c:'Madagaskar',f:'🇲🇬',cat:'wiza-granicy',days:60,note:'Visa on arrival',emb:''},
+  {c:'Nepal',f:'🇳🇵',cat:'wiza-granicy',days:90,note:'Visa on arrival',emb:''},
+  {c:'Tajlandia',f:'🇹🇭',cat:'wiza-granicy',days:30,note:'Visa on arrival',emb:''},
+  {c:'Afganistan',f:'🇦🇫',cat:'wiza-wymagana',days:0,note:'Wiza + ambasada',emb:''},
+  {c:'Algieria',f:'🇩🇿',cat:'wiza-wymagana',days:0,note:'Wiza + ambasada',emb:''},
+  {c:'Białoruś',f:'🇧🇾',cat:'wiza-wymagana',days:0,note:'Wiza wymagana',emb:''},
+  {c:'Chiny',f:'🇨🇳',cat:'wiza-wymagana',days:0,note:'Wiza — ambasada w Warszawie',emb:'pl.china-embassy.gov.cn'},
+  {c:'Irak',f:'🇮🇶',cat:'wiza-wymagana',days:0,note:'Wiza + ambasada',emb:''},
+  {c:'Iran',f:'🇮🇷',cat:'wiza-wymagana',days:0,note:'Wiza + ambasada',emb:''},
+  {c:'Kuba',f:'🇨🇺',cat:'wiza-wymagana',days:0,note:'Turystyczna Tarjeta del Turista',emb:''},
+  {c:'Nigeria',f:'🇳🇬',cat:'wiza-wymagana',days:0,note:'Wiza + ambasada',emb:''},
+  {c:'Pakistan',f:'🇵🇰',cat:'wiza-wymagana',days:0,note:'Wiza online lub ambasada',emb:'visa.nadra.gov.pk'},
+  {c:'Rosja',f:'🇷🇺',cat:'wiza-wymagana',days:0,note:'MSZ ostrzega przed podróżą',emb:''},
+];
+
+// ============================================================
+// NEW STATE
+// ============================================================
+let mapPins=[];
+let currencyRates={};
+let mapLeafletObj=null;
+let mapMarkers={};
+let mapRouteLine=null;
+
+// ============================================================
+// MAP (Leaflet.js + OpenStreetMap)
+// ============================================================
+function initLeafletMap(){
+  if(mapLeafletObj||!window.L)return;
+  const el=document.getElementById('map-leaflet');
+  if(!el)return;
+  mapLeafletObj=L.map('map-leaflet',{center:[20,10],zoom:2,scrollWheelZoom:true});
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
+    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',maxZoom:19
+  }).addTo(mapLeafletObj);
+}
+function pinToLatLng(pin){
+  if(pin.lat!==undefined&&pin.lng!==undefined)return[pin.lat,pin.lng];
+  return[90-(pin.y||250)/500*180,(pin.x||500)/1000*360-180];
+}
+function makePinIcon(cat){
+  const icons={hotel:'🏨',attraction:'🏛️',food:'🍜',transport:'🚆',other:'📍'};
+  const colors={hotel:'#7aafc4',attraction:'#c9a96e',food:'#e8a598',transport:'#8faa8e',other:'#a89bc2'};
+  const ic=icons[cat]||'📍',cl=colors[cat]||'#a89bc2';
+  return L.divIcon({
+    className:'',
+    html:'<div style="background:white;border:2.5px solid '+cl+';border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:grab;">'+ic+'</div>',
+    iconSize:[36,36],iconAnchor:[18,36],popupAnchor:[0,-36]
+  });
+}
+function renderMap(){
+  initLeafletMap();
+  const sel=document.getElementById('map-trip-filter');
+  if(sel){
+    const cur=sel.value;
+    sel.innerHTML='<option value="">Wszystkie podróże</option>'+trips.filter(t=>!t.archived).map(t=>'<option value="'+t.id+'">'+(t.emoji||'🌍')+' '+t.name+'</option>').join('');
+    if(cur)sel.value=cur;
+  }
+  const fid=document.getElementById('map-trip-filter')?.value||'';
+  if(mapLeafletObj)setTimeout(()=>mapLeafletObj.invalidateSize(),60);
+  renderMapMarkers(fid);
+  renderMapPinsList(fid);
+}
+function renderMapMarkers(fid){
+  if(!mapLeafletObj)return;
+  Object.values(mapMarkers).forEach(m=>m.remove());
+  mapMarkers={};
+  if(mapRouteLine){mapRouteLine.remove();mapRouteLine=null;}
+  const pins=fid?mapPins.filter(p=>p.tripId===fid):mapPins;
+  pins.forEach(pin=>{
+    const ll=pinToLatLng(pin);
+    const marker=L.marker(ll,{draggable:true,icon:makePinIcon(pin.cat)}).addTo(mapLeafletObj);
+    marker.bindTooltip(pin.name,{permanent:false,direction:'top',offset:[0,-10]});
+    marker.on('click',()=>openMapPinModal(pin.id));
+    marker.on('dragend',e=>{
+      const pos=e.target.getLatLng();
+      pin.lat=pos.lat; pin.lng=pos.lng;
+      db.set('mapPins',mapPins);
+      updateMapRouteLeaflet(fid);
+    });
+    mapMarkers[pin.id]=marker;
+  });
+  updateMapRouteLeaflet(fid);
+}
+function updateMapRouteLeaflet(fid){
+  if(!mapLeafletObj)return;
+  if(mapRouteLine){mapRouteLine.remove();mapRouteLine=null;}
+  const id=fid!==undefined?fid:(document.getElementById('map-trip-filter')?.value||'');
+  const pins=id?mapPins.filter(p=>p.tripId===id):mapPins;
+  if(pins.length<2)return;
+  mapRouteLine=L.polyline(pins.map(p=>pinToLatLng(p)),{color:'#f0c060',weight:3,dashArray:'8,5',opacity:0.85}).addTo(mapLeafletObj);
+}
+function renderMapPinsList(filterTrip){
+  const fid=filterTrip!==undefined?filterTrip:(document.getElementById('map-trip-filter')?.value||'');
+  const pins=fid?mapPins.filter(p=>p.tripId===fid):mapPins;
+  const listEl=document.getElementById('map-pins-list');
+  if(!listEl)return;
+  const pinIcons={hotel:'🏨',attraction:'🏛️',food:'🍜',transport:'🚆',other:'📍'};
+  if(!pins.length){
+    listEl.innerHTML='<div class="empty-state"><div class="empty-icon">🗺️</div><p>Kliknij <strong>+ Dodaj pin</strong> by oznaczyć miejsce na mapie</p></div>';
+    return;
+  }
+  listEl.innerHTML='<div class="grid-3">'+pins.map(p=>{
+    const trip=trips.find(t=>t.id===p.tripId);
+    const icon=pinIcons[p.cat]||'📍';
+    const tripBadge=trip?'<div style="margin-top:6px;"><span class="badge badge-sky">'+(trip.emoji||'🌍')+' '+trip.name+'</span></div>':'';
+    const descHtml=p.desc?'<div style="font-size:12px;color:var(--text-muted);margin-top:3px;">'+p.desc+'</div>':'';
+    return '<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div>'
+      +'<div style="font-size:22px;margin-bottom:4px;">'+icon+'</div>'
+      +'<div style="font-weight:700;font-size:14px;">'+p.name+'</div>'
+      +descHtml+tripBadge
+      +'</div><div style="display:flex;gap:4px;">'
+      +'<button class="btn-icon" onclick="openMapPinModal(\'' +p.id+ '\')">✏️</button>'
+      +'<button class="btn-icon" onclick="deleteMapPin(\'' +p.id+ '\')">🗑️</button>'
+      +'</div></div></div>';
+  }).join('')+'</div>';
+}
+function openMapPinModal(id=null){
+  const p=id?mapPins.find(x=>x.id===id):null;
+  document.getElementById('pin-name').value=p?.name||'';
+  document.getElementById('pin-desc').value=p?.desc||'';
+  document.getElementById('pin-cat').value=p?.cat||'other';
+  populateTripSelect('pin-trip');
+  if(p?.tripId){const el=document.getElementById('pin-trip');if(el)el.value=p.tripId;}
+  document.getElementById('pin-edit-id').value=id||'';
+  openModal('map-pin-modal');
+}
+function saveMapPin(){
+  const name=document.getElementById('pin-name').value.trim();
+  if(!name){showToast('Podaj nazwę pinu','error');return;}
+  const editId=document.getElementById('pin-edit-id').value;
+  const existing=editId?mapPins.find(p=>p.id===editId):null;
+  const center=mapLeafletObj?mapLeafletObj.getCenter():{lat:20+(Math.random()*40-20),lng:(Math.random()*60-10)};
+  const pin={id:editId||newId(),name,desc:document.getElementById('pin-desc').value,cat:document.getElementById('pin-cat').value,tripId:document.getElementById('pin-trip').value,lat:existing?.lat??center.lat,lng:existing?.lng??center.lng};
+  if(editId){const i=mapPins.findIndex(p=>p.id===editId);if(i>-1)mapPins[i]=pin;}
+  else mapPins.push(pin);
+  db.set('mapPins',mapPins);
+  closeModal('map-pin-modal');
+  showToast('Pin zapisany!');
+  renderMap();
+  if(mapLeafletObj&&!existing)setTimeout(()=>mapLeafletObj.setView([pin.lat,pin.lng],5),120);
+}
+function deleteMapPin(id){
+  if(mapMarkers[id]){mapMarkers[id].remove();delete mapMarkers[id];}
+  mapPins=mapPins.filter(p=>p.id!==id);
+  db.set('mapPins',mapPins);
+  showToast('Pin usunięty','error');
+  const fid=document.getElementById('map-trip-filter')?.value||'';
+  updateMapRouteLeaflet(fid);
+  renderMapPinsList(fid);
+}
+
+// ============================================================
+// VISA
+// ============================================================
+function renderVisa(){
+  const search=(document.getElementById('visa-search')?.value||'').toLowerCase();
+  const filter=document.getElementById('visa-filter')?.value||'';
+  const catCfg={'bezwizowo':['badge-green','✅ Bezwizowo'],'e-wiza':['badge-yellow','🖥️ E-wiza'],'wiza-granicy':['badge-orange','🚧 Na granicy'],'wiza-wymagana':['badge-ruby','🔴 Wiza wymagana']};
+  let data=VISA_DB;
+  if(search)data=data.filter(v=>v.c.toLowerCase().includes(search));
+  if(filter)data=data.filter(v=>v.cat===filter);
+  const el=document.getElementById('visa-grid');
+  if(!el)return;
+  el.innerHTML=data.length?data.map(v=>{
+    const[cls,label]=catCfg[v.cat]||['badge-muted',v.cat];
+    return `<div class="card">
+      <div style="font-size:28px;margin-bottom:6px;">${v.f}</div>
+      <div style="font-weight:700;font-size:15px;margin-bottom:6px;">${v.c}</div>
+      <span class="badge ${cls}">${label}</span>
+      ${v.days?`<div style="font-size:12px;color:var(--text-muted);margin-top:8px;">⏱️ Maks. pobyt: <strong>${v.days} dni</strong></div>`:''}
+      ${v.note?`<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">ℹ️ ${v.note}</div>`:''}
+      ${v.emb?`<div style="font-size:11px;color:var(--accent-sky);margin-top:6px;cursor:pointer;word-break:break-all;" onclick="navigator.clipboard?.writeText('${v.emb}').then(()=>showToast('Skopiowano adres!'))">🔗 ${v.emb}</div>`:''}
+    </div>`;
+  }).join(''):`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🛂</div><p>Brak wyników dla podanego wyszukiwania</p></div>`;
+}
+
+// ============================================================
+// CURRENCY
+// ============================================================
+function initCurrencyRates(){
+  const saved=db.get('currencyRates');
+  currencyRates=saved||JSON.parse(JSON.stringify(CURRENCY_DEFAULTS));
+}
+function renderCurrency(){
+  const codes=Object.keys(currencyRates);
+  const fromSel=document.getElementById('curr-from');
+  const toSel=document.getElementById('curr-to');
+  if(!fromSel||!toSel)return;
+  const fillSel=(el,pref)=>{
+    el.innerHTML='<option value="PLN">PLN — Złoty polski</option>'+codes.map(c=>`<option value="${c}">${c} — ${currencyRates[c].name}</option>`).join('');
+    if(pref&&el.querySelector(`option[value="${pref}"]`))el.value=pref;
+  };
+  fillSel(fromSel,'EUR');
+  fillSel(toSel,'PLN');
+  const grid=document.getElementById('currency-rate-grid');
+  if(grid){
+    grid.innerHTML=codes.map(c=>{
+      const r=currencyRates[c];
+      return `<div class="curr-rate-row">
+        <span style="font-size:16px;width:28px;text-align:center;">${r.symbol}</span>
+        <span style="flex:1;font-weight:600;font-size:12.5px;">${c}</span>
+        <span style="font-size:11px;color:var(--text-muted);flex:2;">${r.name}</span>
+        <input type="number" class="curr-rate-input" value="${r.rate}" step="0.0001" min="0" onchange="saveCurrencyRate('${c}',this.value)" oninput="convertCurrency()">
+        <span style="font-size:11px;color:var(--text-muted);">PLN</span>
+      </div>`;
+    }).join('');
+  }
+  convertCurrency();
+}
+function convertCurrency(){
+  const amount=parseFloat(document.getElementById('curr-amount')?.value)||0;
+  const from=document.getElementById('curr-from')?.value||'EUR';
+  const to=document.getElementById('curr-to')?.value||'PLN';
+  const plnAmount=from==='PLN'?amount:amount*(currencyRates[from]?.rate||1);
+  const result=to==='PLN'?plnAmount:plnAmount/(currencyRates[to]?.rate||1);
+  const toSym=to==='PLN'?'zł':(currencyRates[to]?.symbol||to);
+  const fromSym=from==='PLN'?'zł':(currencyRates[from]?.symbol||from);
+  const resEl=document.getElementById('curr-result-amount');
+  const lblEl=document.getElementById('curr-result-label');
+  if(resEl)resEl.textContent=result.toLocaleString('pl-PL',{maximumFractionDigits:2})+' '+toSym;
+  if(lblEl)lblEl.textContent=`${amount} ${fromSym} = ${result.toFixed(4)} ${to}`;
+}
+function saveCurrencyRate(code,val){
+  const r=parseFloat(val);
+  if(!isNaN(r)&&r>0&&currencyRates[code]){currencyRates[code].rate=r;db.set('currencyRates',currencyRates);convertCurrency();}
+}
+function resetCurrencyRates(){
+  if(!confirm('Przywrócić domyślne kursy walut?'))return;
+  currencyRates=JSON.parse(JSON.stringify(CURRENCY_DEFAULTS));
+  db.set('currencyRates',currencyRates);
+  showToast('Kursy przywrócone!');
+  renderCurrency();
+}
+function swapCurrencies(){
+  const f=document.getElementById('curr-from');
+  const t=document.getElementById('curr-to');
+  if(!f||!t)return;
+  const tmp=f.value;f.value=t.value;t.value=tmp;
+  convertCurrency();
+}
+
+// ============================================================
+// PDF EXPORT
+// ============================================================
+function exportTripPDF(){
+  const t=trips.find(x=>x.id===currentTripId);
+  if(!t)return;
+  const tripStages=stages.filter(s=>s.tripId===currentTripId).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
+  const tripBudget=budgetItems.filter(b=>b.tripId===currentTripId);
+  const tripChecks=checkItems.filter(c=>c.tripId===currentTripId);
+  const tripDayPlans=dayPlans.filter(d=>d.tripId===currentTripId).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+  const totalBudget=tripBudget.reduce((s,b)=>s+b.amount,0);
+  const paidBudget=tripBudget.filter(b=>b.status==='paid').reduce((s,b)=>s+b.amount,0);
+  const doneChecks=tripChecks.filter(c=>c.done).length;
+  const byDate={};
+  tripDayPlans.forEach(d=>{if(!byDate[d.date])byDate[d.date]=[];byDate[d.date].push(d);});
+  const w=window.open('','_blank');
+  if(!w){showToast('Zezwól na otwieranie okien pop-up','error');return;}
+  w.document.write(`<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8"><title>${t.name} — TravelFlow</title>
+<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Georgia,serif;color:#222;background:#fff;padding:18mm;}
+h1{font-size:26px;margin-bottom:4px;}h2{font-size:17px;margin:22px 0 10px;border-bottom:2px solid #1a1a2e;padding-bottom:4px;color:#1a1a2e;}
+h3{font-size:13px;margin:12px 0 5px;}.hero{background:#1a1a2e;color:#fff;padding:18px 22px;border-radius:8px;margin-bottom:22px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.hero h1{color:#fff;}.meta{font-size:12px;color:#aaa;margin-top:6px;line-height:1.8;}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+.kpi{background:#f5f5f5;border-radius:6px;padding:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.kpi-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;}
+.kpi-val{font-size:18px;font-weight:700;color:#1a1a2e;margin-top:2px;}.stage{border-left:3px solid #1a1a2e;padding:5px 0 5px 13px;margin-bottom:8px;}
+table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0;}th{background:#f5f5f5;padding:6px 10px;text-align:left;font-size:10px;text-transform:uppercase;}
+td{padding:7px 10px;border-bottom:1px solid #eee;}.chk{padding:4px 0;font-size:12.5px;display:flex;gap:6px;}.done{text-decoration:line-through;color:#999;}
+.page-break{page-break-before:always;}.footer{margin-top:24px;padding-top:8px;border-top:1px solid #eee;font-size:10px;color:#aaa;text-align:center;}
+@media print{body{padding:10mm;}h2{break-after:avoid;}}</style></head><body>
+<div class="hero"><div style="font-size:30px;margin-bottom:6px;">${t.emoji||'🌍'}</div><h1>${t.name}</h1>
+<div class="meta">📍 ${t.dest}${t.city?', '+t.city:''}${t.start?' &nbsp;·&nbsp; 📅 '+fDate(t.start)+' → '+fDate(t.end)+' ('+tripDays(t)+' dni)':''}${t.persons>1?' &nbsp;·&nbsp; 👥 '+t.persons+' osób':''}</div></div>
+<div class="grid">
+  <div class="kpi"><div class="kpi-lbl">Budżet całkowity</div><div class="kpi-val">${(t.budget||0).toLocaleString('pl-PL')} zł</div></div>
+  <div class="kpi"><div class="kpi-lbl">Zaplanowane wydatki</div><div class="kpi-val">${totalBudget.toLocaleString('pl-PL')} zł</div></div>
+  <div class="kpi"><div class="kpi-lbl">Gotowość</div><div class="kpi-val">${doneChecks}/${tripChecks.length} zadań</div></div>
+</div>
+${tripStages.length?`<h2>📍 Etapy podróży</h2>${tripStages.map(s=>`<div class="stage"><h3>${s.name}${s.city?' — '+s.city:''}</h3><div style="font-size:11px;color:#666;">${s.start?fDate(s.start)+' → '+fDate(s.end):''}${s.hotel?' · 🏨 '+s.hotel:''}${s.transport?' · 🚆 '+s.transport:''}</div>${s.notes?`<div style="font-size:11px;margin-top:3px;">${s.notes}</div>`:''}</div>`).join('')}`:''}
+${Object.keys(byDate).length?`<h2 class="page-break">🗓️ Plan zwiedzania</h2>${Object.keys(byDate).sort().map(date=>`<h3>${new Date(date).toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'})}</h3><table><tbody>${byDate[date].map(d=>`<tr><td style="color:#888;font-size:10px;white-space:nowrap;">${d.time}</td><td>${catIcon(d.cat)} ${d.activity}</td><td style="color:#999;font-size:10px;">${d.notes||''}</td><td style="white-space:nowrap;">${d.cost?d.cost+' zł':''}</td></tr>`).join('')}</tbody></table>`).join('')}`:''}
+${tripBudget.length?`<h2 class="page-break">💰 Budżet podróży</h2>
+<table><thead><tr><th>Kategoria</th><th>Opis</th><th>Kwota</th><th>Status</th><th>Data</th></tr></thead>
+<tbody>${tripBudget.map(b=>`<tr><td>${catIcon(b.cat)} ${b.cat}</td><td>${b.desc}</td><td>${b.amount.toLocaleString('pl-PL')} zł</td><td>${b.status==='paid'?'✅ Opłacony':b.status==='partial'?'Częściowo':'Planowany'}</td><td>${b.date?fDate(b.date):'—'}</td></tr>`).join('')}</tbody></table>
+<div style="margin-top:10px;font-size:13px;"><strong>Suma: ${totalBudget.toLocaleString('pl-PL')} zł</strong> (opłacono: ${paidBudget.toLocaleString('pl-PL')} zł)</div>`:''}
+${tripChecks.length?`<h2 class="page-break">✅ Checklista</h2><div>${tripChecks.map(c=>`<div class="chk ${c.done?'done':''}"><span>${c.done?'☑':'☐'}</span><span>${c.text}</span></div>`).join('')}</div>`:''}
+${t.desc?`<h2>📝 Notatki</h2><p style="font-size:13px;line-height:1.7;">${t.desc}</p>`:''}
+<div class="footer">Wygenerowano przez TravelFlow &nbsp;·&nbsp; ${new Date().toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'})}</div>
+
+</body></html>`);
+  w.document.close();
+  setTimeout(()=>w.print(),500);
+}
+
+// ============================================================
+// GROUP COST SPLIT
+// ============================================================
+function calcGroupSplit(tripId){
+  const participants=db.get(`participants_${tripId}`)||[];
+  if(participants.length<2)return[];
+  const items=budgetItems.filter(b=>b.tripId===tripId&&b.paidBy);
+  const bal={};
+  participants.forEach(p=>{bal[p]=0;});
+  items.forEach(b=>{
+    if(!b.paidBy||!bal.hasOwnProperty(b.paidBy))return;
+    const share=b.amount/participants.length;
+    bal[b.paidBy]+=b.amount;
+    participants.forEach(p=>{bal[p]-=share;});
+  });
+  const debtors=participants.filter(p=>bal[p]<-0.005).map(p=>({name:p,amount:-bal[p]}));
+  const creditors=participants.filter(p=>bal[p]>0.005).map(p=>({name:p,amount:bal[p]}));
+  const transfers=[];
+  let i=0,j=0;
+  while(i<debtors.length&&j<creditors.length){
+    const amt=Math.min(debtors[i].amount,creditors[j].amount);
+    if(amt>0.005)transfers.push({from:debtors[i].name,to:creditors[j].name,amount:Math.round(amt*100)/100});
+    debtors[i].amount-=amt;creditors[j].amount-=amt;
+    if(debtors[i].amount<0.005)i++;
+    if(creditors[j].amount<0.005)j++;
+  }
+  return transfers;
+}
+function renderGroupSplit(tripId){
+  const participants=db.get(`participants_${tripId}`)||[];
+  const transfers=calcGroupSplit(tripId);
+  return`<div class="sep"></div>
+  <div class="section-header">
+    <div class="section-title">👥 Podział kosztów w grupie</div>
+    <button class="btn-secondary btn-sm" onclick="toggleParticipantsManager('${tripId}')">+ Zarządzaj uczestnikami</button>
+  </div>
+  <div id="participants-manager-${tripId}" style="display:none;margin-bottom:14px;">
+    <div style="display:flex;gap:10px;align-items:center;">
+      <input id="new-participant-${tripId}" placeholder="Imię uczestnika" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:13px;background:var(--bg-input);">
+      <button class="btn-primary btn-sm" onclick="addParticipant('${tripId}')">+ Dodaj</button>
+    </div>
+  </div>
+  ${participants.length?`
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Uczestnicy</div>
+      <div>${participants.map(p=>`<span class="participant-chip">${p}<button onclick="removeParticipant('${tripId}','${p}')" style="background:none;border:none;cursor:pointer;color:#3d7a94;font-size:15px;line-height:1;margin-left:2px;">×</button></span>`).join('')}</div>
+    </div>
+    ${transfers.length?`<div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Rozliczenia</div>
+      ${transfers.map(tr=>`<div class="split-row">
+        <span style="font-weight:700;">${tr.from}</span>
+        <span class="split-arrow">→</span>
+        <span style="font-weight:700;">${tr.to}</span>
+        <span style="margin-left:auto;font-family:var(--font-display);font-weight:700;color:var(--accent-gold);">${tr.amount.toLocaleString('pl-PL',{minimumFractionDigits:2})} zł</span>
+      </div>`).join('')}
+    </div>`:`<div style="color:var(--text-muted);font-size:13px;">✅ Wszyscy rozliczeni (lub brak wydatków z przypisanym płatnikiem).</div>`}
+  `:`<div style="color:var(--text-muted);font-size:13px;">Dodaj uczestników, przypisz płatnika do wydatków — aplikacja wyliczy kto komu jest winien.</div>`}`;
+}
+function toggleParticipantsManager(tripId){
+  const el=document.getElementById(`participants-manager-${tripId}`);
+  if(el)el.style.display=el.style.display==='none'?'block':'none';
+}
+function addParticipant(tripId){
+  const input=document.getElementById(`new-participant-${tripId}`);
+  const name=input?.value.trim();
+  if(!name){showToast('Podaj imię uczestnika','error');return;}
+  let p=db.get(`participants_${tripId}`)||[];
+  if(p.includes(name)){showToast('Ten uczestnik już istnieje','error');return;}
+  p.push(name);
+  db.set(`participants_${tripId}`,p);
+  if(input)input.value='';
+  showToast(`${name} dodany/a!`);
+  renderTripDetail();
+}
+function removeParticipant(tripId,name){
+  let p=db.get(`participants_${tripId}`)||[];
+  p=p.filter(x=>x!==name);
+  db.set(`participants_${tripId}`,p);
+  showToast(`${name} usunięty/a`,'error');
+  renderTripDetail();
+}
+function populatePaidBySelect(tripId){
+  const sel=document.getElementById('bud-paid-by');
+  if(!sel)return;
+  const p=db.get(`participants_${tripId}`)||[];
+  sel.innerHTML='<option value="">— Wspólny / nieokreślony —</option>'+p.map(n=>`<option value="${n}">${n}</option>`).join('');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function initApp(){
+  trips=db.get('trips')||[];
+  stages=db.get('stages')||[];
+  dayPlans=db.get('dayPlans')||[];
+  budgetItems=db.get('budgetItems')||[];
+  checkItems=db.get('checkItems')||[];
+  docs=db.get('docs')||[];
+  contacts=db.get('contacts')||[];
+  diaryEntries=db.get('diaryEntries')||[];
+  wishes=db.get('wishes')||[];
+  packItems=db.get('packItems')||[];
+  phrases=db.get('phrases')||[];
+  mapPins=db.get('mapPins')||[];
+  initCurrencyRates();
+
+  document.getElementById('user-label').textContent=USER_ID==='anonymous'?'Tryb anonimowy':`Konto: ${USER_ID.slice(0,12)}`;
+  document.getElementById('sidebar-date').textContent=new Date().toLocaleDateString('pl-PL',{weekday:'short',day:'numeric',month:'short'});
+
+  renderDashboard();
+}
+initApp();
+</script>
+
+<!-- ============================================================ -->
+<!-- AI VIEW -->
+<!-- ============================================================ -->
+<div class="view" id="ai-view">
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">🤖 Asystent AI</h2>
+      <div class="page-subtitle">Inteligentne wsparcie w planowaniu podróży</div>
+    </div>
+    <button class="btn-secondary" onclick="openModal('ai-settings-modal')">⚙️ Ustawienia AI</button>
+  </div>
+
+  <div id="ai-status-bar" style="display:none;padding:10px 16px;border-radius:12px;margin-bottom:20px;font-size:13px;font-weight:600;"></div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:28px;">
+    <button class="ai-quick-btn" onclick="aiQuickAction('destination-tips')">🗺️<span>Wskazówki o destynacji</span></button>
+    <button class="ai-quick-btn" onclick="aiQuickAction('packing-list')">🎒<span>Lista do spakowania</span></button>
+    <button class="ai-quick-btn" onclick="aiQuickAction('budget-plan')">💰<span>Planowanie budżetu</span></button>
+    <button class="ai-quick-btn" onclick="aiQuickAction('phrases')">🗣️<span>Przydatne zwroty</span></button>
+    <button class="ai-quick-btn" onclick="aiQuickAction('itinerary')">📅<span>Plan zwiedzania</span></button>
+    <button class="ai-quick-btn" onclick="aiQuickAction('safety-tips')">🛡️<span>Bezpieczeństwo</span></button>
+  </div>
+
+  <div style="background:var(--card-bg,#fff);border-radius:16px;box-shadow:var(--shadow-md,0 4px 16px rgba(0,0,0,.08));overflow:hidden;">
+    <div id="ai-chat-box" style="height:380px;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;">
+      <div class="ai-msg ai-msg--assistant"><div class="ai-msg__bubble">Cześć! Jestem Twoim asystentem podróżniczym ✈️ Pomogę Ci zaplanować wyjazd, przygotować listę bagażu, znaleźć przydatne zwroty w lokalnym języku i wiele więcej. Jak mogę Ci pomóc?</div></div>
+    </div>
+    <div style="border-top:1px solid rgba(0,0,0,.08);padding:14px 16px;display:flex;gap:10px;background:#fafafa;">
+      <input id="ai-user-input" type="text" placeholder="Napisz wiadomość do asystenta..." style="flex:1;padding:10px 14px;border:1px solid rgba(0,0,0,.1);border-radius:10px;font-size:14px;font-family:inherit;background:#fff;outline:none;" onkeydown="if(event.key==='Enter')sendAIChat()">
+      <button onclick="sendAIChat()" style="padding:10px 20px;background:var(--accent,#2563eb);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">Wyślij</button>
+    </div>
+  </div>
+</div>
+
+<!-- Floating AI -->
+<button id="ai-float-btn" onclick="switchView('ai')"
+  style="position:fixed;bottom:28px;right:28px;width:54px;height:54px;border-radius:50%;background:var(--accent,#2563eb);border:none;font-size:24px;cursor:pointer;box-shadow:0 4px 20px rgba(37,99,235,.4);z-index:800;display:flex;align-items:center;justify-content:center;transition:transform .2s;"
+  onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform='scale(1)'">🤖</button>
+
+<!-- AI Settings Modal -->
+<div class="modal" id="ai-settings-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:24px;max-width:460px;width:90%;position:relative;">
+    <button onclick="closeModal('ai-settings-modal')" style="position:absolute;top:12px;right:12px;background:none;border:none;font-size:18px;cursor:pointer;">✕</button>
+    <h3 style="margin-bottom:20px;">⚙️ Ustawienia AI</h3>
+    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">Klucz API OpenRouter</label>
+    <input id="ai-key-input" type="password" placeholder="sk-or-v1-..." style="width:100%;padding:10px 14px;border:1px solid rgba(0,0,0,.15);border-radius:10px;font-size:14px;margin-bottom:12px;">
+    <div style="font-size:11px;color:#999;margin-bottom:12px;">Zdobądź klucz na <a href="https://openrouter.ai" target="_blank">openrouter.ai</a></div>
+    <div id="ai-model-status" style="font-size:13px;color:#666;padding:10px 14px;background:#f5f5f5;border-radius:10px;margin-bottom:12px;min-height:40px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="testAndSaveAIKey()" style="flex:1;padding:10px;background:var(--accent,#2563eb);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">Zapisz i przetestuj</button>
+      <button onclick="clearAIKey()" style="padding:10px 16px;background:#f0f0f0;border:none;border-radius:10px;font-size:13px;cursor:pointer;">Wyczyść</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.ai-quick-btn{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 12px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:14px;font-size:12px;font-weight:600;color:#555;cursor:pointer;transition:all .2s;box-shadow:0 1px 4px rgba(0,0,0,.06);font-family:inherit;}
+.ai-quick-btn:hover{border-color:var(--accent,#2563eb);color:var(--accent,#2563eb);transform:translateY(-2px);box-shadow:0 4px 16px rgba(37,99,235,.15);}
+.ai-quick-btn{font-size:26px;}
+.ai-quick-btn span{font-size:12px;text-align:center;line-height:1.3;}
+.ai-msg{display:flex;max-width:80%;}
+.ai-msg--user{align-self:flex-end;flex-direction:row-reverse;}
+.ai-msg--assistant{align-self:flex-start;}
+.ai-msg__bubble{padding:12px 16px;border-radius:14px;font-size:14px;line-height:1.6;}
+.ai-msg--user .ai-msg__bubble{background:var(--accent,#2563eb);color:#fff;border-bottom-right-radius:4px;}
+.ai-msg--assistant .ai-msg__bubble{background:#f0f0f0;color:#333;border-bottom-left-radius:4px;}
+.ai-msg--loading .ai-msg__bubble{opacity:.7;font-style:italic;}
+</style>
+
+<script>
+// ============================================================
+// AI MODULE — Travel Guide
+// ============================================================
+const AI_MODELS = [
+  { id: 'anthropic/claude-3.5-haiku',      name: 'Claude 3.5 Haiku' },
+  { id: 'openai/gpt-4o-mini',               name: 'GPT-4o Mini' },
+  { id: 'google/gemini-flash-1.5-8b',       name: 'Gemini Flash 1.5 8B' },
+  { id: 'meta-llama/llama-3.1-8b-instruct', name: 'Llama 3.1 8B' },
+  { id: 'mistralai/mistral-7b-instruct',    name: 'Mistral 7B' }
+];
+
+let aiChatHistory = [];
+function getAIKey()   { return (typeof db!=='undefined' && db.get('ai_api_key')) || ''; }
+function getAIModel() { return (typeof db!=='undefined' && db.get('ai_model')) || ''; }
+
+function getAISystemPrompt() {
+  let ctx = '';
+  try {
+    const trips2 = (typeof trips !== 'undefined') ? trips : [];
+    const active = trips2.find(t => t.status === 'active') || trips2[0];
+    if (active) {
+      ctx = `Aktualna podróż: "${active.name}" — ${active.destination || ''}, ${active.startDate || ''} do ${active.endDate || ''}.\n`;
+    }
+    ctx += `Liczba zaplanowanych podróży: ${trips2.length}.\n`;
+  } catch(e) {}
+  return `Jesteś inteligentnym asystentem podróżniczym. Pomagasz w planowaniu wyjazdów, przygotowaniu do podróży i odkrywaniu nowych miejsc.
+${ctx}
+Odpowiadaj zawsze po polsku. Bądź konkretny, pomocny i entuzjastyczny w stosunku do podróży.`;
+}
+
+async function callOpenRouter(userMessage, systemOverride) {
+  const key = getAIKey(), model = getAIModel();
+  if (!key || !model) throw new Error('Brak klucza API. Skonfiguruj w ustawieniach AI.');
+  const messages = [
+    { role: 'system', content: systemOverride || getAISystemPrompt() },
+    ...aiChatHistory.slice(-6),
+    { role: 'user', content: userMessage }
+  ];
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, messages, max_tokens: 800 })
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || 'Brak odpowiedzi.';
+}
+
+async function testAndSaveAIKey() {
+  const key = document.getElementById('ai-key-input').value.trim();
+  if (!key) { alert('Wklej klucz API.'); return; }
+  const statusEl = document.getElementById('ai-model-status');
+  statusEl.textContent = '⏳ Testowanie modeli...';
+  for (const m of AI_MODELS) {
+    statusEl.textContent = `⏳ Testuję ${m.name}...`;
+    try {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: m.id, messages: [{ role: 'user', content: 'OK' }], max_tokens: 5 })
+      });
+      if (res.ok) {
+        if (typeof db !== 'undefined') { db.set('ai_api_key', key); db.set('ai_model', m.id); }
+        statusEl.innerHTML = `✅ Połączono! Model: <strong>${m.name}</strong>`;
+        statusEl.style.color = '#2d7a2d';
+        updateAIStatusBar();
+        closeModal('ai-settings-modal');
+        return;
+      }
+    } catch(e) {}
+  }
+  statusEl.textContent = '❌ Żaden model nie działa. Sprawdź klucz.';
+  statusEl.style.color = '#c0392b';
+}
+
+function clearAIKey() {
+  if (typeof db !== 'undefined') { db.del('ai_api_key'); db.del('ai_model'); }
+  document.getElementById('ai-key-input').value = '';
+  document.getElementById('ai-model-status').textContent = 'Klucz usunięty.';
+  updateAIStatusBar();
+}
+
+function updateAIStatusBar() {
+  const bar = document.getElementById('ai-status-bar');
+  if (!bar) return;
+  const key = getAIKey(), model = getAIModel();
+  const name = AI_MODELS.find(m => m.id === model)?.name || model;
+  bar.style.display = 'block';
+  if (key && model) {
+    bar.style.cssText += 'background:linear-gradient(135deg,#e6f4e6,#d4edda);color:#2d7a2d;';
+    bar.innerHTML = `✅ AI aktywne — model: ${name} &nbsp;·&nbsp; <a href="#" onclick="openModal('ai-settings-modal');return false;" style="color:#2d7a2d;">Zmień</a>`;
+  } else {
+    bar.style.cssText += 'background:linear-gradient(135deg,#fff3cd,#ffeeba);color:#856404;';
+    bar.innerHTML = `⚠️ AI nie skonfigurowane &nbsp;·&nbsp; <a href="#" onclick="openModal('ai-settings-modal');return false;" style="color:#856404;font-weight:700;">Dodaj klucz API →</a>`;
+  }
+  const inp = document.getElementById('ai-key-input');
+  if (inp && key) inp.value = key;
+}
+
+function addChatMessage(role, text, isLoading) {
+  const box = document.getElementById('ai-chat-box');
+  if (!box) return null;
+  const div = document.createElement('div');
+  div.className = `ai-msg ai-msg--${role}${isLoading ? ' ai-msg--loading' : ''}`;
+  div.innerHTML = `<div class="ai-msg__bubble">${text.replace(/\n/g,'<br>')}</div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+
+async function sendAIChat() {
+  const inp = document.getElementById('ai-user-input');
+  const msg = inp.value.trim();
+  if (!msg) return;
+  inp.value = '';
+  addChatMessage('user', msg);
+  aiChatHistory.push({ role: 'user', content: msg });
+  const loading = addChatMessage('assistant', '...', true);
+  try {
+    const reply = await callOpenRouter(msg);
+    loading?.remove();
+    addChatMessage('assistant', reply);
+    aiChatHistory.push({ role: 'assistant', content: reply });
+  } catch(e) {
+    loading?.remove();
+    addChatMessage('assistant', `❌ ${e.message}`);
+  }
+}
+
+async function aiQuickAction(type) {
+  let trips2 = []; try { trips2 = trips || []; } catch(e) {}
+  const active = trips2.find(t => t.status === 'active') || trips2[0];
+  const dest = active ? (active.destination || active.name) : 'wybraną destynację';
+  const prompts = {
+    'destination-tips': `Podaj 7 najważniejszych wskazówek dla turysty odwiedzającego ${dest}. Uwzględnij kulturę, obyczaje i must-see.`,
+    'packing-list':     `Stwórz kompletną listę rzeczy do spakowania na podróż do ${dest}. Uwzględnij klimat, dokumenty i specyfikę miejsca.`,
+    'budget-plan':      `Jak zaplanować budżet podróży do ${dest}? Podaj przybliżone koszty: noclegi, jedzenie, transport, atrakcje.`,
+    'phrases':          `Podaj 10 najważniejszych zwrotów przydatnych w ${dest} w lokalnym języku (z wymową i tłumaczeniem).`,
+    'itinerary':        `Stwórz 3-dniowy plan zwiedzania ${dest} — poranny, popołudniowy i wieczorny program na każdy dzień.`,
+    'safety-tips':      `Jakie są zasady bezpieczeństwa podróżując do ${dest}? Ubezpieczenie, zdrowie, strefy ryzyka, ważne numery.`
+  };
+  switchView('ai');
+  const prompt = prompts[type] || 'Jak mogę pomóc z podróżą?';
+  addChatMessage('user', prompt);
+  aiChatHistory.push({ role: 'user', content: prompt });
+  const loading = addChatMessage('assistant', '...', true);
+  try {
+    const reply = await callOpenRouter(prompt);
+    loading?.remove();
+    addChatMessage('assistant', reply);
+    aiChatHistory.push({ role: 'assistant', content: reply });
+  } catch(e) {
+    loading?.remove();
+    addChatMessage('assistant', `❌ ${e.message}`);
+  }
+}
+
+// Patch openModal/closeModal for AI settings modal (uses display:flex)
+const _origOpenModal = typeof openModal === 'function' ? openModal : null;
+const _origCloseModal = typeof closeModal === 'function' ? closeModal : null;
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (el.style.display === 'none' || el.style.display === '') {
+    el.style.display = 'flex';
+  } else if (_origOpenModal) { _origOpenModal(id); }
+  else { el.style.display = 'flex'; }
+}
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+}
+
+updateAIStatusBar();
+</script>
+
+</body>
+</html>
+

@@ -372,65 +372,65 @@ export const categoryHighlights: CategoryHighlight[] = [
 export const siteSections: SiteSectionContent[] = [
   {
     key: "hero",
-    eyebrow: "Praktyczne ebooki i planery",
+    eyebrow: "Premium digital systems",
     title:
-      "Praktyczne przewodniki, które wprowadzają porządek w codziennym życiu.",
+      "Gotowe systemy, które zamieniają chaos w dobrze zaprojektowany workflow.",
     description:
-      "Finanse, zdrowie, macierzyństwo, produktywność, kariera. Konkretne ebooki i planery, które realnie zmieniają to, jak żyjesz na co dzień. Bez teorii, bez ściemy.",
+      "Template, playbooki i produkty cyfrowe dla osób, które chcą szybciej planować, sprzedawać, tworzyć i podejmować decyzje. Mniej improwizacji, więcej gotowego systemu.",
     body:
-      "Dla osób, które chcą ogarnąć swoje życie krok po kroku — niezależnie od tego, czy chodzi o budżet, dietę, dziecko, czy lepszy plan dnia.",
-    ctaLabel: "Przeglądaj ebooki",
+      "Dla founderów, freelancerów i zespołów, które kupują rezultat, nie kolejny plik do folderu Downloads.",
+    ctaLabel: "Przeglądaj systemy",
     ctaHref: "/produkty",
   },
   {
     key: "featured",
-    eyebrow: "Najczęściej kupowane",
+    eyebrow: "Najczęściej wybierane",
     title:
-      "Zacznij od ebooków, które realnie zmieniają codzienność.",
+      "Zacznij od systemów, które dają szybki efekt bez budowania od zera.",
     description:
-      "Każdy z tych przewodników został napisany przez praktyków: dla mam, dla osób z ADHD, dla wszystkich, którzy chcą ogarnąć swoje pieniądze i czas.",
+      "Wyselekcjonowane produkty do planowania, finansów, pracy z klientem i produktywności. Gotowe do wdrożenia tego samego dnia.",
     body:
-      "Pobierz, przeczytaj wieczorem, zacznij wdrażać następnego dnia.",
-    ctaLabel: "Zobacz cały katalog",
+      "Kupujesz raz. Otwierasz w bibliotece. Wdrażasz w swoim rytmie.",
+    ctaLabel: "Zobacz katalog",
     ctaHref: "/produkty",
   },
   {
     key: "use-cases",
-    eyebrow: "Wybierz obszar życia",
+    eyebrow: "Use cases",
     title:
-      "Wybierz dziedzinę, którą chcesz uporządkować jako pierwszą.",
+      "Wybierz obszar pracy, który chcesz uporządkować jako pierwszy.",
     description:
-      "Templify grupuje ebooki wokół realnych obszarów życia: finansów, zdrowia, fitnessu, macierzyństwa, produktywności, mindset, pracy i podróży.",
+      "Templify grupuje produkty wokół konkretnych zadań: planowanie, oferta, finanse, produktywność, rozwój i operacje.",
     body:
-      "Każdy ebook to praktyczny przewodnik, nie kolejna teoria. Wybierz to, co potrzebujesz dziś.",
+      "Każda kategoria ma prowadzić do decyzji zakupowej, nie tylko ładnie wyglądać.",
   },
   {
     key: "why-templify",
     eyebrow: "Dlaczego Templify",
     title:
-      "Praktyczne na tyle, by realnie zmienić życie. Eleganckie na tyle, by chciało się je czytać.",
+      "Premium w wyglądzie. Praktyczne w użyciu. Bez pustego brandingu.",
     description:
-      "Każdy ebook jest zbudowany wokół jednego konkretnego obszaru życia. Bez ściemy, bez wodolejstwa. Wiedza, którą można od razu zastosować.",
+      "Każdy produkt jest zaprojektowany wokół jednego konkretnego rezultatu: szybciej poukładać proces, podjąć decyzję albo wystartować z czymś lepszym.",
     body:
-      "Od pierwszego kontaktu po pobranie pliku — całe doświadczenie ma być spokojne, jasne i premium.",
+      "Od pierwszego wejścia po pobranie pliku całe doświadczenie ma być szybkie, jasne i bardzo dopracowane.",
   },
   {
     key: "how-it-works",
     eyebrow: "Jak to działa",
     title:
-      "Wybierz, zapłać raz, pobierz natychmiast i od razu zacznij czytać.",
+      "Wybierz system, zapłać raz, pobierz natychmiast i wdrażaj bez czekania.",
     description:
-      "Wybierz ebook, dodaj do koszyka, opłać bezpiecznie online. Twoja biblioteka pojawi się od razu — możesz pobrać i czytać na telefonie, tablecie lub w przeglądarce.",
+      "Dodaj produkt do koszyka, opłać bezpiecznie online i odbierz go w swojej bibliotece. Bez maili z załącznikami, bez proszenia o dostęp.",
     body:
-      "Bez czekania, bez ukrytych kroków, bez niejasnych terminów dostawy.",
+      "Dostęp zostaje na koncie, a pliki można pobrać wtedy, kiedy są potrzebne.",
   },
   {
     key: "faq",
     eyebrow: "Najczęstsze pytania",
     title:
-      "Odpowiedzi, które rozwiewają ostatnie wątpliwości przed zakupem.",
+      "Odpowiedzi, które zdejmują ostatnie wątpliwości przed zakupem.",
     description:
-      "FAQ wyjaśnia dostawę, format plików, prawa użytkowania i wsparcie. Bez nerwowego żargonu.",
+      "Formaty, dostęp, licencja, zwroty i wsparcie. Krótko, jasno, bez technicznej mgły.",
     body:
       "Krótkie odpowiedzi. Spokojny ton. Konkrety zamiast komplikacji.",
   },

@@ -26,6 +26,9 @@
   --color-ring: var(--ring);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-acid: var(--acid);
+  --color-acid-foreground: var(--acid-foreground);
+  --color-ink: var(--ink);
   --color-surface: var(--surface);
   --color-surface-strong: var(--surface-strong);
   --color-glow: var(--glow);
@@ -43,60 +46,71 @@
 :root,
 .light {
   color-scheme: light;
-  --background: #f7f2ea;
-  --foreground: #1c1813;
-  --card: rgba(255, 251, 245, 0.85);
-  --card-foreground: #1f1b16;
-  --popover: #fffaf3;
-  --popover-foreground: #201b15;
-  --primary: #8b5e34;
-  --primary-foreground: #fbf5ec;
-  --secondary: rgba(247, 238, 226, 0.96);
-  --secondary-foreground: #2b241c;
-  --muted: rgba(239, 229, 214, 0.9);
-  --muted-foreground: #706453;
-  --accent: rgba(236, 227, 214, 0.92);
-  --accent-foreground: #1f1a15;
-  --destructive: #b94c42;
-  --border: rgba(84, 58, 31, 0.14);
-  --input: rgba(255, 250, 243, 0.98);
-  --ring: rgba(139, 94, 52, 0.32);
-  --brand: #8b5e34;
-  --brand-foreground: #fbf5ec;
-  --surface: rgba(255, 252, 247, 0.78);
-  --surface-strong: rgba(255, 249, 241, 0.92);
-  --glow: rgba(153, 110, 56, 0.12);
-  --radius: 1.2rem;
-  --font-body: var(--font-manrope);
-  --font-heading: var(--font-cormorant);
+  /* Editorial Alive (light, default): warm bone paper + near-black ink, high
+     contrast, calm. Ink is the workhorse; a restrained terracotta is the only
+     accent — used in hairlines and hovers, never as loud fields. */
+  --background: #f1ede4;
+  --foreground: #14110c;
+  --card: #fbf9f3;
+  --card-foreground: #14110c;
+  --popover: #fbf9f3;
+  --popover-foreground: #14110c;
+  --primary: #14110c;
+  --primary-foreground: #f3efe6;
+  --secondary: rgba(20, 17, 12, 0.05);
+  --secondary-foreground: #14110c;
+  --muted: rgba(20, 17, 12, 0.04);
+  --muted-foreground: #6f6655;
+  --accent: rgba(176, 78, 45, 0.1);
+  --accent-foreground: #8a3c22;
+  --destructive: #b23b2a;
+  --border: rgba(20, 17, 12, 0.12);
+  --input: #fbf9f3;
+  --ring: rgba(20, 17, 12, 0.34);
+  --brand: #b04e2d;
+  --brand-foreground: #f6efe6;
+  --acid: #b04e2d;
+  --acid-foreground: #f6efe6;
+  --ink: #14110c;
+  --surface: #fbf9f3;
+  --surface-strong: #ffffff;
+  --glow: rgba(176, 78, 45, 0.12);
+  --radius: 0.7rem;
+  --font-body: var(--font-hanken);
+  --font-heading: var(--font-hanken);
   --font-mono: var(--font-geist-mono);
 }
 
 .dark {
   color-scheme: dark;
-  --background: #0d0c0a;
-  --foreground: #f6f0e8;
-  --card: rgba(23, 20, 17, 0.88);
-  --card-foreground: #f7efe4;
-  --popover: #17130f;
-  --popover-foreground: #f7efe4;
-  --primary: #d2a86b;
-  --primary-foreground: #130f0b;
-  --secondary: rgba(34, 28, 23, 0.92);
-  --secondary-foreground: #f2e5d1;
-  --muted: rgba(33, 28, 23, 0.92);
-  --muted-foreground: #b9aa92;
-  --accent: rgba(57, 47, 38, 0.9);
-  --accent-foreground: #fde8bc;
-  --destructive: #dc6b5d;
-  --border: rgba(210, 168, 107, 0.18);
-  --input: rgba(32, 27, 22, 0.96);
-  --ring: rgba(210, 168, 107, 0.42);
-  --brand: #d2a86b;
-  --brand-foreground: #120f0b;
-  --surface: rgba(18, 15, 12, 0.8);
-  --surface-strong: rgba(27, 22, 18, 0.94);
-  --glow: rgba(217, 176, 94, 0.22);
+  /* Editorial Alive (dark): warm charcoal + bone. Bone becomes the primary
+     for an elegant inverted feel; terracotta warms the accent. */
+  --background: #161310;
+  --foreground: #f2efe7;
+  --card: rgba(33, 29, 24, 0.92);
+  --card-foreground: #f4efe6;
+  --popover: #1c1813;
+  --popover-foreground: #f4efe6;
+  --primary: #f2efe7;
+  --primary-foreground: #161310;
+  --secondary: rgba(242, 239, 231, 0.07);
+  --secondary-foreground: #f1ecdf;
+  --muted: rgba(242, 239, 231, 0.06);
+  --muted-foreground: #a89f8c;
+  --accent: rgba(199, 106, 69, 0.16);
+  --accent-foreground: #e7b29a;
+  --destructive: #d8604f;
+  --border: rgba(242, 239, 231, 0.14);
+  --input: rgba(40, 35, 29, 0.96);
+  --ring: rgba(242, 239, 231, 0.4);
+  --brand: #c76a45;
+  --brand-foreground: #161310;
+  --acid: #c76a45;
+  --acid-foreground: #161310;
+  --ink: #14110c;
+  --surface: rgba(26, 22, 18, 0.86);
+  --surface-strong: rgba(34, 29, 24, 0.96);
+  --glow: rgba(199, 106, 69, 0.18);
 }
 
 @layer base {
@@ -117,19 +131,19 @@
 
   body {
     @apply min-h-screen bg-background font-sans text-foreground antialiased;
-    background-color: #fdf9f1;
+    background-color: #f1ede4;
     background-image:
-      radial-gradient(80% 60% at 12% 0%, rgba(180, 142, 88, 0.14), transparent 60%),
-      radial-gradient(70% 50% at 88% 4%, rgba(166, 150, 132, 0.10), transparent 60%);
+      radial-gradient(55% 45% at 100% 0%, rgba(176, 78, 45, 0.05), transparent 60%),
+      linear-gradient(180deg, #f5f1e9 0%, #f1ede4 55%, #ece7db 100%);
     background-attachment: fixed;
     background-repeat: no-repeat;
   }
 
   .dark body {
-    background-color: #0a0807;
+    background-color: #161310;
     background-image:
-      radial-gradient(85% 55% at 18% 0%, rgba(218, 175, 96, 0.16), transparent 65%),
-      radial-gradient(75% 45% at 86% 8%, rgba(146, 110, 58, 0.12), transparent 60%);
+      radial-gradient(60% 48% at 100% 0%, rgba(199, 106, 69, 0.08), transparent 62%),
+      linear-gradient(180deg, #1a1612 0%, #161310 55%, #100d0a 100%);
     background-attachment: fixed;
     background-repeat: no-repeat;
   }
@@ -138,7 +152,7 @@
   h2,
   h3,
   h4 {
-    @apply font-heading tracking-[0.01em] text-balance;
+    @apply font-heading font-bold tracking-[-0.03em] text-balance;
   }
 
   p {
@@ -146,14 +160,14 @@
   }
 
   ::selection {
-    background: rgba(218, 175, 96, 0.32);
-    color: var(--foreground);
+    background: rgba(176, 78, 45, 0.18);
+    color: #14110c;
     text-shadow: none;
   }
 
   .dark ::selection {
-    background: rgba(218, 175, 96, 0.42);
-    color: #fff;
+    background: rgba(199, 106, 69, 0.32);
+    color: #f6efe6;
   }
 
   /* iOS-style focus ring: a tight halo with a 2px offset, glowing in the
@@ -176,36 +190,44 @@
     @apply py-14 sm:py-18 lg:py-24;
   }
 
-  .surface-panel {
-    @apply relative rounded-[2.25rem] border border-border/35 bg-card/55 shadow-[0_28px_90px_-40px_rgba(82,57,31,0.22)];
-    backdrop-filter: blur(36px) saturate(1.05);
+  .reveal-up {
+    animation: reveal-up 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
 
-  .surface-panel::before {
+  /* Printed-paper grain — a faint monochrome fractal-noise overlay that gives
+     flat CSS plates the tactile, crafted feel of a real book jacket. */
+  .paper-grain::after {
     content: "";
-    pointer-events: none;
     position: absolute;
     inset: 0;
+    pointer-events: none;
     border-radius: inherit;
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 30%),
-      radial-gradient(120% 80% at 50% -20%, rgba(255, 234, 196, 0.08) 0%, rgba(255, 234, 196, 0) 60%);
+    opacity: 0.12;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .dark .paper-grain::after {
+    mix-blend-mode: screen;
+    opacity: 0.06;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal-up {
+      animation: none;
+    }
+  }
+
+  .surface-panel {
+    @apply relative rounded-[1.25rem] border border-border bg-card shadow-[0_2px_24px_-18px_rgba(20,17,12,0.3)];
   }
 
   .dark .surface-panel {
-    box-shadow: 0 30px 90px -42px rgba(0, 0, 0, 0.6);
-    border-color: rgba(255, 234, 196, 0.08);
-  }
-
-  .dark .surface-panel::before {
-    background:
-      linear-gradient(180deg, rgba(255, 234, 196, 0.05) 0%, rgba(255, 234, 196, 0) 35%),
-      radial-gradient(140% 90% at 50% -10%, rgba(226, 188, 114, 0.08) 0%, rgba(226, 188, 114, 0) 65%);
+    box-shadow: 0 2px 28px -18px rgba(0, 0, 0, 0.7);
   }
 
   .surface-strong {
-    @apply rounded-[1.75rem] border border-border/90 bg-surface-strong;
-    backdrop-filter: blur(28px);
+    @apply rounded-[1rem] border border-border bg-surface-strong;
   }
 
   .gold-frame {
@@ -230,7 +252,23 @@
   }
 
   .eyebrow {
-    @apply inline-flex items-center gap-2 rounded-full border border-border/90 bg-secondary/85 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-primary/90;
+    @apply inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-secondary/70 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.3em] text-foreground/80;
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 999px;
+    background: var(--acid);
+    box-shadow: 0 0 12px color-mix(in oklab, var(--acid) 70%, transparent);
+  }
+
+  .acid-text {
+    background: linear-gradient(100deg, var(--acid) 0%, #b6e636 60%, #8fbf1f 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
   .hero-orb {
@@ -245,6 +283,41 @@
       linear-gradient(to right, rgba(132, 101, 63, 0.06) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(132, 101, 63, 0.06) 1px, transparent 1px);
     background-size: 24px 24px;
+  }
+
+  .noise-mask {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .noise-mask::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    opacity: 0.11;
+    mix-blend-mode: multiply;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px),
+      radial-gradient(circle at 75% 60%, rgba(0, 0, 0, 0.2) 0 1px, transparent 1px);
+    background-size: 18px 18px, 23px 23px;
+  }
+
+  .kinetic-grid {
+    background-image:
+      linear-gradient(115deg, rgba(19, 17, 13, 0.1) 0 1px, transparent 1px),
+      linear-gradient(90deg, rgba(19, 17, 13, 0.055) 0 1px, transparent 1px);
+    background-size: 38px 38px, 14px 14px;
+  }
+
+  .acid-pill {
+    @apply rounded-full border border-foreground/10 bg-foreground px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-background shadow-[0_12px_28px_-18px_rgba(19,17,13,0.8)];
+  }
+
+  .chrome-card {
+    @apply border border-foreground/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.76),rgba(255,255,255,0.22)_42%,rgba(20,17,12,0.08))] shadow-[0_24px_70px_-42px_rgba(19,17,13,0.42)];
   }
 }
 
@@ -286,6 +359,17 @@
   }
 }
 
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes templify-ripple {
   from {
     transform: scale(0);
@@ -323,7 +407,7 @@ a {
 .light .border-primary\/25,
 .light .border-primary\/30,
 .light .border-primary\/35 {
-  border-color: rgba(139, 94, 52, 0.22) !important;
+  border-color: rgba(13, 11, 6, 0.18) !important;
 }
 
 /* iOS-style page transition. Each route change re-keys the wrapper so
@@ -529,4 +613,3 @@ a {
     }
   }
 }
-

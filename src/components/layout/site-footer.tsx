@@ -8,7 +8,8 @@ const baseFooterGroups: Array<{ title: string; links: FooterLink[] }> = [
   {
     title: "Sklep",
     links: [
-      { href: "/produkty", label: "Wszystkie produkty" },
+      { href: "/planery", label: "Interaktywne planery" },
+      { href: "/produkty", label: "E-booki" },
       { href: "/#featured", label: "Bestsellery" },
       { href: "/#bundles", label: "Pakiety" },
       { href: "/blog", label: "Blog", requiresBlog: true },
@@ -61,11 +62,11 @@ export async function SiteFooter({ hasBlogPosts = false }: SiteFooterProps) {
           <span className="eyebrow">Templify</span>
           <div className="space-y-3">
             <h2 className="max-w-md text-3xl text-foreground sm:text-4xl">
-              Praktyczne ebooki i planery dla codziennego życia.
+              Interaktywne planery dla osób, które chcą ogarniać życie, a nie kolejne tabelki.
             </h2>
             <p className="max-w-md text-sm leading-7 text-muted-foreground sm:text-base">
-              Sprzedajemy konkret, nie ściemę. Każdy ebook jest napisany przez praktyków:
-              o pieniądzach, zdrowiu, macierzyństwie, czasie i karierze.
+              Gotowe narzędzia z automatycznym zapisem, dostępne z telefonu i komputera.
+              Do życia, domu i prowadzenia firmy.
             </p>
           </div>
 

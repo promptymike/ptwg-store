@@ -9,6 +9,7 @@ import {
   useCart,
 } from "@/components/cart/cart-provider";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type AddToCartButtonProps = {
   product: CartProductSnapshot;
@@ -46,7 +47,7 @@ export function AddToCartButton({
   return (
     <Button
       onClick={handleAdd}
-      className={fullWidth ? "w-full" : undefined}
+      className={cn(fullWidth ? "w-full" : undefined)}
       size="lg"
     >
       {added ? <Check className="size-4" /> : <ShoppingBag className="size-4" />}

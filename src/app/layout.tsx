@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Cormorant_Garamond, Manrope } from "next/font/google";
+import { Geist_Mono, Hanken_Grotesk } from "next/font/google";
 import { cookies } from "next/headers";
 
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
@@ -18,25 +18,23 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const manrope = Manrope({
-  variable: "--font-manrope",
-  subsets: ["latin"],
-});
-
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+// Hanken Grotesk drives the whole "Editorial Alive" voice — one confident,
+// highly legible grotesque from giant display headings down to UI labels.
+// Latin-ext subset so Polish diacritics (ł, ń, ż, ś, ó…) render correctly.
+const hanken = Hanken_Grotesk({
+  variable: "--font-hanken",
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.siteUrl),
   title: {
-    default: "Templify | Praktyczne ebooki i planery dla codziennego życia",
+    default: "Templify | Premium digital systems i template",
     template: "%s | Templify",
   },
   description:
-    "Templify to sklep z praktycznymi ebookami i planerami: finanse, zdrowie, macierzyństwo, produktywność, kariera. Pobierz natychmiast po zakupie.",
+    "Templify to storefront z gotowymi systemami, template i produktami cyfrowymi do planowania, sprzedaży, finansów i produktywności.",
   openGraph: {
     type: "website",
     siteName: "Templify",
@@ -59,7 +57,7 @@ export default async function RootLayout({
     <html
       lang="pl"
       suppressHydrationWarning
-      className={`${geistMono.variable} ${manrope.variable} ${cormorant.variable} h-full`}
+      className={`${geistMono.variable} ${hanken.variable} h-full`}
     >
       <body className="min-h-full overflow-x-clip bg-background text-foreground">
         <ThemeScript />

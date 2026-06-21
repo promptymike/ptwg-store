@@ -5,10 +5,10 @@ import { BundlesSection } from "@/components/sections/bundles-section";
 import { CatalogSection } from "@/components/sections/catalog-section";
 import { CtaSection } from "@/components/sections/cta-section";
 import { FaqSection } from "@/components/sections/faq-section";
-import { HeroSection } from "@/components/sections/hero-section";
+import { InteractivePlannerHero } from "@/components/sections/interactive-planner-hero";
 import { NewArrivalsSection } from "@/components/sections/new-arrivals-section";
 import { NewsletterSection } from "@/components/sections/newsletter-section";
-import { categoryHighlights, storeStats } from "@/data/mock-store";
+import { categoryHighlights } from "@/data/mock-store";
 import { buildCanonicalMetadata, getCanonicalUrl } from "@/lib/seo";
 import { getCurrentUser } from "@/lib/session";
 import {
@@ -24,9 +24,9 @@ function getSectionOrFallback(
 }
 
 export const metadata: Metadata = buildCanonicalMetadata({
-  title: "Praktyczne ebooki i planery dla codziennego życia",
+  title: "Interaktywne planery — skończ z Excelem",
   description:
-    "Konkretne ebooki i planery: finanse, zdrowie, macierzyństwo, produktywność, kariera, podróże. Napisane przez praktyków. Natychmiastowy dostęp, bezterminowa licencja, 14 dni na zwrot.",
+    "Najlepsze interaktywne planery do finansów, rodziny, posiłków i pracy. Automatyczny zapis i dostęp prosto z telefonu.",
   path: "/",
 });
 
@@ -124,7 +124,7 @@ export default async function HomePage() {
           }}
         />
       ) : null}
-      <HeroSection content={getSectionOrFallback(sections, "hero")} stats={storeStats} />
+      <InteractivePlannerHero />
       <BestsellersSection
         content={getSectionOrFallback(sections, "featured")}
         products={bestsellerProducts.length > 0 ? bestsellerProducts : featuredProducts}

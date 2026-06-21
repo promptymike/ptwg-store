@@ -1,0 +1,3422 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rodzinny Planer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Playfair+Display:wght@700&family=Lato:wght@400;700&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+/* ══════════════════════════════════════════════
+   CSS CUSTOM PROPERTIES — 4 MOTYWY
+══════════════════════════════════════════════ */
+:root, body.theme-family {
+  --bg:          #F5F6FA;
+  --sidebar-bg:  #ffffff;
+  --sidebar-txt: #666;
+  --card-bg:     #ffffff;
+  --primary:     #4A90D9;
+  --primary-lt:  #EEF4FC;
+  --secondary:   #7BC67E;
+  --text:        #222;
+  --text-muted:  #888;
+  --border:      #e0e0e0;
+  --hover:       #f5f9ff;
+  --danger:      #e74c3c;
+  --font:        'Segoe UI', sans-serif;
+  --radius:      10px;
+}
+
+body.theme-pink {
+  --bg:          #FFF0F5;
+  --sidebar-bg:  #fff5f8;
+  --sidebar-txt: #c0607a;
+  --card-bg:     #ffffff;
+  --primary:     #FF4D8D;
+  --primary-lt:  #ffe4ee;
+  --secondary:   #FFB3C1;
+  --text:        #4a1030;
+  --text-muted:  #c090a0;
+  --border:      #ffcdd8;
+  --hover:       #fff0f5;
+  --danger:      #e74c3c;
+  --font:        'Nunito', sans-serif;
+  --radius:      14px;
+}
+
+body.theme-blue {
+  --bg:          #EBF4FF;
+  --sidebar-bg:  #1E3A5F;
+  --sidebar-txt: #a0c4e8;
+  --card-bg:     #ffffff;
+  --primary:     #3A7BD5;
+  --primary-lt:  #ddeeff;
+  --secondary:   #00A8CC;
+  --text:        #1E3A5F;
+  --text-muted:  #607090;
+  --border:      #c5d9f0;
+  --hover:       #ddeeff;
+  --danger:      #e74c3c;
+  --font:        'Exo 2', sans-serif;
+  --radius:      8px;
+}
+
+body.theme-elegant {
+  --bg:          #0F0F1A;
+  --sidebar-bg:  #1A1A2E;
+  --sidebar-txt: #8080a0;
+  --card-bg:     #16213E;
+  --primary:     #E2B96F;
+  --primary-lt:  #2a2040;
+  --secondary:   #c9a050;
+  --text:        #e8e8f0;
+  --text-muted:  #7070a0;
+  --border:      #2a2a4a;
+  --hover:       #1e1e38;
+  --danger:      #e05555;
+  --font:        'Lato', sans-serif;
+  --radius:      10px;
+}
+
+/* ══════════════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════════════ */
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  height: 100vh;
+  transition: background .3s, color .3s;
+}
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE — HAMBURGER
+══════════════════════════════════════════════ */
+#hamburger {
+  display:none; position:fixed; top:12px; left:12px; z-index:300;
+  background:var(--card-bg); border:1px solid var(--border);
+  border-radius:8px; padding:8px 10px; cursor:pointer;
+  font-size:18px; line-height:1; box-shadow:0 2px 8px rgba(0,0,0,.1);
+}
+#sidebar-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.4); z-index:149;
+}
+@media (max-width:768px) {
+  #hamburger { display:block; }
+  #sidebar {
+    position:fixed; top:0; left:-240px; height:100vh;
+    z-index:150; transition:left .25s ease; width:240px;
+  }
+  #sidebar.open { left:0; }
+  #sidebar-overlay.open { display:block; }
+  #main { padding:16px; }
+  .dash-row { grid-template-columns:1fr; }
+  .kanban   { grid-template-columns:1fr; }
+  .form-row { grid-template-columns:1fr; }
+  #theme-switcher { top:12px; right:10px; }
+  .lesson-grid { font-size:11px; }
+}
+
+/* ══════════════════════════════════════════════
+   LESSON PLAN
+══════════════════════════════════════════════ */
+.lesson-grid {
+  width:100%; border-collapse:collapse; font-size:13px;
+}
+.lesson-grid th {
+  background:var(--primary-lt); color:var(--primary);
+  padding:8px 6px; text-align:center; font-weight:700;
+  border:1px solid var(--border); font-size:12px;
+}
+.lesson-grid td {
+  padding:4px 6px; border:1px solid var(--border);
+  vertical-align:top; min-height:36px; min-width:80px;
+}
+.lesson-cell {
+  background:var(--primary-lt); color:var(--primary);
+  border-radius:6px; padding:3px 7px; font-size:12px;
+  cursor:pointer; display:block; margin-bottom:2px;
+}
+.lesson-cell:hover { opacity:.8; }
+.lesson-add {
+  color:var(--border); font-size:18px; cursor:pointer;
+  display:block; text-align:center; line-height:1.4;
+}
+.lesson-add:hover { color:var(--primary); }
+
+/* ══════════════════════════════════════════════
+   ACTIVITIES
+══════════════════════════════════════════════ */
+.activity-card {
+  display:flex; align-items:center; gap:12px;
+  padding:11px 14px; background:var(--card-bg);
+  border-radius:8px; margin-bottom:7px;
+  border:1px solid var(--border); cursor:pointer;
+}
+.activity-card:hover { box-shadow:0 3px 10px rgba(0,0,0,.08); }
+.activity-day {
+  width:34px; height:34px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; color:#fff; flex-shrink:0;
+}
+.activity-info { flex:1; }
+.activity-info strong { display:block; font-size:14px; color:var(--text); }
+.activity-info small  { font-size:12px; color:var(--text-muted); }
+
+/* ══════════════════════════════════════════════
+   EMERGENCY CONTACTS
+══════════════════════════════════════════════ */
+.emergency-section {
+  background:#fff3cd; border:1px solid #ffc107;
+  border-radius:var(--radius); padding:16px; margin-bottom:18px;
+}
+body.theme-elegant .emergency-section {
+  background:#2a1a00; border-color:#E2B96F33;
+}
+.emergency-section h4 { font-size:14px; font-weight:700; margin-bottom:10px; color:#856404; }
+body.theme-elegant .emergency-section h4 { color:var(--primary); }
+.contact-item {
+  display:flex; align-items:center; gap:10px;
+  padding:7px 0; border-bottom:1px solid rgba(0,0,0,.06);
+  font-size:14px;
+}
+.contact-item:last-child { border-bottom:none; }
+.contact-item .contact-name { flex:1; font-weight:600; color:var(--text); }
+.contact-item .contact-phone { color:var(--primary); font-weight:700; }
+
+/* ══════════════════════════════════════════════
+   SUGGESTIONS
+══════════════════════════════════════════════ */
+.suggestions {
+  display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;
+}
+.suggestion-chip {
+  background:var(--primary-lt); color:var(--primary);
+  border:none; border-radius:20px; padding:4px 11px;
+  font-size:12px; cursor:pointer; font-family:var(--font);
+  transition:background .15s;
+}
+.suggestion-chip:hover { background:var(--primary); color:#fff; }
+
+/* ══════════════════════════════════════════════
+   SIDEBAR external links
+══════════════════════════════════════════════ */
+#sidebar nav .nav-divider {
+  font-size:10px; text-transform:uppercase; letter-spacing:.8px;
+  color:var(--text-muted); padding:10px 20px 4px; opacity:.6;
+}
+#sidebar nav .nav-external {
+  font-style:italic; opacity:.7;
+}
+#sidebar nav .nav-external::after { content:' ↗'; font-size:10px; }
+
+/* ══════════════════════════════════════════════
+   DASHBOARD WIDGETS
+══════════════════════════════════════════════ */
+.dash-widget-link {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px; background:var(--primary-lt);
+  border-radius:8px; text-decoration:none; margin-top:10px;
+  font-size:13px; color:var(--primary); font-weight:600;
+  transition:opacity .15s;
+}
+.dash-widget-link:hover { opacity:.8; }
+.mini-week {
+  display:grid; grid-template-columns:repeat(7,1fr);
+  gap:4px; margin-top:10px;
+}
+.mini-week-day {
+  text-align:center; padding:6px 2px;
+  border-radius:8px; font-size:12px;
+  border:1px solid var(--border); background:var(--card-bg);
+  cursor:pointer; transition:background .15s;
+}
+.mini-week-day:hover { background:var(--hover); }
+.mini-week-day.today { background:var(--primary); color:#fff; border-color:var(--primary); }
+.mini-week-day .mwd-name { font-size:10px; color:var(--text-muted); }
+.mini-week-day.today .mwd-name { color:#ffffff99; }
+.mini-week-day .mwd-num  { font-weight:700; font-size:14px; }
+.mini-week-day .mwd-dot  { width:5px; height:5px; border-radius:50%; background:var(--secondary); margin:2px auto 0; }
+
+/* ══════════════════════════════════════════════
+   THEME SWITCHER
+══════════════════════════════════════════════ */
+#theme-switcher {
+  position: fixed;
+  top: 14px; right: 18px;
+  display: flex; gap: 6px;
+  z-index: 200;
+}
+.theme-btn {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: transform .15s, border-color .15s;
+}
+.theme-btn:hover { transform: scale(1.15); }
+.theme-btn.active { border-color: var(--text); }
+#tb-family   { background: linear-gradient(135deg,#4A90D9,#7BC67E); }
+#tb-pink     { background: linear-gradient(135deg,#FF85A1,#cc66ff); }
+#tb-blue     { background: linear-gradient(135deg,#3A7BD5,#00A8CC); }
+#tb-elegant  { background: linear-gradient(135deg,#1A1A2E,#E2B96F); }
+
+/* ══════════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════════ */
+#sidebar {
+  width: 220px;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  padding: 20px 0;
+  flex-shrink: 0;
+  overflow-y: auto;
+  transition: background .3s;
+}
+#sidebar h1 {
+  font-size: 15px; font-weight: 700;
+  color: var(--primary);
+  padding: 0 20px 16px;
+  border-bottom: 1px solid var(--border);
+}
+#sidebar nav { margin-top: 8px; }
+#sidebar nav a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 20px;
+  text-decoration: none;
+  color: var(--sidebar-txt);
+  font-size: 14px; cursor: pointer;
+  transition: background .15s, color .15s;
+  user-select: none;
+}
+#sidebar nav a:hover  { background: var(--hover); color: var(--primary); }
+#sidebar nav a.active { background: var(--primary-lt); color: var(--primary); font-weight: 700; }
+
+/* ══════════════════════════════════════════════
+   MAIN
+══════════════════════════════════════════════ */
+#main { flex:1; overflow-y:auto; padding: 28px 32px; }
+.section { display:none; }
+.section.active { display:block; animation: fadeIn .2s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+/* ══════════════════════════════════════════════
+   SECTION HEADER
+══════════════════════════════════════════════ */
+.sec-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:22px;
+}
+.sec-header h2 { font-size:22px; color:var(--text); }
+
+/* ══════════════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════════════ */
+.btn {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:8px 16px; border:none;
+  border-radius: var(--radius);
+  font-size:14px; cursor:pointer;
+  font-family: var(--font);
+  transition: opacity .15s, transform .1s;
+}
+.btn:hover { opacity:.85; }
+.btn:active { transform:scale(.97); }
+.btn-primary { background:var(--primary); color:#fff; }
+.btn-danger  { background:var(--danger);  color:#fff; }
+.btn-ghost   { background:var(--primary-lt); color:var(--primary); }
+.btn-sm      { padding:5px 11px; font-size:13px; }
+
+/* ══════════════════════════════════════════════
+   CARD
+══════════════════════════════════════════════ */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.07);
+  border: 1px solid var(--border);
+  transition: background .3s;
+}
+.card h3 {
+  font-size:12px; color:var(--text-muted);
+  margin-bottom:8px; text-transform:uppercase; letter-spacing:.5px;
+}
+.card .big-num { font-size:28px; font-weight:800; color:var(--primary); }
+
+/* ══════════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════════ */
+.dash-welcome {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color:#fff; border-radius:var(--radius);
+  padding:22px 24px; margin-bottom:22px;
+}
+.dash-welcome h2 { font-size:20px; margin-bottom:4px; }
+.dash-welcome p  { font-size:14px; opacity:.85; }
+.dash-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:14px; margin-bottom:22px;
+}
+.dash-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.dash-quote { font-style:italic; font-size:14px; color:var(--text-muted); margin-top:12px; }
+
+/* ══════════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════════ */
+.modal-backdrop {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.5);
+  z-index:100; align-items:center; justify-content:center;
+}
+.modal-backdrop.open { display:flex; }
+.modal {
+  background:var(--card-bg);
+  border-radius:var(--radius);
+  padding:28px; width:460px;
+  max-width:95vw; max-height:90vh;
+  overflow-y:auto;
+  box-shadow:0 8px 40px rgba(0,0,0,.25);
+  border:1px solid var(--border);
+  animation: fadeIn .2s ease;
+}
+.modal h3 { font-size:18px; margin-bottom:20px; color:var(--text); }
+.modal-footer { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+
+/* FORM */
+.form-group { margin-bottom:14px; }
+.form-row   { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.form-group label { display:block; font-size:13px; color:var(--text-muted); margin-bottom:5px; }
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width:100%; padding:9px 12px;
+  border:1px solid var(--border);
+  border-radius:8px; font-size:14px;
+  font-family:var(--font); outline:none;
+  background:var(--card-bg); color:var(--text);
+  transition:border-color .15s;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus { border-color:var(--primary); }
+
+/* TOAST */
+#toast-container {
+  position:fixed; bottom:24px; right:24px;
+  display:flex; flex-direction:column; gap:8px; z-index:999;
+}
+.toast {
+  background:#333; color:#fff;
+  padding:11px 16px; border-radius:8px;
+  font-size:14px; animation:slideIn .25s ease;
+  box-shadow:0 4px 14px rgba(0,0,0,.25); max-width:280px;
+}
+@keyframes slideIn { from{transform:translateX(60px);opacity:0} to{transform:none;opacity:1} }
+
+/* ══════════════════════════════════════════════
+   SHOPPING LIST
+══════════════════════════════════════════════ */
+.shop-input-row {
+  display:flex; gap:10px; margin-bottom:18px;
+}
+.shop-input-row input {
+  flex:1; padding:10px 14px;
+  border:1px solid var(--border); border-radius:8px;
+  font-size:14px; background:var(--card-bg); color:var(--text); outline:none;
+}
+.shop-input-row input:focus { border-color:var(--primary); }
+.shop-input-row select {
+  padding:10px 8px; border:1px solid var(--border);
+  border-radius:8px; font-size:13px;
+  background:var(--card-bg); color:var(--text);
+}
+.shop-item {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 14px; background:var(--card-bg);
+  border-radius:8px; margin-bottom:7px;
+  box-shadow:0 1px 4px rgba(0,0,0,.05);
+  border:1px solid var(--border); transition:opacity .2s;
+}
+.shop-item.done { opacity:.45; }
+.shop-item.done .shop-name { text-decoration:line-through; }
+.shop-item input[type=checkbox] { width:17px; height:17px; cursor:pointer; accent-color:var(--primary); }
+.shop-name { flex:1; font-size:14px; color:var(--text); }
+.shop-cat  { font-size:11px; background:var(--primary-lt); color:var(--primary); padding:2px 8px; border-radius:20px; }
+.shop-del  { background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:16px; }
+.shop-del:hover { color:var(--danger); }
+
+/* ══════════════════════════════════════════════
+   CHORES — KANBAN
+══════════════════════════════════════════════ */
+.kanban { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.kanban-col { background:var(--bg); border-radius:var(--radius); padding:14px; border:1px solid var(--border); }
+.kanban-col h4 {
+  font-size:12px; text-transform:uppercase; letter-spacing:.6px;
+  color:var(--text-muted); margin-bottom:12px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.kanban-col h4 span {
+  background:var(--card-bg); border-radius:20px;
+  padding:1px 8px; font-size:12px; color:var(--text-muted);
+}
+.chore-card {
+  background:var(--card-bg); border-radius:8px;
+  padding:12px 14px; margin-bottom:8px;
+  box-shadow:0 1px 4px rgba(0,0,0,.06);
+  cursor:pointer; transition:box-shadow .15s;
+  border:1px solid var(--border);
+}
+.chore-card:hover { box-shadow:0 4px 14px rgba(0,0,0,.12); }
+.chore-title { font-size:14px; font-weight:700; margin-bottom:5px; color:var(--text); }
+.chore-meta  { font-size:12px; color:var(--text-muted); display:flex; gap:8px; flex-wrap:wrap; }
+.chore-pts   { font-size:11px; background:#FFF8E7; color:#E6A817; padding:2px 7px; border-radius:20px; }
+.priority-high   { border-left:3px solid var(--danger); }
+.priority-medium { border-left:3px solid #f39c12; }
+.priority-low    { border-left:3px solid var(--secondary); }
+
+/* ══════════════════════════════════════════════
+   CALENDAR
+══════════════════════════════════════════════ */
+.cal-nav {
+  display:flex; align-items:center; gap:14px; margin-bottom:18px;
+}
+.cal-nav h3 { font-size:18px; font-weight:700; color:var(--text); flex:1; text-align:center; }
+.cal-grid {
+  display:grid; grid-template-columns:repeat(7,1fr);
+  gap:3px; margin-bottom:20px;
+}
+.cal-day-name {
+  text-align:center; font-size:12px; font-weight:700;
+  color:var(--text-muted); padding:6px 0; text-transform:uppercase;
+}
+.cal-cell {
+  background:var(--card-bg); border-radius:8px;
+  min-height:76px; padding:6px;
+  border:1px solid var(--border); cursor:pointer;
+  transition:background .15s;
+  position:relative;
+}
+.cal-cell:hover { background:var(--hover); }
+.cal-cell.other-month { opacity:.4; }
+.cal-cell.today { border:2px solid var(--primary); }
+.cal-cell .day-num {
+  font-size:13px; font-weight:700; color:var(--text);
+  margin-bottom:3px;
+}
+.cal-cell.today .day-num { color:var(--primary); }
+.cal-event-dot {
+  font-size:11px; padding:1px 5px;
+  border-radius:4px; margin-bottom:2px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  color:#fff; display:block;
+}
+.event-list { margin-top:14px; }
+.event-item {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 14px; background:var(--card-bg);
+  border-radius:8px; margin-bottom:7px;
+  border:1px solid var(--border);
+}
+.event-color-bar { width:4px; height:36px; border-radius:4px; flex-shrink:0; }
+.event-info { flex:1; }
+.event-info strong { display:block; font-size:14px; color:var(--text); }
+.event-info small  { font-size:12px; color:var(--text-muted); }
+.event-type-badge {
+  font-size:11px; background:var(--primary-lt); color:var(--primary);
+  padding:2px 8px; border-radius:20px;
+}
+
+/* ══════════════════════════════════════════════
+   GOALS
+══════════════════════════════════════════════ */
+.goals-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:16px;
+}
+.goal-card {
+  background:var(--card-bg); border-radius:var(--radius);
+  padding:18px; border:1px solid var(--border);
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+  cursor:pointer; transition:box-shadow .15s;
+}
+.goal-card:hover { box-shadow:0 4px 16px rgba(0,0,0,.12); }
+.goal-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.goal-icon   { font-size:26px; }
+.goal-title  { font-size:15px; font-weight:700; color:var(--text); }
+.goal-cat    { font-size:12px; color:var(--text-muted); }
+.progress-bar-wrap {
+  background:var(--border); border-radius:20px;
+  height:10px; overflow:hidden; margin:8px 0;
+}
+.progress-bar-fill {
+  height:100%; border-radius:20px;
+  transition:width .5s ease;
+}
+.goal-stats {
+  display:flex; justify-content:space-between;
+  font-size:12px; color:var(--text-muted);
+}
+.goal-pct { font-size:16px; font-weight:800; color:var(--primary); }
+
+/* ══════════════════════════════════════════════
+   NOTICEBOARD
+══════════════════════════════════════════════ */
+.noticeboard {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:16px; padding:4px;
+}
+.sticky {
+  border-radius:var(--radius);
+  padding:16px; min-height:140px;
+  box-shadow:3px 4px 14px rgba(0,0,0,.12);
+  cursor:pointer; position:relative;
+  transition:transform .15s, box-shadow .15s;
+}
+.sticky:hover { transform:translateY(-3px); box-shadow:4px 8px 20px rgba(0,0,0,.18); }
+.sticky.pinned::before { content:'📌'; position:absolute; top:8px; right:10px; font-size:16px; }
+.sticky-type { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; opacity:.7; margin-bottom:6px; }
+.sticky-title { font-size:15px; font-weight:700; margin-bottom:6px; }
+.sticky-body  { font-size:13px; opacity:.85; line-height:1.5; }
+.sticky-footer{ font-size:11px; opacity:.6; margin-top:10px; }
+
+/* ══════════════════════════════════════════════
+   WEATHER
+══════════════════════════════════════════════ */
+.weather-main {
+  display:flex; align-items:center; gap:24px;
+  padding:24px; margin-bottom:18px;
+}
+.weather-icon { font-size:64px; }
+.weather-temp { font-size:54px; font-weight:800; color:var(--primary); }
+.weather-desc { font-size:16px; color:var(--text-muted); margin-top:4px; }
+.weather-details {
+  display:flex; gap:18px; flex-wrap:wrap;
+  font-size:14px; color:var(--text-muted); margin-top:8px;
+}
+.weather-details span { display:flex; align-items:center; gap:5px; }
+.forecast-row {
+  display:flex; gap:10px; overflow-x:auto; padding:4px 0;
+}
+.forecast-day {
+  flex:1; min-width:70px;
+  background:var(--card-bg); border-radius:8px;
+  padding:10px 8px; text-align:center;
+  border:1px solid var(--border); font-size:13px;
+}
+.forecast-day .fd-name  { font-weight:700; color:var(--text); margin-bottom:4px; }
+.forecast-day .fd-icon  { font-size:22px; margin:4px 0; }
+.forecast-day .fd-temps { color:var(--text-muted); font-size:12px; }
+.weather-tip {
+  background:var(--primary-lt); border-radius:8px;
+  padding:12px 16px; font-size:14px; color:var(--primary);
+  margin-top:14px; display:flex; align-items:center; gap:8px;
+}
+
+/* ══════════════════════════════════════════════
+   MEMBERS (Settings)
+══════════════════════════════════════════════ */
+.member-list { display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
+.member-row {
+  display:flex; align-items:center; gap:12px;
+  background:var(--card-bg); border-radius:var(--radius);
+  padding:12px 16px;
+  box-shadow:0 1px 4px rgba(0,0,0,.05); border:1px solid var(--border);
+}
+.member-avatar {
+  width:38px; height:38px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; font-weight:700; flex-shrink:0;
+}
+.member-info { flex:1; }
+.member-info strong { display:block; font-size:14px; color:var(--text); }
+.member-info small  { font-size:12px; color:var(--text-muted); }
+.member-color-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+
+/* ══════════════════════════════════════════════
+   TABS
+══════════════════════════════════════════════ */
+.tab-btn {
+  padding:8px 16px; border:none; border-radius:20px;
+  font-size:13px; cursor:pointer; font-family:var(--font);
+  background:var(--card-bg); color:var(--text-muted);
+  border:1px solid var(--border); transition:all .15s;
+}
+.tab-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.tab-btn:hover:not(.active) { background:var(--hover); }
+
+/* ══════════════════════════════════════════════
+   REWARDS / GAMIFICATION
+══════════════════════════════════════════════ */
+.points-card {
+  background:var(--card-bg); border-radius:var(--radius);
+  padding:18px; border:1px solid var(--border);
+  box-shadow:0 2px 8px rgba(0,0,0,.06); text-align:center;
+}
+.points-avatar { font-size:30px; margin-bottom:6px; }
+.points-name   { font-size:14px; font-weight:700; color:var(--text); }
+.points-role   { font-size:12px; color:var(--text-muted); margin-bottom:8px; }
+.points-num    { font-size:32px; font-weight:800; color:var(--primary); }
+.points-label  { font-size:11px; color:var(--text-muted); }
+
+.reward-card {
+  background:var(--card-bg); border-radius:var(--radius);
+  padding:14px; border:1px solid var(--border);
+  display:flex; flex-direction:column; gap:8px;
+}
+.reward-icon-big { font-size:28px; text-align:center; }
+.reward-name     { font-size:14px; font-weight:700; color:var(--text); text-align:center; }
+.reward-cost     { font-size:13px; color:var(--primary); font-weight:700; text-align:center; }
+.reward-order-btn { width:100%; }
+
+.badge {
+  display:flex; align-items:center; gap:8px;
+  padding:8px 14px; border-radius:20px;
+  border:1px solid var(--border); background:var(--card-bg);
+  font-size:13px; transition:all .2s;
+}
+.badge.unlocked { background:var(--primary-lt); border-color:var(--primary); }
+.badge-icon { font-size:20px; }
+.badge.locked { opacity:.4; filter:grayscale(1); }
+
+.pending-row {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 14px; border-radius:8px;
+  background:var(--bg); border:1px solid var(--border);
+  margin-bottom:8px;
+}
+.pending-row .pr-info { flex:1; font-size:14px; color:var(--text); }
+.pending-row .pr-info small { display:block; font-size:12px; color:var(--text-muted); }
+
+/* ══════════════════════════════════════════════
+   HEALTH
+══════════════════════════════════════════════ */
+.health-entry {
+  display:flex; align-items:flex-start; gap:12px;
+  padding:12px 14px; background:var(--card-bg);
+  border-radius:8px; margin-bottom:8px;
+  border:1px solid var(--border); cursor:pointer;
+  transition:box-shadow .15s;
+}
+.health-entry:hover { box-shadow:0 3px 10px rgba(0,0,0,.08); }
+.health-type-icon { font-size:22px; flex-shrink:0; margin-top:2px; }
+.health-info strong { display:block; font-size:14px; color:var(--text); margin-bottom:3px; }
+.health-info small  { font-size:12px; color:var(--text-muted); }
+.health-next-badge {
+  margin-left:auto; font-size:11px; padding:3px 8px;
+  border-radius:20px; white-space:nowrap; flex-shrink:0;
+}
+.health-next-badge.soon { background:#FFF3CD; color:#856404; }
+.health-next-badge.ok   { background:var(--primary-lt); color:var(--primary); }
+
+/* ══════════════════════════════════════════════
+   SCHOOL
+══════════════════════════════════════════════ */
+.hw-item {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 14px; background:var(--card-bg);
+  border-radius:8px; margin-bottom:7px;
+  border:1px solid var(--border); cursor:pointer;
+  transition:opacity .2s;
+}
+.hw-item.done { opacity:.5; }
+.hw-item.done .hw-title { text-decoration:line-through; }
+.hw-item input[type=checkbox] { width:17px; height:17px; accent-color:var(--primary); cursor:pointer; }
+.hw-title   { flex:1; font-size:14px; font-weight:600; color:var(--text); }
+.hw-subject { font-size:11px; background:var(--primary-lt); color:var(--primary); padding:2px 7px; border-radius:20px; }
+.hw-due     { font-size:12px; color:var(--text-muted); }
+.hw-overdue { color:var(--danger) !important; font-weight:700; }
+
+.grade-row {
+  display:flex; align-items:center; gap:10px;
+  padding:8px 14px; background:var(--card-bg);
+  border-radius:8px; margin-bottom:6px;
+  border:1px solid var(--border); cursor:pointer;
+}
+.grade-badge {
+  width:34px; height:34px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px; font-weight:800; color:#fff; flex-shrink:0;
+}
+.grade-info { flex:1; font-size:14px; color:var(--text); }
+.grade-info small { display:block; font-size:12px; color:var(--text-muted); }
+
+/* ══════════════════════════════════════════════
+   DOCUMENTS
+══════════════════════════════════════════════ */
+.doc-card {
+  display:flex; align-items:center; gap:14px;
+  padding:14px 16px; background:var(--card-bg);
+  border-radius:var(--radius); margin-bottom:10px;
+  border:1px solid var(--border); cursor:pointer;
+  transition:box-shadow .15s;
+}
+.doc-card:hover { box-shadow:0 3px 10px rgba(0,0,0,.08); }
+.doc-cat-icon { font-size:26px; flex-shrink:0; }
+.doc-info { flex:1; }
+.doc-info strong { display:block; font-size:14px; color:var(--text); }
+.doc-info small  { font-size:12px; color:var(--text-muted); }
+.doc-expires {
+  font-size:12px; padding:3px 10px; border-radius:20px;
+  white-space:nowrap; flex-shrink:0; font-weight:700;
+}
+.exp-ok     { background:#d4edda; color:#155724; }
+.exp-soon   { background:#fff3cd; color:#856404; }
+.exp-urgent { background:#f8d7da; color:#721c24; }
+.exp-none   { background:var(--primary-lt); color:var(--text-muted); }
+
+.alert-banner {
+  display:flex; align-items:center; gap:10px;
+  padding:12px 16px; border-radius:8px;
+  margin-bottom:8px; font-size:14px;
+}
+.alert-banner.urgent { background:#f8d7da; color:#721c24; }
+.alert-banner.warn   { background:#fff3cd; color:#856404; }
+
+/* ══════════════════════════════════════════════
+   NOTIFICATIONS
+══════════════════════════════════════════════ */
+.log-item {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:8px 0; border-bottom:1px solid var(--border);
+  font-size:13px; color:var(--text);
+}
+.log-dot {
+  width:8px; height:8px; border-radius:50%;
+  background:var(--primary); flex-shrink:0; margin-top:5px;
+}
+.log-time { font-size:11px; color:var(--text-muted); white-space:nowrap; margin-left:auto; }
+
+.reminder-item {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 0; border-bottom:1px solid var(--border);
+  font-size:13px;
+}
+.reminder-icon { font-size:18px; flex-shrink:0; }
+.reminder-info { flex:1; color:var(--text); }
+.reminder-info small { display:block; color:var(--text-muted); font-size:12px; }
+.reminder-days {
+  font-size:12px; padding:2px 8px; border-radius:20px; flex-shrink:0;
+}
+
+/* ══════════════════════════════════════════════
+   CONFETTI canvas
+══════════════════════════════════════════════ */
+#confetti-canvas {
+  position:fixed; inset:0; pointer-events:none; z-index:9999;
+}
+  </style>
+</head>
+<body class="theme-family">
+
+<!-- ══ HAMBURGER ══ -->
+<button id="hamburger" onclick="toggleSidebar()">☰</button>
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<!-- ══ THEME SWITCHER ══ -->
+<div id="theme-switcher">
+  <div class="theme-btn active" id="tb-family"  title="Rodzinny"   onclick="setTheme('family')"></div>
+  <div class="theme-btn"        id="tb-pink"    title="Różowy"     onclick="setTheme('pink')"></div>
+  <div class="theme-btn"        id="tb-blue"    title="Niebieski"  onclick="setTheme('blue')"></div>
+  <div class="theme-btn"        id="tb-elegant" title="Elegancki"  onclick="setTheme('elegant')"></div>
+</div>
+
+<!-- ══ SIDEBAR ══ -->
+<div id="sidebar">
+  <h1>🏠 Rodzinny Planer</h1>
+  <nav>
+    <a onclick="show('dashboard',this)"     class="active">🏠 Dashboard</a>
+    <a onclick="show('calendar',this)">     📅 Kalendarz</a>
+    <a onclick="show('chores',this)">       ✅ Obowiązki</a>
+    <a onclick="show('noticeboard',this)">  📋 Tablica</a>
+    <a onclick="show('goals',this)">        🎯 Cele</a>
+    <a onclick="show('health',this)">       🏥 Zdrowie</a>
+    <a onclick="show('school',this)">       🎒 Szkoła</a>
+    <a onclick="show('documents',this)">    📄 Dokumenty</a>
+    <a onclick="show('weather',this)">      🌤️ Pogoda</a>
+    <a onclick="show('shopping',this)">     🛒 Zakupy</a>
+    <a onclick="show('notifications',this)">🔔 Powiadomienia</a>
+    <a onclick="show('rewards',this)">      🎮 Nagrody</a>
+    <div class="nav-divider">Zewnętrzne</div>
+    <a id="nav-budget" class="nav-external" onclick="openExternal('budget')">💰 Budżet</a>
+    <a id="nav-meals"  class="nav-external" onclick="openExternal('meals')"> 🍽️ Planer posiłków</a>
+    <a onclick="show('settings',this)">     ⚙️ Ustawienia</a>
+  </nav>
+</div>
+
+<!-- ══ MAIN ══ -->
+<div id="main">
+
+<!-- ─── DASHBOARD ─── -->
+<div id="dashboard" class="section active">
+  <div class="dash-welcome">
+    <h2 id="welcome-msg">Dzień dobry! 👋</h2>
+    <p  id="welcome-date"></p>
+  </div>
+  <div class="dash-grid">
+    <div class="card"><h3>Obowiązki aktywne</h3><div class="big-num" id="dash-chores">0</div></div>
+    <div class="card"><h3>Zakupy</h3><div class="big-num" id="dash-shopping">0</div></div>
+    <div class="card"><h3>Rodzina</h3><div class="big-num" id="dash-members">0</div></div>
+    <div class="card"><h3>Cele aktywne</h3><div class="big-num" id="dash-goals">0</div></div>
+  </div>
+
+  <!-- ROW 1: obowiązki + mini-tydzień -->
+  <div class="dash-row" style="margin-bottom:16px">
+    <div class="card">
+      <h3>Obowiązki do zrobienia dziś</h3>
+      <div id="dash-chores-list" style="margin-top:10px;font-size:14px"></div>
+    </div>
+    <div class="card">
+      <h3>Ten tydzień</h3>
+      <div class="mini-week" id="dash-mini-week"></div>
+    </div>
+  </div>
+
+  <!-- ROW 2: wydarzenia + punkty -->
+  <div class="dash-row" style="margin-bottom:16px">
+    <div class="card">
+      <h3>Nadchodzące wydarzenia</h3>
+      <div id="dash-events-list" style="margin-top:10px;font-size:14px"></div>
+    </div>
+    <div class="card">
+      <h3>Centrum nagród — punkty</h3>
+      <div id="dash-points" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <!-- ROW 3: linki zewnętrzne + cytat -->
+  <div class="dash-row">
+    <div class="card">
+      <h3>Budżet rodzinny</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-top:6px">Zarządzaj finansami rodziny.</p>
+      <div id="dash-budget-widget"></div>
+    </div>
+    <div class="card">
+      <h3>Planer posiłków</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-top:6px">Zaplanuj posiłki na cały tydzień.</p>
+      <div id="dash-meals-widget"></div>
+      <p class="dash-quote" id="dash-quote"></p>
+    </div>
+  </div>
+</div>
+
+<!-- ─── KALENDARZ ─── -->
+<div id="calendar" class="section">
+  <div class="sec-header">
+    <h2>📅 Kalendarz rodzinny</h2>
+    <button class="btn btn-primary" onclick="openEventModal()">+ Dodaj wydarzenie</button>
+  </div>
+  <div class="cal-nav">
+    <button class="btn btn-ghost btn-sm" onclick="calPrev()">◀</button>
+    <h3 id="cal-title"></h3>
+    <button class="btn btn-ghost btn-sm" onclick="calNext()">▶</button>
+    <button class="btn btn-ghost btn-sm" onclick="calToday()">Dziś</button>
+  </div>
+  <div class="cal-grid" id="cal-grid"></div>
+  <div class="event-list" id="event-list"></div>
+</div>
+
+<!-- ─── OBOWIĄZKI ─── -->
+<div id="chores" class="section">
+  <div class="sec-header">
+    <h2>✅ Obowiązki domowe</h2>
+    <button class="btn btn-primary" onclick="openChoreModal()">+ Dodaj obowiązek</button>
+  </div>
+  <div class="kanban">
+    <div class="kanban-col">
+      <h4>Do zrobienia <span id="col-todo-count">0</span></h4>
+      <div id="col-todo"></div>
+    </div>
+    <div class="kanban-col">
+      <h4>W toku <span id="col-doing-count">0</span></h4>
+      <div id="col-doing"></div>
+    </div>
+    <div class="kanban-col">
+      <h4>Zrobione <span id="col-done-count">0</span></h4>
+      <div id="col-done"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── TABLICA ─── -->
+<div id="noticeboard" class="section">
+  <div class="sec-header">
+    <h2>📋 Tablica rodzinna</h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="openContactModal()">📞 Kontakt awaryjny</button>
+      <button class="btn btn-primary" onclick="openNoteModal()">+ Karteczka</button>
+    </div>
+  </div>
+  <!-- Kontakty awaryjne — zawsze widoczne -->
+  <div class="emergency-section" id="emergency-section">
+    <h4>🚨 Kontakty awaryjne</h4>
+    <div id="emergency-list"></div>
+  </div>
+  <div class="noticeboard" id="noticeboard-grid"></div>
+</div>
+
+<!-- ─── CELE ─── -->
+<div id="goals" class="section">
+  <div class="sec-header">
+    <h2>🎯 Cele rodzinne</h2>
+    <button class="btn btn-primary" onclick="openGoalModal()">+ Dodaj cel</button>
+  </div>
+  <div class="goals-grid" id="goals-grid"></div>
+</div>
+
+<!-- ─── ZDROWIE ─── -->
+<div id="health" class="section">
+  <div class="sec-header">
+    <h2>🏥 Zdrowie rodziny</h2>
+    <button class="btn btn-primary" onclick="openHealthModal()">+ Wpis zdrowotny</button>
+  </div>
+  <!-- Tabs per person -->
+  <div class="tabs-row" id="health-tabs" style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap"></div>
+  <div id="health-content"></div>
+</div>
+
+<!-- ─── SZKOŁA ─── -->
+<div id="school" class="section">
+  <div class="sec-header">
+    <h2>🎒 Szkoła & Aktywności</h2>
+    <button class="btn btn-primary btn-sm" onclick="openHomeworkModal()">+ Zadanie</button>
+  </div>
+  <div class="tabs-row" id="school-tabs" style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap"></div>
+  <div id="school-content"></div>
+</div>
+
+<!-- ─── DOKUMENTY ─── -->
+<div id="documents" class="section">
+  <div class="sec-header">
+    <h2>📄 Dokumenty rodzinne</h2>
+    <button class="btn btn-primary" onclick="openDocModal()">+ Dodaj dokument</button>
+  </div>
+  <div id="docs-alerts" style="margin-bottom:16px"></div>
+  <div id="docs-list"></div>
+</div>
+
+<!-- ─── POGODA ─── -->
+<div id="weather" class="section">
+  <div class="sec-header">
+    <h2>🌤️ Pogoda & Dzień</h2>
+    <button class="btn btn-ghost btn-sm" onclick="loadWeather()">⟳ Odśwież</button>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="weather-main" id="weather-main">
+      <div style="color:var(--text-muted);font-size:14px">Ładowanie pogody…</div>
+    </div>
+    <div class="weather-details" id="weather-details"></div>
+    <div id="weather-tip"></div>
+  </div>
+  <div class="card">
+    <h3>Prognoza 5 dni</h3>
+    <div class="forecast-row" id="forecast-row" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<!-- ─── ZAKUPY ─── -->
+<div id="shopping" class="section">
+  <div class="sec-header">
+    <h2>🛒 Lista zakupów</h2>
+    <button class="btn btn-ghost btn-sm" onclick="clearBought()">Wyczyść kupione</button>
+  </div>
+  <div class="shop-input-row">
+    <input id="shop-input" type="text" placeholder="Dodaj produkt… (Enter)"
+           onkeydown="if(event.key==='Enter')addShopItem()" oninput="filterSuggestions(this.value)">
+    <select id="shop-cat">
+      <option value="warzywa">🥦 Warzywa</option>
+      <option value="nabiał">🥛 Nabiał</option>
+      <option value="mięso">🥩 Mięso</option>
+      <option value="piekarnia">🍞 Piekarnia</option>
+      <option value="chemia">🧴 Chemia</option>
+      <option value="inne" selected>📦 Inne</option>
+    </select>
+    <button class="btn btn-primary" onclick="addShopItem()">Dodaj</button>
+  </div>
+  <div class="suggestions" id="shop-suggestions"></div>
+  <div id="shop-list"></div>
+</div>
+
+<!-- ─── POWIADOMIENIA ─── -->
+<div id="notifications" class="section">
+  <div class="sec-header">
+    <h2>🔔 Powiadomienia & Historia</h2>
+    <button class="btn btn-ghost btn-sm" onclick="clearLog()">Wyczyść historię</button>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+    <div class="card">
+      <h3 style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">📅 Nadchodzące przypomnienia</h3>
+      <div id="notif-reminders"></div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">📋 Historia aktywności</h3>
+      <div id="notif-log"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── NAGRODY ─── -->
+<div id="rewards" class="section">
+  <div class="sec-header">
+    <h2>🎮 Centrum nagród</h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="openRewardModal()">+ Nagroda</button>
+      <button class="btn btn-primary btn-sm" onclick="openBonusModal()">⭐ Dodaj punkty</button>
+    </div>
+  </div>
+
+  <!-- Ranking punktów -->
+  <div id="rewards-ranking" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:24px"></div>
+
+  <!-- Odznaki -->
+  <div class="card" style="margin-bottom:20px">
+    <h3 style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">🏅 Odznaki</h3>
+    <div id="badges-grid" style="display:flex;flex-wrap:wrap;gap:10px"></div>
+  </div>
+
+  <!-- Katalog nagród -->
+  <div class="card" style="margin-bottom:20px">
+    <h3 style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">🎁 Katalog nagród</h3>
+    <div id="rewards-catalog" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px"></div>
+  </div>
+
+  <!-- Zamówione nagrody (oczekujące) -->
+  <div class="card">
+    <h3 style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">⏳ Oczekujące zamówienia</h3>
+    <div id="rewards-pending"></div>
+  </div>
+</div>
+
+<!-- ─── USTAWIENIA ─── -->
+<div id="settings" class="section">
+  <div class="sec-header"><h2>⚙️ Ustawienia</h2></div>
+
+  <div class="card" style="max-width:560px;margin-bottom:16px">
+    <h3 style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px">👨‍👩‍👧‍👦 Członkowie rodziny</h3>
+    <div class="member-list" id="member-list"></div>
+    <button class="btn btn-primary btn-sm" onclick="openMemberModal()">+ Dodaj osobę</button>
+  </div>
+
+  <div class="card" style="max-width:560px;margin-bottom:16px">
+    <h3 style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px">🏠 Ogólne</h3>
+    <div class="form-group">
+      <label>Nazwa rodziny</label>
+      <input id="family-name-input" type="text" placeholder="np. Kowalskich"
+             oninput="saveFamilyName(this.value)">
+    </div>
+    <div class="form-group">
+      <label>Miasto (pogoda)</label>
+      <input id="city-input" type="text" placeholder="np. Warszawa"
+             oninput="saveCity(this.value)">
+    </div>
+  </div>
+
+  <div class="card" style="max-width:560px;margin-bottom:16px">
+    <h3 style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px">🎨 Motyw</h3>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-sm" style="background:linear-gradient(135deg,#4A90D9,#7BC67E);color:#fff" onclick="setTheme('family')">🔘 Rodzinny</button>
+      <button class="btn btn-sm" style="background:linear-gradient(135deg,#FF85A1,#cc66ff);color:#fff" onclick="setTheme('pink')">🌸 Różowy</button>
+      <button class="btn btn-sm" style="background:linear-gradient(135deg,#3A7BD5,#00A8CC);color:#fff" onclick="setTheme('blue')">🔵 Niebieski</button>
+      <button class="btn btn-sm" style="background:linear-gradient(135deg,#1A1A2E,#E2B96F);color:#E2B96F" onclick="setTheme('elegant')">🖤 Elegancki</button>
+    </div>
+  </div>
+
+  <div class="card" style="max-width:560px;margin-bottom:16px">
+    <h3 style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px">🔗 Linki zewnętrzne</h3>
+    <div class="form-group">
+      <label>URL Planera Finansowego</label>
+      <input id="budget-url-input" type="url" placeholder="https://twoj-planer-budzetu.pl"
+             oninput="saveExternalLink('budgetUrl',this.value)">
+    </div>
+    <div class="form-group">
+      <label>URL Planera Posiłków</label>
+      <input id="meals-url-input" type="url" placeholder="https://twoj-planer-posilkow.pl"
+             oninput="saveExternalLink('mealsUrl',this.value)">
+    </div>
+    <p style="font-size:12px;color:var(--text-muted)">Linki otwierają się w nowej karcie z Dashboardu i sidebaru.</p>
+  </div>
+
+  <div class="card" style="max-width:560px;margin-bottom:16px">
+    <h3 style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px">🎮 Gamifikacja</h3>
+    <label style="display:flex;align-items:center;gap:12px;cursor:pointer;font-size:14px">
+      <input type="checkbox" id="gamification-toggle" style="width:18px;height:18px;accent-color:var(--primary)"
+             onchange="toggleGamification(this.checked)">
+      Włącz system punktów i nagród
+    </label>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px">Gdy wyłączone, punkty nie są przyznawane ani odejmowane.</p>
+  </div>
+
+  <div class="card" style="max-width:560px">
+    <h3 style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px">💾 Dane</h3>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="exportData()">📥 Eksportuj JSON</button>
+      <label class="btn btn-ghost btn-sm" style="cursor:pointer">
+        📤 Importuj JSON
+        <input type="file" accept=".json" onchange="importData(event)" style="display:none">
+      </label>
+      <button class="btn btn-danger btn-sm" onclick="resetData()">⚠️ Reset danych</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /#main -->
+
+<!-- ══ MODAL: Wydarzenie ══ -->
+<div class="modal-backdrop" id="event-modal">
+  <div class="modal">
+    <h3 id="event-modal-title">Nowe wydarzenie</h3>
+    <input type="hidden" id="event-edit-id">
+    <div class="form-group">
+      <label>Tytuł</label>
+      <input id="event-title" type="text" placeholder="np. Wywiadówka Zosi">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Data od</label>
+        <input id="event-date-from" type="date">
+      </div>
+      <div class="form-group">
+        <label>Godzina od</label>
+        <input id="event-time-from" type="time">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Data do (opcjonalnie)</label>
+        <input id="event-date-to" type="date">
+      </div>
+      <div class="form-group">
+        <label>Godzina do</label>
+        <input id="event-time-to" type="time">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Typ</label>
+      <select id="event-type">
+        <option value="szkoła">🎒 Szkoła</option>
+        <option value="praca">💼 Praca</option>
+        <option value="lekarz">🏥 Lekarz</option>
+        <option value="sport">⚽ Sport</option>
+        <option value="urodziny">🎂 Urodziny</option>
+        <option value="święto">🎉 Święto</option>
+        <option value="inne" selected>📌 Inne</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Przypisz do osoby</label>
+      <select id="event-person"></select>
+    </div>
+    <div class="form-group">
+      <label>Notatka</label>
+      <textarea id="event-note" rows="2" placeholder="Opcjonalny opis…"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('event-modal')">Anuluj</button>
+      <button class="btn btn-danger btn-sm" id="event-delete-btn" onclick="deleteEvent()" style="display:none">Usuń</button>
+      <button class="btn btn-primary" onclick="saveEvent()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Obowiązek ══ -->
+<div class="modal-backdrop" id="chore-modal">
+  <div class="modal">
+    <h3 id="chore-modal-title">Nowy obowiązek</h3>
+    <input type="hidden" id="chore-edit-id">
+    <div class="form-group"><label>Nazwa obowiązku</label>
+      <input id="chore-name" type="text" placeholder="np. Odkurzyć salon"></div>
+    <div class="form-group"><label>Przypisana osoba</label>
+      <select id="chore-person"></select></div>
+    <div class="form-row">
+      <div class="form-group"><label>Kategoria</label>
+        <select id="chore-cat">
+          <option value="sprzątanie">🧹 Sprzątanie</option>
+          <option value="gotowanie">🍳 Gotowanie</option>
+          <option value="zakupy">🛒 Zakupy</option>
+          <option value="naprawy">🔧 Naprawy</option>
+          <option value="ogród">🌿 Ogród</option>
+          <option value="inne">📦 Inne</option>
+        </select></div>
+      <div class="form-group"><label>Priorytet</label>
+        <select id="chore-priority">
+          <option value="low">Niski</option>
+          <option value="medium" selected>Średni</option>
+          <option value="high">Wysoki</option>
+        </select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Punkty za wykonanie</label>
+        <input id="chore-pts" type="number" min="1" max="200" value="10"></div>
+      <div class="form-group"><label>Status</label>
+        <select id="chore-status">
+          <option value="todo">Do zrobienia</option>
+          <option value="doing">W toku</option>
+          <option value="done">Zrobione</option>
+        </select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('chore-modal')">Anuluj</button>
+      <button class="btn btn-danger btn-sm" id="chore-delete-btn" onclick="deleteChore()" style="display:none">Usuń</button>
+      <button class="btn btn-primary" onclick="saveChore()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Karteczka ══ -->
+<div class="modal-backdrop" id="note-modal">
+  <div class="modal">
+    <h3 id="note-modal-title">Nowa karteczka</h3>
+    <input type="hidden" id="note-edit-id">
+    <div class="form-group"><label>Tytuł</label>
+      <input id="note-title" type="text" placeholder="np. Hasło Wi-Fi"></div>
+    <div class="form-group"><label>Treść</label>
+      <textarea id="note-body" rows="4" placeholder="Treść wiadomości…"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Typ</label>
+        <select id="note-type">
+          <option value="ogłoszenie">📢 Ogłoszenie</option>
+          <option value="ważne">⚠️ Ważne</option>
+          <option value="kontakt">📞 Kontakt</option>
+          <option value="przypięte">📌 Przypięte info</option>
+          <option value="wiadomość">💬 Wiadomość</option>
+        </select></div>
+      <div class="form-group"><label>Kolor tła</label>
+        <select id="note-color">
+          <option value="#FFF9C4">🟡 Żółty</option>
+          <option value="#C8E6C9">🟢 Zielony</option>
+          <option value="#FFCCBC">🟠 Pomarańczowy</option>
+          <option value="#BBDEFB">🔵 Niebieski</option>
+          <option value="#F8BBD9">🩷 Różowy</option>
+          <option value="#E1BEE7">🟣 Fioletowy</option>
+        </select></div>
+    </div>
+    <div class="form-group">
+      <label><input id="note-pinned" type="checkbox" style="width:auto;margin-right:6px">Przypnij na górze</label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('note-modal')">Anuluj</button>
+      <button class="btn btn-danger btn-sm" id="note-delete-btn" onclick="deleteNote()" style="display:none">Usuń</button>
+      <button class="btn btn-primary" onclick="saveNote()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Cel ══ -->
+<div class="modal-backdrop" id="goal-modal">
+  <div class="modal">
+    <h3 id="goal-modal-title">Nowy cel</h3>
+    <input type="hidden" id="goal-edit-id">
+    <div class="form-row">
+      <div class="form-group"><label>Ikona / emoji</label>
+        <input id="goal-icon" type="text" placeholder="🏖️" maxlength="2"></div>
+      <div class="form-group"><label>Kategoria</label>
+        <select id="goal-cat">
+          <option value="finansowe">💰 Finansowe</option>
+          <option value="wakacje">🏖️ Wakacje</option>
+          <option value="zakupy">🛍️ Zakupy</option>
+          <option value="zdrowie">💪 Zdrowie</option>
+          <option value="edukacja">📚 Edukacja</option>
+          <option value="inne" selected>🎯 Inne</option>
+        </select></div>
+    </div>
+    <div class="form-group"><label>Nazwa celu</label>
+      <input id="goal-name" type="text" placeholder="np. Wakacje nad morzem"></div>
+    <div class="form-group"><label>Opis</label>
+      <textarea id="goal-desc" rows="2" placeholder="Opcjonalny opis…"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Wartość docelowa</label>
+        <input id="goal-target" type="number" min="1" placeholder="np. 5000"></div>
+      <div class="form-group"><label>Aktualna wartość</label>
+        <input id="goal-current" type="number" min="0" value="0"></div>
+    </div>
+    <div class="form-group"><label>Data docelowa</label>
+      <input id="goal-date" type="date"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('goal-modal')">Anuluj</button>
+      <button class="btn btn-danger btn-sm" id="goal-delete-btn" onclick="deleteGoal()" style="display:none">Usuń</button>
+      <button class="btn btn-primary" onclick="saveGoal()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Członek rodziny ══ -->
+<div class="modal-backdrop" id="member-modal">
+  <div class="modal">
+    <h3 id="member-modal-title">Nowa osoba</h3>
+    <input type="hidden" id="member-edit-id">
+    <div class="form-row">
+      <div class="form-group"><label>Imię</label>
+        <input id="member-name" type="text" placeholder="np. Zosia"></div>
+      <div class="form-group"><label>Emoji / avatar</label>
+        <input id="member-emoji" type="text" placeholder="🌸" maxlength="2"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Rola</label>
+        <select id="member-role">
+          <option value="Mama">👩 Mama</option>
+          <option value="Tata">👨 Tata</option>
+          <option value="Dziecko">👧 Dziecko</option>
+          <option value="Dziadek">👴 Dziadek</option>
+          <option value="Babcia">👵 Babcia</option>
+          <option value="Inne">👤 Inne</option>
+        </select></div>
+      <div class="form-group"><label>Kolor</label>
+        <input id="member-color" type="color" value="#4A90D9"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('member-modal')">Anuluj</button>
+      <button class="btn btn-danger btn-sm" id="member-delete-btn" onclick="deleteMember()" style="display:none">Usuń</button>
+      <button class="btn btn-primary" onclick="saveMember()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Nagroda (katalog) ══ -->
+<div class="modal-backdrop" id="reward-modal">
+  <div class="modal">
+    <h3 id="reward-modal-title">Nowa nagroda</h3>
+    <input type="hidden" id="reward-edit-id">
+    <div class="form-row">
+      <div class="form-group"><label>Emoji</label><input id="reward-icon" type="text" placeholder="🎮" maxlength="2"></div>
+      <div class="form-group"><label>Koszt (pkt)</label><input id="reward-pts" type="number" min="1" value="50"></div>
+    </div>
+    <div class="form-group"><label>Nazwa nagrody</label><input id="reward-name" type="text" placeholder="np. 1h dodatkowego czasu na komputerze"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('reward-modal')">Anuluj</button>
+      <button class="btn btn-danger btn-sm" id="reward-delete-btn" onclick="deleteReward()" style="display:none">Usuń</button>
+      <button class="btn btn-primary" onclick="saveReward()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Bonus punktów ══ -->
+<div class="modal-backdrop" id="bonus-modal">
+  <div class="modal">
+    <h3>Ręczna korekta punktów</h3>
+    <div class="form-group"><label>Osoba</label><select id="bonus-person"></select></div>
+    <div class="form-group"><label>Punkty (ujemne = odejmij)</label><input id="bonus-pts" type="number" value="10"></div>
+    <div class="form-group"><label>Powód</label><input id="bonus-reason" type="text" placeholder="np. Pomógł bez proszenia"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('bonus-modal')">Anuluj</button>
+      <button class="btn btn-primary" onclick="saveBonus()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Zamów nagrodę ══ -->
+<div class="modal-backdrop" id="order-reward-modal">
+  <div class="modal">
+    <h3>Zamów nagrodę</h3>
+    <p id="order-reward-info" style="margin-bottom:16px;font-size:14px;color:var(--text-muted)"></p>
+    <div class="form-group"><label>Kto zamawia</label><select id="order-person"></select></div>
+    <input type="hidden" id="order-reward-id">
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('order-reward-modal')">Anuluj</button>
+      <button class="btn btn-primary" onclick="confirmOrderReward()">Zamów ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Wpis zdrowotny ══ -->
+<div class="modal-backdrop" id="health-modal">
+  <div class="modal">
+    <h3 id="health-modal-title">Nowy wpis zdrowotny</h3>
+    <input type="hidden" id="health-edit-id">
+    <div class="form-row">
+      <div class="form-group"><label>Osoba</label><select id="health-person"></select></div>
+      <div class="form-group"><label>Typ</label>
+        <select id="health-type">
+          <option value="visit">🏥 Wizyta lekarska</option>
+          <option value="medication">💊 Lek stały</option>
+          <option value="allergy">⚠️ Alergia</option>
+          <option value="vaccine">💉 Szczepienie</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Tytuł / nazwa</label><input id="health-title" type="text" placeholder="np. Wizyta u stomatologa"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Data</label><input id="health-date" type="date"></div>
+      <div class="form-group"><label>Następna wizyta / dawka</label><input id="health-next" type="date"></div>
+    </div>
+    <div class="form-group"><label>Opis / notatki</label><textarea id="health-notes" rows="3" placeholder="Wyniki, dawkowanie, dodatkowe informacje…"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('health-modal')">Anuluj</button>
+      <button class="btn btn-danger btn-sm" id="health-delete-btn" onclick="deleteHealthEntry()" style="display:none">Usuń</button>
+      <button class="btn btn-primary" onclick="saveHealthEntry()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Zadanie domowe ══ -->
+<div class="modal-backdrop" id="homework-modal">
+  <div class="modal">
+    <h3 id="hw-modal-title">Nowe zadanie domowe</h3>
+    <input type="hidden" id="hw-edit-id">
+    <div class="form-row">
+      <div class="form-group"><label>Dziecko</label><select id="hw-person"></select></div>
+      <div class="form-group"><label>Przedmiot</label><input id="hw-subject" type="text" placeholder="np. Matematyka"></div>
+    </div>
+    <div class="form-group"><label>Opis zadania</label><textarea id="hw-desc" rows="3" placeholder="Co trzeba zrobić…"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Termin</label><input id="hw-due" type="date"></div>
+      <div class="form-group"><label>Status</label>
+        <select id="hw-status">
+          <option value="todo">Do zrobienia</option>
+          <option value="done">Zrobione ✓</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('homework-modal')">Anuluj</button>
+      <button class="btn btn-danger btn-sm" id="hw-delete-btn" onclick="deleteHomework()" style="display:none">Usuń</button>
+      <button class="btn btn-primary" onclick="saveHomework()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Ocena ══ -->
+<div class="modal-backdrop" id="grade-modal">
+  <div class="modal">
+    <h3 id="grade-modal-title">Nowa ocena</h3>
+    <input type="hidden" id="grade-edit-id">
+    <input type="hidden" id="grade-person-id">
+    <div class="form-row">
+      <div class="form-group"><label>Przedmiot</label><input id="grade-subject" type="text" placeholder="np. Język polski"></div>
+      <div class="form-group"><label>Ocena (1–6)</label><input id="grade-value" type="number" min="1" max="6" step="0.5" value="5"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Data</label><input id="grade-date" type="date"></div>
+      <div class="form-group"><label>Komentarz</label><input id="grade-comment" type="text" placeholder="np. Sprawdzian z ułamków"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('grade-modal')">Anuluj</button>
+      <button class="btn btn-danger btn-sm" id="grade-delete-btn" onclick="deleteGrade()" style="display:none">Usuń</button>
+      <button class="btn btn-primary" onclick="saveGrade()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Kontakt awaryjny ══ -->
+<div class="modal-backdrop" id="contact-modal">
+  <div class="modal">
+    <h3 id="contact-modal-title">Nowy kontakt awaryjny</h3>
+    <input type="hidden" id="contact-edit-id">
+    <div class="form-group"><label>Nazwa / osoba</label>
+      <input id="contact-name" type="text" placeholder="np. Lekarz rodzinny"></div>
+    <div class="form-group"><label>Numer telefonu</label>
+      <input id="contact-phone" type="tel" placeholder="np. +48 123 456 789"></div>
+    <div class="form-group"><label>Ikona</label>
+      <input id="contact-icon" type="text" placeholder="🏥" maxlength="2"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('contact-modal')">Anuluj</button>
+      <button class="btn btn-danger btn-sm" id="contact-delete-btn" onclick="deleteContact()" style="display:none">Usuń</button>
+      <button class="btn btn-primary" onclick="saveContact()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Zajęcie pozalekcyjne ══ -->
+<div class="modal-backdrop" id="activity-modal">
+  <div class="modal">
+    <h3 id="activity-modal-title">Nowe zajęcie</h3>
+    <input type="hidden" id="activity-edit-id">
+    <div class="form-group"><label>Dziecko</label><select id="activity-person"></select></div>
+    <div class="form-group"><label>Nazwa zajęcia</label>
+      <input id="activity-name" type="text" placeholder="np. Piłka nożna"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Dzień tygodnia</label>
+        <select id="activity-day">
+          <option value="Poniedziałek">Poniedziałek</option>
+          <option value="Wtorek">Wtorek</option>
+          <option value="Środa">Środa</option>
+          <option value="Czwartek">Czwartek</option>
+          <option value="Piątek">Piątek</option>
+          <option value="Sobota">Sobota</option>
+          <option value="Niedziela">Niedziela</option>
+        </select></div>
+      <div class="form-group"><label>Godzina</label>
+        <input id="activity-time" type="time" value="16:00"></div>
+    </div>
+    <div class="form-group"><label>Miejsce</label>
+      <input id="activity-place" type="text" placeholder="np. Stadion OSiR"></div>
+    <div class="form-group"><label>Notatka</label>
+      <input id="activity-note" type="text" placeholder="opcjonalnie"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('activity-modal')">Anuluj</button>
+      <button class="btn btn-danger btn-sm" id="activity-delete-btn" onclick="deleteActivity()" style="display:none">Usuń</button>
+      <button class="btn btn-primary" onclick="saveActivity()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Lekcja (plan lekcji) ══ -->
+<div class="modal-backdrop" id="lesson-modal">
+  <div class="modal">
+    <h3 id="lesson-modal-title">Lekcja</h3>
+    <input type="hidden" id="lesson-edit-id">
+    <input type="hidden" id="lesson-person-id">
+    <input type="hidden" id="lesson-day-id">
+    <input type="hidden" id="lesson-slot-id">
+    <div class="form-group"><label>Przedmiot</label>
+      <input id="lesson-subject" type="text" placeholder="np. Matematyka"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Godzina rozpoczęcia</label>
+        <input id="lesson-time" type="time" value="08:00"></div>
+      <div class="form-group"><label>Sala / nauczyciel</label>
+        <input id="lesson-room" type="text" placeholder="np. Sala 12"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('lesson-modal')">Anuluj</button>
+      <button class="btn btn-danger btn-sm" id="lesson-delete-btn" onclick="deleteLesson()" style="display:none">Usuń</button>
+      <button class="btn btn-primary" onclick="saveLesson()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Dokument ══ -->
+<div class="modal-backdrop" id="doc-modal">
+  <div class="modal">
+    <h3 id="doc-modal-title">Nowy dokument</h3>
+    <input type="hidden" id="doc-edit-id">
+    <div class="form-group"><label>Nazwa dokumentu</label><input id="doc-name" type="text" placeholder="np. Paszport Mamy"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Kategoria</label>
+        <select id="doc-cat">
+          <option value="dowód">🪪 Dowód osobisty</option>
+          <option value="paszport">✈️ Paszport</option>
+          <option value="ubezpieczenie">🏥 Ubezpieczenie</option>
+          <option value="gwarancja">📋 Gwarancja</option>
+          <option value="umowa">📝 Umowa</option>
+          <option value="inne">📄 Inne</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Przypisany do</label><select id="doc-person"></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Data ważności</label><input id="doc-expires" type="date"></div>
+      <div class="form-group"><label>Numer dokumentu</label><input id="doc-number" type="text" placeholder="opcjonalnie"></div>
+    </div>
+    <div class="form-group"><label>Miejsce przechowywania</label><input id="doc-location" type="text" placeholder="np. szuflada w gabinecie"></div>
+    <div class="form-group"><label>Notatki</label><textarea id="doc-notes" rows="2"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('doc-modal')">Anuluj</button>
+      <button class="btn btn-danger btn-sm" id="doc-delete-btn" onclick="deleteDoc()" style="display:none">Usuń</button>
+      <button class="btn btn-primary" onclick="saveDoc()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div id="toast-container"></div>
+<!-- ══ CONFETTI ══ -->
+<canvas id="confetti-canvas"></canvas>
+
+<script>
+// ════════════════════════════════════════════
+//  STORAGE
+// ════════════════════════════════════════════
+const LS = {
+  get:(k,d)=>{ try{ return JSON.parse(localStorage.getItem(k))??d; }catch{return d;} },
+  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))
+};
+
+// ════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════
+let S = {
+  members:  LS.get('fp_members',  []),
+  chores:   LS.get('fp_chores',   []),
+  shopping: LS.get('fp_shopping', []),
+  events:   LS.get('fp_events',   []),
+  notes:    LS.get('fp_notes',    []),
+  goals:    LS.get('fp_goals',    []),
+  rewards:  LS.get('fp_rewards',  []),
+  points:   LS.get('fp_points',   {}),
+  rewardRequests: LS.get('fp_reward_requests', []),
+  health:   LS.get('fp_health',   []),
+  homework: LS.get('fp_homework', []),
+  grades:   LS.get('fp_grades',   []),
+  docs:     LS.get('fp_docs',     []),
+  log:      LS.get('fp_log',      []),
+  settings: LS.get('fp_settings', { familyName:'', theme:'family', city:'Warszawa' })
+};
+const save = k => LS.set('fp_'+k, S[k]);
+
+// ════════════════════════════════════════════
+//  ONBOARDING
+// ════════════════════════════════════════════
+if (!LS.get('fp_onboarding', false)) {
+  const today = new Date(), y=today.getFullYear(), m=String(today.getMonth()+1).padStart(2,'0');
+  const d1=String(today.getDate()).padStart(2,'0');
+  const d2=String(today.getDate()+2).padStart(2,'0');
+  const d3=String(today.getDate()+5).padStart(2,'0');
+
+  S.members = [
+    {id:uid(),name:'Mama',  role:'Mama',    color:'#E91E8C',emoji:'👩'},
+    {id:uid(),name:'Tata',  role:'Tata',    color:'#2196F3',emoji:'👨'},
+    {id:uid(),name:'Zosia', role:'Dziecko', color:'#9C27B0',emoji:'🌸'},
+    {id:uid(),name:'Kacper',role:'Dziecko', color:'#4CAF50',emoji:'⚽'},
+  ];
+  S.chores = [
+    {id:uid(),name:'Odkurzyć salon',  person:'Mama',  cat:'sprzątanie',priority:'high',  pts:15,status:'todo'},
+    {id:uid(),name:'Wynieść śmieci',  person:'Tata',  cat:'sprzątanie',priority:'medium',pts:5, status:'todo'},
+    {id:uid(),name:'Umyć naczynia',   person:'Zosia', cat:'sprzątanie',priority:'medium',pts:10,status:'doing'},
+    {id:uid(),name:'Zrobić zakupy',   person:'Tata',  cat:'zakupy',    priority:'high',  pts:20,status:'todo'},
+    {id:uid(),name:'Podlać kwiaty',   person:'Kacper',cat:'ogród',     priority:'low',   pts:5, status:'done'},
+  ];
+  S.shopping = [
+    {id:uid(),name:'Mleko',        cat:'nabiał',   done:false},
+    {id:uid(),name:'Chleb',        cat:'piekarnia', done:false},
+    {id:uid(),name:'Jabłka',       cat:'warzywa',  done:false},
+    {id:uid(),name:'Płyn do naczyń',cat:'chemia',  done:true},
+  ];
+  S.events = [
+    {id:uid(),title:'Wywiadówka Zosi',  dateFrom:`${y}-${m}-${d1}`,timeFrom:'17:00',type:'szkoła', person:'Zosia', note:'Sala 12'},
+    {id:uid(),title:'Wizyta u lekarza', dateFrom:`${y}-${m}-${d2}`,timeFrom:'10:30',type:'lekarz', person:'Mama',  note:'Dr. Nowak'},
+    {id:uid(),title:'Trening piłkarski',dateFrom:`${y}-${m}-${d3}`,timeFrom:'16:00',type:'sport',  person:'Kacper',note:''},
+  ];
+  S.notes = [
+    {id:uid(),title:'Witamy w Rodzinnym Planerze!',body:'Tu możesz zostawiać wiadomości i ważne informacje dla całej rodziny. Kliknij + Dodaj karteczkę.',type:'ogłoszenie',color:'#FFF9C4',pinned:true,author:'System',date:new Date().toLocaleDateString('pl-PL')},
+    {id:uid(),title:'Hasło Wi-Fi',body:'Sieć: FamilyNet\nHasło: Kowalski2024!',type:'przypięte',color:'#BBDEFB',pinned:true,author:'Tata',date:new Date().toLocaleDateString('pl-PL')},
+  ];
+  S.goals = [
+    {id:uid(),icon:'🏖️',name:'Wakacje nad morzem',desc:'Lipiec, Bałtyk',cat:'wakacje',  target:8000, current:3200,date:`${y+1}-07-01`},
+    {id:uid(),icon:'💪',name:'Siłownia 3× w tyg.', desc:'Zdrowie w rodzinie',cat:'zdrowie',target:12, current:5,  date:`${y}-12-31`},
+  ];
+  S.rewards = [
+    {id:uid(),icon:'🖥️',name:'1h dodatkowego czasu na komputerze',pts:90},
+    {id:uid(),icon:'🎮',name:'Dodatkowa godzina gry',pts:80},
+    {id:uid(),icon:'🍕',name:'Wybór kolacji',pts:100},
+    {id:uid(),icon:'🍦',name:'Lody / słodkości',pts:30},
+    {id:uid(),icon:'🎬',name:'Seans filmowy',pts:70},
+    {id:uid(),icon:'😴',name:'Późniejsze spanie o 30 min',pts:60},
+  ];
+  S.points = {};
+  S.members.forEach(m => { S.points[m.id] = { pts: Math.floor(Math.random()*80+20), history:[] }; });
+  S.health = [
+    {id:uid(),person:'Mama',  type:'visit',     title:'Ginekolog',          date:`${new Date().getFullYear()-1}-11-10`,next:`${new Date().getFullYear()}-11-10`,notes:'Kontrolna'},
+    {id:uid(),person:'Kacper',type:'allergy',   title:'Alergia na pyłki',   date:'',next:'',notes:'Wiosna — leki antyhistaminowe'},
+    {id:uid(),person:'Zosia', type:'medication', title:'Witamina D3',        date:'',next:'',notes:'1 kropla dziennie'},
+    {id:uid(),person:'Tata',  type:'visit',      title:'Stomatolog',         date:`${new Date().getFullYear()}-01-15`,next:`${new Date().getFullYear()}-07-15`,notes:''},
+  ];
+  const todayISO = new Date().toISOString().slice(0,10);
+  S.homework = [
+    {id:uid(),person:'Zosia', subject:'Matematyka',desc:'Str. 45 zad. 1-5',due:todayISO,         status:'todo'},
+    {id:uid(),person:'Zosia', subject:'Język polski',desc:'Wypracowanie o wiośnie',due:new Date(Date.now()+2*86400000).toISOString().slice(0,10),status:'todo'},
+    {id:uid(),person:'Kacper',subject:'Przyroda',desc:'Zeszyt ćwiczeń str. 30',due:new Date(Date.now()+86400000).toISOString().slice(0,10),status:'done'},
+  ];
+  S.grades = [
+    {id:uid(),person:'Zosia', subject:'Matematyka',  value:5,  date:`${new Date().getFullYear()}-04-10`,comment:'Sprawdzian z ułamków'},
+    {id:uid(),person:'Zosia', subject:'Język polski',value:4,  date:`${new Date().getFullYear()}-04-08`,comment:'Dyktando'},
+    {id:uid(),person:'Zosia', subject:'Plastyka',    value:6,  date:`${new Date().getFullYear()}-04-05`,comment:'Projekt'},
+    {id:uid(),person:'Kacper',subject:'Wychowanie fizyczne',value:6,date:`${new Date().getFullYear()}-04-12`,comment:''},
+    {id:uid(),person:'Kacper',subject:'Matematyka',  value:3,  date:`${new Date().getFullYear()}-04-09`,comment:'Kartkówka'},
+  ];
+  S.docs = [
+    {id:uid(),name:'Dowód osobisty — Mama',  cat:'dowód',       person:'Mama',  expires:`${new Date().getFullYear()+3}-06-20`,number:'',location:'portfel'},
+    {id:uid(),name:'Paszport — Tata',        cat:'paszport',    person:'Tata',  expires:`${new Date().getFullYear()}-08-15`,number:'',location:'szuflada w gabinecie'},
+    {id:uid(),name:'Ubezpieczenie zdrowotne',cat:'ubezpieczenie',person:'',     expires:`${new Date().getFullYear()+1}-12-31`,number:'',location:''},
+  ];
+  S.log = [{id:uid(),msg:'Aplikacja uruchomiona po raz pierwszy 🎉',time:new Date().toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'}),date:new Date().toLocaleDateString('pl-PL'),type:'system'}];
+  S.settings.familyName = 'Kowalskich';
+  ['members','chores','shopping','events','notes','goals','rewards','points','health','homework','grades','docs','log','settings'].forEach(save);
+  LS.set('fp_onboarding', true);
+}
+
+// ════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+
+function toast(msg, color='#333'){
+  const el=document.createElement('div');
+  el.className='toast'; el.style.background=color; el.textContent=msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(()=>el.remove(), 3000);
+}
+
+const QUOTES = [
+  '„Rodzina to nie ważna rzecz. To wszystko." — Michael J. Fox',
+  '„W rodzinie siła."',
+  '„Szczęśliwa rodzina to wcześniejszy raj." — George Bernard Shaw',
+  '„Miłość zaczyna się w domu."',
+  '„Rodzina to serce każdego domu."',
+  '„Razem jesteśmy silniejsi."',
+  '„Dom tam, gdzie serce."',
+  '„Najlepsza inwestycja to czas spędzony z rodziną."',
+];
+
+const WMO_ICONS = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',
+  51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',
+  71:'🌨️',73:'🌨️',75:'❄️',80:'🌦️',81:'🌧️',82:'⛈️',
+  95:'⛈️',96:'⛈️',99:'⛈️'};
+const WMO_DESC = {0:'Bezchmurnie',1:'Głównie pogodnie',2:'Częściowe zachmurzenie',3:'Zachmurzone',
+  45:'Mgła',48:'Mgła osadzająca',51:'Lekka mżawka',53:'Mżawka',55:'Intensywna mżawka',
+  61:'Lekki deszcz',63:'Deszcz',65:'Intensywny deszcz',71:'Lekki śnieg',73:'Śnieg',75:'Intensywny śnieg',
+  80:'Przelotny deszcz',81:'Deszcz',82:'Intensywne opady',95:'Burza',96:'Burza z gradem',99:'Silna burza'};
+
+// ════════════════════════════════════════════
+//  THEME
+// ════════════════════════════════════════════
+function setTheme(t){
+  document.body.className = 'theme-'+t;
+  S.settings.theme = t;
+  save('settings');
+  document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tb-'+t).classList.add('active');
+}
+// apply saved theme
+setTheme(S.settings.theme || 'family');
+
+// ════════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════════
+function show(id, el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('#sidebar nav a').forEach(a=>a.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(el) el.classList.add('active');
+  const renders = {
+    dashboard:     renderDashboard,
+    shopping:      renderShopping,
+    chores:        renderChores,
+    calendar:      renderCalendar,
+    noticeboard:   renderNoticeboard,
+    goals:         renderGoals,
+    weather:       loadWeather,
+    settings:      renderSettings,
+    rewards:       renderRewards,
+    health:        renderHealth,
+    school:        renderSchool,
+    documents:     renderDocuments,
+    notifications: renderNotifications,
+  };
+  renders[id]?.();
+}
+
+// ════════════════════════════════════════════
+//  DASHBOARD
+// ════════════════════════════════════════════
+function renderDashboard(){
+  const days=['Niedziela','Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota'];
+  const d=new Date();
+  const name = S.settings.familyName ? 'Rodzina '+S.settings.familyName : 'Rodzina';
+  document.getElementById('welcome-msg').textContent = 'Dzień dobry, '+name+'! 👋';
+  document.getElementById('welcome-date').textContent =
+    days[d.getDay()]+', '+d.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'});
+
+  const active = S.chores.filter(c=>c.status!=='done');
+  document.getElementById('dash-chores').textContent   = active.length;
+  document.getElementById('dash-shopping').textContent = S.shopping.filter(s=>!s.done).length;
+  document.getElementById('dash-members').textContent  = S.members.length;
+  document.getElementById('dash-goals').textContent    = S.goals.length;
+
+  // chores list
+  const cl = document.getElementById('dash-chores-list');
+  cl.innerHTML = active.length===0
+    ? '<span style="color:var(--secondary)">✓ Wszystko zrobione!</span>'
+    : active.slice(0,5).map(c=>`
+        <div style="padding:6px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
+          <strong>${c.name}</strong>
+          <span style="color:var(--text-muted);font-size:12px">${c.person||'—'}</span>
+        </div>`).join('');
+
+  // events list
+  const today = d.toISOString().slice(0,10);
+  const upcoming = S.events
+    .filter(e=>e.dateFrom>=today)
+    .sort((a,b)=>a.dateFrom.localeCompare(b.dateFrom))
+    .slice(0,4);
+  const el = document.getElementById('dash-events-list');
+  el.innerHTML = upcoming.length===0
+    ? '<span style="color:var(--text-muted)">Brak nadchodzących wydarzeń.</span>'
+    : upcoming.map(e=>{
+        const m = S.members.find(x=>x.name===e.person);
+        const col = m ? m.color : 'var(--primary)';
+        return `<div style="padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+          <div style="width:8px;height:8px;border-radius:50%;background:${col};flex-shrink:0"></div>
+          <div>
+            <strong style="font-size:13px">${e.title}</strong>
+            <span style="color:var(--text-muted);font-size:12px;margin-left:6px">${formatDate(e.dateFrom)}${e.timeFrom?' '+e.timeFrom:''}</span>
+          </div>
+        </div>`;
+      }).join('');
+
+  // quote
+  const qi = d.getDate() % QUOTES.length;
+  document.getElementById('dash-quote').textContent = QUOTES[qi];
+  renderMiniWeek();
+  renderDashboardWidgets();
+}
+
+function formatDate(iso){
+  if(!iso) return '';
+  const [y,m,d]=iso.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+// ════════════════════════════════════════════
+//  CALENDAR
+// ════════════════════════════════════════════
+let calYear = new Date().getFullYear();
+let calMonth= new Date().getMonth();
+
+function renderCalendar(){
+  const months=['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',
+                'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+  document.getElementById('cal-title').textContent = months[calMonth]+' '+calYear;
+
+  const grid = document.getElementById('cal-grid');
+  const dayNames=['Pon','Wt','Śr','Czw','Pt','Sob','Ndz'];
+  let html = dayNames.map(n=>`<div class="cal-day-name">${n}</div>`).join('');
+
+  const first = new Date(calYear,calMonth,1);
+  let startDow = first.getDay(); // 0=Sun
+  startDow = startDow===0 ? 6 : startDow-1; // Mon=0
+
+  const daysInMonth = new Date(calYear,calMonth+1,0).getDate();
+  const daysInPrev  = new Date(calYear,calMonth,0).getDate();
+  const today = new Date().toISOString().slice(0,10);
+
+  // prev month padding
+  for(let i=startDow-1;i>=0;i--){
+    const d = daysInPrev-i;
+    const iso = `${calYear}-${String(calMonth===0?12:calMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    html += `<div class="cal-cell other-month"><div class="day-num">${d}</div>${renderEventDots(iso)}</div>`;
+  }
+
+  for(let d=1;d<=daysInMonth;d++){
+    const iso=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = iso===today;
+    html+=`<div class="cal-cell ${isToday?'today':''}" onclick="openEventModal(null,'${iso}')">
+      <div class="day-num">${d}</div>${renderEventDots(iso)}</div>`;
+  }
+
+  // next month padding
+  const total = startDow+daysInMonth;
+  const nextPad = total%7===0?0:7-(total%7);
+  for(let d=1;d<=nextPad;d++){
+    const iso=`${calYear}-${String(calMonth===11?1:calMonth+2).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    html+=`<div class="cal-cell other-month"><div class="day-num">${d}</div>${renderEventDots(iso)}</div>`;
+  }
+  grid.innerHTML = html;
+
+  // event list below
+  const monthEvents = S.events
+    .filter(e=>e.dateFrom.startsWith(`${calYear}-${String(calMonth+1).padStart(2,'0')}`))
+    .sort((a,b)=>a.dateFrom.localeCompare(b.dateFrom));
+  const list = document.getElementById('event-list');
+  list.innerHTML = monthEvents.length===0
+    ? `<p style="color:var(--text-muted);font-size:14px;padding:14px 0">Brak wydarzeń w tym miesiącu.</p>`
+    : monthEvents.map(e=>{
+        const m=S.members.find(x=>x.name===e.person);
+        const col=m?m.color:'var(--primary)';
+        return `<div class="event-item" onclick="openEventModal('${e.id}')">
+          <div class="event-color-bar" style="background:${col}"></div>
+          <div class="event-info">
+            <strong>${e.title}</strong>
+            <small>${formatDate(e.dateFrom)}${e.timeFrom?' · '+e.timeFrom:''} ${e.person?'· '+e.person:''}</small>
+          </div>
+          <span class="event-type-badge">${e.type}</span>
+        </div>`;
+      }).join('');
+}
+
+function renderEventDots(iso){
+  const evs = S.events.filter(e=>e.dateFrom===iso).slice(0,3);
+  return evs.map(e=>{
+    const m=S.members.find(x=>x.name===e.person);
+    const col=m?m.color:'#4A90D9';
+    return `<span class="cal-event-dot" style="background:${col}">${e.title}</span>`;
+  }).join('');
+}
+
+function calPrev(){ if(--calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
+function calNext(){ if(++calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
+function calToday(){ calYear=new Date().getFullYear(); calMonth=new Date().getMonth(); renderCalendar(); }
+
+function openEventModal(id, preDate){
+  fillPersonSelect('event-person');
+  if(id){
+    const e=S.events.find(x=>x.id===id); if(!e) return;
+    document.getElementById('event-modal-title').textContent='Edytuj wydarzenie';
+    document.getElementById('event-edit-id').value=id;
+    document.getElementById('event-title').value=e.title;
+    document.getElementById('event-date-from').value=e.dateFrom||'';
+    document.getElementById('event-time-from').value=e.timeFrom||'';
+    document.getElementById('event-date-to').value=e.dateTo||'';
+    document.getElementById('event-time-to').value=e.timeTo||'';
+    document.getElementById('event-type').value=e.type||'inne';
+    document.getElementById('event-person').value=e.person||'';
+    document.getElementById('event-note').value=e.note||'';
+    document.getElementById('event-delete-btn').style.display='inline-flex';
+  } else {
+    document.getElementById('event-modal-title').textContent='Nowe wydarzenie';
+    document.getElementById('event-edit-id').value='';
+    document.getElementById('event-title').value='';
+    document.getElementById('event-date-from').value=preDate||new Date().toISOString().slice(0,10);
+    document.getElementById('event-time-from').value='';
+    document.getElementById('event-date-to').value='';
+    document.getElementById('event-time-to').value='';
+    document.getElementById('event-type').value='inne';
+    document.getElementById('event-person').value='';
+    document.getElementById('event-note').value='';
+    document.getElementById('event-delete-btn').style.display='none';
+  }
+  document.getElementById('event-modal').classList.add('open');
+}
+
+function saveEvent(){
+  const title=document.getElementById('event-title').value.trim();
+  if(!title){ toast('Podaj tytuł wydarzenia','#e74c3c'); return; }
+  const editId=document.getElementById('event-edit-id').value;
+  const data={
+    title,
+    dateFrom: document.getElementById('event-date-from').value,
+    timeFrom: document.getElementById('event-time-from').value,
+    dateTo:   document.getElementById('event-date-to').value,
+    timeTo:   document.getElementById('event-time-to').value,
+    type:     document.getElementById('event-type').value,
+    person:   document.getElementById('event-person').value,
+    note:     document.getElementById('event-note').value,
+  };
+  if(editId){ const i=S.events.findIndex(x=>x.id===editId); if(i>-1) S.events[i]={...S.events[i],...data}; toast('Zaktualizowano ✓','#4A90D9'); }
+  else       { S.events.push({id:uid(),...data}); toast('Dodano wydarzenie ✓','var(--secondary)'); }
+  save('events'); closeModal('event-modal'); renderCalendar(); renderDashboard();
+}
+
+function deleteEvent(){
+  const id=document.getElementById('event-edit-id').value;
+  S.events=S.events.filter(x=>x.id!==id); save('events');
+  closeModal('event-modal'); renderCalendar(); renderDashboard(); toast('Usunięto wydarzenie');
+}
+
+// ════════════════════════════════════════════
+//  NOTICEBOARD
+// ════════════════════════════════════════════
+function renderNoticeboard(){
+  renderEmergencyContacts();
+  const el=document.getElementById('noticeboard-grid');
+  const sorted=[...S.notes].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+  if(sorted.length===0){
+    el.innerHTML='<p style="color:var(--text-muted);font-size:14px;padding:20px">Tablica jest pusta. Dodaj pierwszą karteczkę!</p>';
+    return;
+  }
+  el.innerHTML=sorted.map(n=>`
+    <div class="sticky ${n.pinned?'pinned':''}" style="background:${n.color}" onclick="openNoteModal('${n.id}')">
+      <div class="sticky-type">${n.type}</div>
+      <div class="sticky-title">${n.title}</div>
+      <div class="sticky-body">${n.body}</div>
+      <div class="sticky-footer">${n.author||''} · ${n.date||''}</div>
+    </div>`).join('');
+}
+
+function openNoteModal(id){
+  if(id){
+    const n=S.notes.find(x=>x.id===id); if(!n) return;
+    document.getElementById('note-modal-title').textContent='Edytuj karteczkę';
+    document.getElementById('note-edit-id').value=id;
+    document.getElementById('note-title').value=n.title;
+    document.getElementById('note-body').value=n.body;
+    document.getElementById('note-type').value=n.type;
+    document.getElementById('note-color').value=n.color;
+    document.getElementById('note-pinned').checked=n.pinned;
+    document.getElementById('note-delete-btn').style.display='inline-flex';
+  } else {
+    document.getElementById('note-modal-title').textContent='Nowa karteczka';
+    document.getElementById('note-edit-id').value='';
+    document.getElementById('note-title').value='';
+    document.getElementById('note-body').value='';
+    document.getElementById('note-type').value='ogłoszenie';
+    document.getElementById('note-color').value='#FFF9C4';
+    document.getElementById('note-pinned').checked=false;
+    document.getElementById('note-delete-btn').style.display='none';
+  }
+  document.getElementById('note-modal').classList.add('open');
+}
+
+function saveNote(){
+  const title=document.getElementById('note-title').value.trim();
+  if(!title){ toast('Podaj tytuł','#e74c3c'); return; }
+  const editId=document.getElementById('note-edit-id').value;
+  const data={
+    title,
+    body:   document.getElementById('note-body').value,
+    type:   document.getElementById('note-type').value,
+    color:  document.getElementById('note-color').value,
+    pinned: document.getElementById('note-pinned').checked,
+    author: S.settings.familyName||'Rodzina',
+    date:   new Date().toLocaleDateString('pl-PL'),
+  };
+  if(editId){ const i=S.notes.findIndex(x=>x.id===editId); if(i>-1) S.notes[i]={...S.notes[i],...data}; toast('Zaktualizowano ✓','#4A90D9'); }
+  else       { S.notes.push({id:uid(),...data}); toast('Dodano karteczkę ✓','var(--secondary)'); }
+  save('notes'); closeModal('note-modal'); renderNoticeboard();
+}
+
+function deleteNote(){
+  S.notes=S.notes.filter(x=>x.id!==document.getElementById('note-edit-id').value);
+  save('notes'); closeModal('note-modal'); renderNoticeboard(); toast('Usunięto karteczkę');
+}
+
+// ════════════════════════════════════════════
+//  GOALS
+// ════════════════════════════════════════════
+function renderGoals(){
+  const el=document.getElementById('goals-grid');
+  if(S.goals.length===0){
+    el.innerHTML='<p style="color:var(--text-muted);font-size:14px;padding:20px 0">Brak celów. Dodaj pierwszy cel rodziny!</p>';
+    return;
+  }
+  el.innerHTML=S.goals.map(g=>{
+    const pct=g.target>0?Math.min(100,Math.round(g.current/g.target*100)):0;
+    const barColor = pct>=75?'#7BC67E':pct>=25?'#f39c12':'var(--danger)';
+    return `<div class="goal-card" onclick="openGoalModal('${g.id}')">
+      <div class="goal-header">
+        <div class="goal-icon">${g.icon||'🎯'}</div>
+        <div><div class="goal-title">${g.name}</div><div class="goal-cat">${g.cat}</div></div>
+        <div class="goal-pct" style="margin-left:auto">${pct}%</div>
+      </div>
+      ${g.desc?`<p style="font-size:13px;color:var(--text-muted);margin-bottom:10px">${g.desc}</p>`:''}
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+      </div>
+      <div class="goal-stats">
+        <span>Postęp: <strong>${g.current}</strong> / ${g.target}</span>
+        ${g.date?`<span>Termin: ${formatDate(g.date)}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openGoalModal(id){
+  if(id){
+    const g=S.goals.find(x=>x.id===id); if(!g) return;
+    document.getElementById('goal-modal-title').textContent='Edytuj cel';
+    document.getElementById('goal-edit-id').value=id;
+    document.getElementById('goal-icon').value=g.icon||'';
+    document.getElementById('goal-cat').value=g.cat;
+    document.getElementById('goal-name').value=g.name;
+    document.getElementById('goal-desc').value=g.desc||'';
+    document.getElementById('goal-target').value=g.target;
+    document.getElementById('goal-current').value=g.current;
+    document.getElementById('goal-date').value=g.date||'';
+    document.getElementById('goal-delete-btn').style.display='inline-flex';
+  } else {
+    document.getElementById('goal-modal-title').textContent='Nowy cel';
+    document.getElementById('goal-edit-id').value='';
+    document.getElementById('goal-icon').value='🎯';
+    document.getElementById('goal-cat').value='inne';
+    document.getElementById('goal-name').value='';
+    document.getElementById('goal-desc').value='';
+    document.getElementById('goal-target').value='';
+    document.getElementById('goal-current').value='0';
+    document.getElementById('goal-date').value='';
+    document.getElementById('goal-delete-btn').style.display='none';
+  }
+  document.getElementById('goal-modal').classList.add('open');
+}
+
+function saveGoal(){
+  const name=document.getElementById('goal-name').value.trim();
+  if(!name){ toast('Podaj nazwę celu','#e74c3c'); return; }
+  const editId=document.getElementById('goal-edit-id').value;
+  const data={
+    icon:    document.getElementById('goal-icon').value||'🎯',
+    cat:     document.getElementById('goal-cat').value,
+    name,
+    desc:    document.getElementById('goal-desc').value,
+    target:  parseFloat(document.getElementById('goal-target').value)||100,
+    current: parseFloat(document.getElementById('goal-current').value)||0,
+    date:    document.getElementById('goal-date').value,
+  };
+  const isNew = !editId;
+  if(editId){ const i=S.goals.findIndex(x=>x.id===editId); if(i>-1) S.goals[i]={...S.goals[i],...data}; toast('Zaktualizowano ✓','#4A90D9'); }
+  else       { S.goals.push({id:uid(),...data}); toast('Dodano cel ✓','var(--secondary)'); }
+  if(data.current>=data.target){ confetti(); toast('🎉 Cel osiągnięty! Gratulacje!','var(--secondary)'); }
+  save('goals'); closeModal('goal-modal'); renderGoals(); renderDashboard();
+}
+
+function deleteGoal(){
+  S.goals=S.goals.filter(x=>x.id!==document.getElementById('goal-edit-id').value);
+  save('goals'); closeModal('goal-modal'); renderGoals(); renderDashboard(); toast('Usunięto cel');
+}
+
+// ════════════════════════════════════════════
+//  SHOPPING
+// ════════════════════════════════════════════
+const catLabel={warzywa:'🥦 Warzywa',nabiał:'🥛 Nabiał',mięso:'🥩 Mięso',
+                piekarnia:'🍞 Piekarnia',chemia:'🧴 Chemia',inne:'📦 Inne'};
+
+function renderShopping(){
+  const el=document.getElementById('shop-list');
+  if(S.shopping.length===0){
+    el.innerHTML='<p style="color:var(--text-muted);font-size:14px;padding:20px 0">Lista jest pusta.</p>'; return;
+  }
+  el.innerHTML=[...S.shopping].sort((a,b)=>a.done-b.done).map(item=>`
+    <div class="shop-item ${item.done?'done':''}">
+      <input type="checkbox" ${item.done?'checked':''} onchange="toggleShop('${item.id}')">
+      <span class="shop-name">${item.name}</span>
+      <span class="shop-cat">${catLabel[item.cat]||item.cat}</span>
+      <button class="shop-del" onclick="deleteShop('${item.id}')">✕</button>
+    </div>`).join('');
+}
+
+function addShopItem(){
+  const inp=document.getElementById('shop-input');
+  const name=inp.value.trim(); if(!name) return;
+  S.shopping.push({id:uid(),name,cat:document.getElementById('shop-cat').value,done:false});
+  save('shopping'); inp.value=''; renderShopping(); renderDashboard(); toast('Dodano: '+name);
+}
+function toggleShop(id){ const i=S.shopping.find(x=>x.id===id); if(i){i.done=!i.done;save('shopping');renderShopping();renderDashboard();} }
+function deleteShop(id){ S.shopping=S.shopping.filter(x=>x.id!==id); save('shopping'); renderShopping(); renderDashboard(); toast('Usunięto produkt'); }
+function clearBought(){ S.shopping=S.shopping.filter(x=>!x.done); save('shopping'); renderShopping(); renderDashboard(); toast('Kupione wyczyszczone ✓','var(--secondary)'); }
+
+// ════════════════════════════════════════════
+//  CHORES
+// ════════════════════════════════════════════
+function renderChores(){
+  const cols={todo:[],doing:[],done:[]};
+  S.chores.forEach(c=>cols[c.status]?.push(c));
+  Object.entries(cols).forEach(([status,list])=>{
+    document.getElementById('col-'+status).innerHTML=list.map(c=>`
+      <div class="chore-card priority-${c.priority}" onclick="openChoreModal('${c.id}')">
+        <div class="chore-title">${c.name}</div>
+        <div class="chore-meta">
+          <span>${c.person||'—'}</span><span>${c.cat}</span>
+          <span class="chore-pts">⭐ ${c.pts} pkt</span>
+        </div>
+      </div>`).join('')||'<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:10px">Brak</p>';
+    document.getElementById('col-'+status+'-count').textContent=list.length;
+  });
+}
+
+function openChoreModal(id){
+  fillPersonSelect('chore-person');
+  if(id){
+    const c=S.chores.find(x=>x.id===id); if(!c) return;
+    document.getElementById('chore-modal-title').textContent='Edytuj obowiązek';
+    document.getElementById('chore-edit-id').value=id;
+    document.getElementById('chore-name').value=c.name;
+    document.getElementById('chore-person').value=c.person||'';
+    document.getElementById('chore-cat').value=c.cat;
+    document.getElementById('chore-priority').value=c.priority;
+    document.getElementById('chore-pts').value=c.pts;
+    document.getElementById('chore-status').value=c.status;
+    document.getElementById('chore-delete-btn').style.display='inline-flex';
+  } else {
+    document.getElementById('chore-modal-title').textContent='Nowy obowiązek';
+    document.getElementById('chore-edit-id').value='';
+    document.getElementById('chore-name').value='';
+    document.getElementById('chore-person').value='';
+    document.getElementById('chore-cat').value='sprzątanie';
+    document.getElementById('chore-priority').value='medium';
+    document.getElementById('chore-pts').value='10';
+    document.getElementById('chore-status').value='todo';
+    document.getElementById('chore-delete-btn').style.display='none';
+  }
+  document.getElementById('chore-modal').classList.add('open');
+}
+
+function saveChore(){
+  const name=document.getElementById('chore-name').value.trim();
+  if(!name){ toast('Podaj nazwę obowiązku','#e74c3c'); return; }
+  const editId=document.getElementById('chore-edit-id').value;
+  const data={name,person:document.getElementById('chore-person').value,cat:document.getElementById('chore-cat').value,
+    priority:document.getElementById('chore-priority').value,pts:parseInt(document.getElementById('chore-pts').value)||10,
+    status:document.getElementById('chore-status').value};
+  if(editId){
+    const i=S.chores.findIndex(x=>x.id===editId);
+    if(i>-1){
+      const prev=S.chores[i];
+      S.chores[i]={...prev,...data};
+      // award points when status changes to done
+      if(prev.status!=='done' && data.status==='done') awardChorePoints(S.chores[i]);
+    }
+    toast('Zaktualizowano ✓','#4A90D9');
+  } else {
+    const newChore={id:uid(),...data};
+    S.chores.push(newChore);
+    if(data.status==='done') awardChorePoints(newChore);
+    toast('Dodano obowiązek ✓','var(--secondary)');
+    addLog(`Dodano obowiązek: ${data.name}`);
+  }
+  save('chores'); closeModal('chore-modal'); renderChores(); renderDashboard();
+}
+
+function deleteChore(){
+  S.chores=S.chores.filter(x=>x.id!==document.getElementById('chore-edit-id').value);
+  save('chores'); closeModal('chore-modal'); renderChores(); renderDashboard(); toast('Usunięto obowiązek');
+}
+
+// ════════════════════════════════════════════
+//  WEATHER — Open-Meteo (bez klucza API)
+// ════════════════════════════════════════════
+async function loadWeather(){
+  const city = S.settings.city||'Warszawa';
+  try {
+    // geocoding
+    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=pl&format=json`);
+    const geoData = await geoRes.json();
+    if(!geoData.results?.length){ showWeatherError('Nie znaleziono miasta: '+city); return; }
+    const {latitude:lat,longitude:lon,name:cityName,country} = geoData.results[0];
+
+    const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,relative_humidity_2m,cloud_cover&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=auto&forecast_days=6`);
+    const w = await wRes.json();
+    const cur = w.current;
+    const daily = w.daily;
+
+    const icon = WMO_ICONS[cur.weather_code]||'🌡️';
+    const desc = WMO_DESC[cur.weather_code]||'';
+
+    document.getElementById('weather-main').innerHTML=`
+      <div class="weather-icon">${icon}</div>
+      <div>
+        <div class="weather-temp">${Math.round(cur.temperature_2m)}°C</div>
+        <div class="weather-desc">${desc}</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-top:4px">${cityName}, ${country}</div>
+      </div>`;
+
+    document.getElementById('weather-details').innerHTML=`
+      <span>🌡️ Odczuwalna: <strong>${Math.round(cur.apparent_temperature)}°C</strong></span>
+      <span>💧 Wilgotność: <strong>${cur.relative_humidity_2m}%</strong></span>
+      <span>💨 Wiatr: <strong>${Math.round(cur.wind_speed_10m)} km/h</strong></span>
+      <span>☁️ Zachmurzenie: <strong>${cur.cloud_cover}%</strong></span>
+      <span>🌅 Wschód: <strong>${daily.sunrise[0].slice(11)}</strong></span>
+      <span>🌇 Zachód: <strong>${daily.sunset[0].slice(11)}</strong></span>`;
+
+    // tips
+    let tip='';
+    const code=cur.weather_code;
+    if(code>=61&&code<=82) tip='☂️ Weź parasol! Pada deszcz.';
+    else if(code>=71&&code<=77) tip='🧤 Ubierz się ciepło — pada śnieg.';
+    else if(code>=95) tip='⛈️ Zostań w domu — burza!';
+    else if(cur.temperature_2m<5) tip='🧥 Zimno! Ubierz się ciepło.';
+    else if(cur.temperature_2m>25) tip='🌞 Piękna pogoda! Świetny dzień na spacer.';
+    else tip='🚲 Dobra pogoda na aktywność na świeżym powietrzu!';
+    document.getElementById('weather-tip').innerHTML=tip?`<div class="weather-tip">${tip}</div>`:'';
+
+    // forecast
+    const days=['Nd','Pn','Wt','Śr','Cz','Pt','Sb'];
+    document.getElementById('forecast-row').innerHTML=daily.time.slice(1,6).map((date,i)=>{
+      const dow = days[new Date(date).getDay()];
+      return `<div class="forecast-day">
+        <div class="fd-name">${dow}</div>
+        <div class="fd-icon">${WMO_ICONS[daily.weather_code[i+1]]||'🌡️'}</div>
+        <div class="fd-temps">${Math.round(daily.temperature_2m_max[i+1])}° / ${Math.round(daily.temperature_2m_min[i+1])}°</div>
+      </div>`;
+    }).join('');
+
+  } catch(e){ showWeatherError('Błąd pobierania pogody. Sprawdź połączenie.'); }
+}
+
+function showWeatherError(msg){
+  document.getElementById('weather-main').innerHTML=`<div style="color:var(--danger);font-size:14px">⚠️ ${msg}</div>`;
+}
+
+// ════════════════════════════════════════════
+//  SETTINGS
+// ════════════════════════════════════════════
+function calGotoDate(iso){
+  const d=new Date(iso); calYear=d.getFullYear(); calMonth=d.getMonth(); renderCalendar();
+}
+
+function renderSettings(){
+  document.getElementById('family-name-input').value = S.settings.familyName||'';
+  document.getElementById('city-input').value = S.settings.city||'Warszawa';
+  document.getElementById('budget-url-input').value = S.settings.budgetUrl||'';
+  document.getElementById('meals-url-input').value  = S.settings.mealsUrl||'';
+  document.getElementById('gamification-toggle').checked = S.settings.gamificationOn!==false;
+  const list=document.getElementById('member-list');
+  if(!S.members.length){ list.innerHTML='<p style="color:var(--text-muted);font-size:14px">Brak członków rodziny.</p>'; return; }
+  list.innerHTML=S.members.map(m=>`
+    <div class="member-row">
+      <div class="member-avatar" style="background:${m.color}22;color:${m.color}">${m.emoji||m.name[0]}</div>
+      <div class="member-info"><strong>${m.name}</strong><small>${m.role}</small></div>
+      <div class="member-color-dot" style="background:${m.color}"></div>
+      <button class="btn btn-ghost btn-sm" onclick="openMemberModal('${m.id}')">Edytuj</button>
+    </div>`).join('');
+}
+
+function saveFamilyName(v){ S.settings.familyName=v; save('settings'); renderDashboard(); }
+function saveCity(v){ S.settings.city=v; save('settings'); }
+
+function openMemberModal(id){
+  if(id){
+    const m=S.members.find(x=>x.id===id); if(!m) return;
+    document.getElementById('member-modal-title').textContent='Edytuj osobę';
+    document.getElementById('member-edit-id').value=id;
+    document.getElementById('member-name').value=m.name;
+    document.getElementById('member-role').value=m.role;
+    document.getElementById('member-color').value=m.color;
+    document.getElementById('member-emoji').value=m.emoji||'';
+    document.getElementById('member-delete-btn').style.display='inline-flex';
+  } else {
+    document.getElementById('member-modal-title').textContent='Nowa osoba';
+    document.getElementById('member-edit-id').value='';
+    document.getElementById('member-name').value='';
+    document.getElementById('member-role').value='Dziecko';
+    document.getElementById('member-color').value='#4A90D9';
+    document.getElementById('member-emoji').value='';
+    document.getElementById('member-delete-btn').style.display='none';
+  }
+  document.getElementById('member-modal').classList.add('open');
+}
+
+function saveMember(){
+  const name=document.getElementById('member-name').value.trim();
+  if(!name){ toast('Podaj imię','#e74c3c'); return; }
+  const editId=document.getElementById('member-edit-id').value;
+  const data={name,role:document.getElementById('member-role').value,
+    color:document.getElementById('member-color').value,
+    emoji:document.getElementById('member-emoji').value.trim()||name[0]};
+  if(editId){ const i=S.members.findIndex(x=>x.id===editId); if(i>-1) S.members[i]={...S.members[i],...data}; toast('Zaktualizowano ✓','#4A90D9'); }
+  else       { S.members.push({id:uid(),...data}); toast('Dodano osobę ✓','var(--secondary)'); }
+  save('members'); closeModal('member-modal'); renderSettings(); renderDashboard();
+}
+
+function deleteMember(){
+  S.members=S.members.filter(x=>x.id!==document.getElementById('member-edit-id').value);
+  save('members'); closeModal('member-modal'); renderSettings(); renderDashboard(); toast('Usunięto osobę');
+}
+
+function exportData(){
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='rodzinny-planer-backup.json'; a.click(); toast('Dane wyeksportowane ✓','var(--secondary)');
+}
+
+function resetData(){
+  if(confirm('Czy na pewno chcesz usunąć WSZYSTKIE dane? Tej operacji nie można cofnąć.')){
+    localStorage.clear(); location.reload();
+  }
+}
+
+// ════════════════════════════════════════════
+//  CONFETTI
+// ════════════════════════════════════════════
+function confetti(){
+  const canvas=document.getElementById('confetti-canvas');
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  const ctx=canvas.getContext('2d');
+  const pieces=Array.from({length:120},()=>({
+    x:Math.random()*canvas.width, y:Math.random()*canvas.height-canvas.height,
+    r:Math.random()*6+4, color:`hsl(${Math.random()*360},80%,60%)`,
+    vx:(Math.random()-0.5)*3, vy:Math.random()*3+2, rot:Math.random()*360
+  }));
+  let frame=0;
+  const draw=()=>{
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p=>{
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle=p.color; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r); ctx.restore();
+      p.x+=p.vx; p.y+=p.vy; p.rot+=3;
+    });
+    if(++frame<120) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  };
+  draw();
+}
+
+// ════════════════════════════════════════════
+//  ACTIVITY LOG
+// ════════════════════════════════════════════
+function addLog(msg, type='action'){
+  S.log.unshift({id:uid(),msg,type,
+    time:new Date().toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'}),
+    date:new Date().toLocaleDateString('pl-PL')});
+  if(S.log.length>100) S.log=S.log.slice(0,100);
+  save('log');
+}
+function clearLog(){ S.log=[]; save('log'); renderNotifications(); toast('Historia wyczyszczona'); }
+
+// ════════════════════════════════════════════
+//  REWARDS / GAMIFICATION
+// ════════════════════════════════════════════
+const BADGES = [
+  {id:'helper5',  icon:'🧹',name:'Porządkuś',     desc:'5 obowiązków z rzędu',   check:()=>true},
+  {id:'student',  icon:'📚',name:'Pilny Uczeń',    desc:'Tydzień bez zaległości',  check:()=>true},
+  {id:'champ50',  icon:'🏆',name:'Super Pomocnik',  desc:'50 obowiązków łącznie',   check:()=>S.chores.filter(c=>c.status==='done').length>=50},
+  {id:'pts100',   icon:'⭐',name:'Zbieracz punktów',desc:'Zdobądź 100 punktów',    check:(id)=>(S.points[id]?.pts||0)>=100},
+  {id:'pts500',   icon:'💎',name:'Diament',         desc:'Zdobądź 500 punktów',    check:(id)=>(S.points[id]?.pts||0)>=500},
+  {id:'goal1',    icon:'🎯',name:'Mamy cel!',       desc:'Osiągnij pierwszy cel',   check:()=>S.goals.some(g=>g.current>=g.target)},
+  {id:'early',    icon:'🌅',name:'Ranny ptaszek',   desc:'Dodaj wydarzenie na rano', check:()=>S.events.some(e=>e.timeFrom&&e.timeFrom<'08:00')},
+  {id:'healthy',  icon:'💊',name:'Dbamy o zdrowie', desc:'Dodaj 3 wpisy zdrowotne', check:()=>S.health.length>=3},
+  {id:'docs3',    icon:'📄',name:'Zorganizowani',   desc:'Dodaj 3 dokumenty',       check:()=>S.docs.length>=3},
+  {id:'family4',  icon:'👨‍👩‍👧‍👦',name:'Pełna rodzina',  desc:'4 członkowie rodziny',    check:()=>S.members.length>=4},
+];
+
+function renderRewards(){
+  // Ranking
+  const ranking = document.getElementById('rewards-ranking');
+  ranking.innerHTML = S.members.map(m=>{
+    const p = S.points[m.id]||{pts:0};
+    return `<div class="points-card">
+      <div class="points-avatar">${m.emoji||m.name[0]}</div>
+      <div class="points-name">${m.name}</div>
+      <div class="points-role">${m.role}</div>
+      <div class="points-num" style="color:${m.color}">${p.pts}</div>
+      <div class="points-label">punktów</div>
+    </div>`;
+  }).join('');
+
+  // Badges
+  const badgesEl = document.getElementById('badges-grid');
+  badgesEl.innerHTML = BADGES.map(b=>{
+    const unlocked = b.check('');
+    return `<div class="badge ${unlocked?'unlocked':'locked'}" title="${b.desc}">
+      <span class="badge-icon">${b.icon}</span>
+      <span>${b.name}</span>
+      ${unlocked?'<span style="font-size:11px;color:var(--primary);margin-left:auto">✓ Odblokowana</span>':''}
+    </div>`;
+  }).join('');
+
+  // Catalog
+  const catalog = document.getElementById('rewards-catalog');
+  if(S.rewards.length===0){
+    catalog.innerHTML='<p style="color:var(--text-muted);font-size:14px">Brak nagród. Dodaj nagrody przyciskiem powyżej.</p>';
+  } else {
+    catalog.innerHTML = S.rewards.map(r=>`
+      <div class="reward-card">
+        <div class="reward-icon-big">${r.icon}</div>
+        <div class="reward-name">${r.name}</div>
+        <div class="reward-cost">⭐ ${r.pts} pkt</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-primary btn-sm reward-order-btn" onclick="openOrderReward('${r.id}')">Zamów</button>
+          <button class="btn btn-ghost btn-sm" onclick="openRewardModal('${r.id}')">✎</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // Pending requests
+  const pending = document.getElementById('rewards-pending');
+  const open = S.rewardRequests.filter(r=>r.status==='pending');
+  if(open.length===0){
+    pending.innerHTML='<p style="color:var(--text-muted);font-size:14px">Brak oczekujących zamówień.</p>';
+  } else {
+    pending.innerHTML = open.map(req=>{
+      const rw = S.rewards.find(r=>r.id===req.rewardId);
+      return `<div class="pending-row">
+        <span style="font-size:20px">${rw?.icon||'🎁'}</span>
+        <div class="pr-info"><strong>${req.personName}</strong> — ${rw?.name||'Nagroda'}
+          <small>⭐ ${rw?.pts||0} pkt · ${req.date}</small></div>
+        <button class="btn btn-primary btn-sm" onclick="approveReward('${req.id}')">Zatwierdź ✓</button>
+        <button class="btn btn-danger  btn-sm" onclick="rejectReward('${req.id}')">✕</button>
+      </div>`;
+    }).join('');
+  }
+}
+
+function openRewardModal(id){
+  if(id){
+    const r=S.rewards.find(x=>x.id===id); if(!r) return;
+    document.getElementById('reward-modal-title').textContent='Edytuj nagrodę';
+    document.getElementById('reward-edit-id').value=id;
+    document.getElementById('reward-icon').value=r.icon;
+    document.getElementById('reward-name').value=r.name;
+    document.getElementById('reward-pts').value=r.pts;
+    document.getElementById('reward-delete-btn').style.display='inline-flex';
+  } else {
+    document.getElementById('reward-modal-title').textContent='Nowa nagroda';
+    document.getElementById('reward-edit-id').value='';
+    document.getElementById('reward-icon').value='🎁';
+    document.getElementById('reward-name').value='';
+    document.getElementById('reward-pts').value='50';
+    document.getElementById('reward-delete-btn').style.display='none';
+  }
+  document.getElementById('reward-modal').classList.add('open');
+}
+
+function saveReward(){
+  const name=document.getElementById('reward-name').value.trim();
+  if(!name){toast('Podaj nazwę nagrody','var(--danger)');return;}
+  const editId=document.getElementById('reward-edit-id').value;
+  const data={icon:document.getElementById('reward-icon').value||'🎁',name,pts:parseInt(document.getElementById('reward-pts').value)||50};
+  if(editId){const i=S.rewards.findIndex(x=>x.id===editId);if(i>-1)S.rewards[i]={...S.rewards[i],...data};}
+  else S.rewards.push({id:uid(),...data});
+  save('rewards'); closeModal('reward-modal'); renderRewards(); toast('Zapisano nagrodę ✓','var(--secondary)');
+}
+
+function deleteReward(){
+  S.rewards=S.rewards.filter(x=>x.id!==document.getElementById('reward-edit-id').value);
+  save('rewards'); closeModal('reward-modal'); renderRewards(); toast('Usunięto nagrodę');
+}
+
+function openBonusModal(){
+  fillPersonSelect('bonus-person');
+  document.getElementById('bonus-pts').value='10';
+  document.getElementById('bonus-reason').value='';
+  document.getElementById('bonus-modal').classList.add('open');
+}
+
+function saveBonus(){
+  const personName=document.getElementById('bonus-person').value; if(!personName) return;
+  const pts=parseInt(document.getElementById('bonus-pts').value)||0;
+  const reason=document.getElementById('bonus-reason').value||'Korekta ręczna';
+  const m=S.members.find(x=>x.name===personName); if(!m) return;
+  if(!S.points[m.id]) S.points[m.id]={pts:0,history:[]};
+  S.points[m.id].pts=Math.max(0,S.points[m.id].pts+pts);
+  S.points[m.id].history.unshift({pts,reason,date:new Date().toLocaleDateString('pl-PL')});
+  save('points');
+  addLog(`${pts>0?'Dodano':'Odjęto'} ${Math.abs(pts)} pkt dla ${personName} — ${reason}`);
+  closeModal('bonus-modal'); renderRewards(); renderDashboard();
+  toast(`${pts>0?'+':''}${pts} pkt dla ${personName} 🌟`,'var(--secondary)');
+}
+
+function openOrderReward(rewardId){
+  const r=S.rewards.find(x=>x.id===rewardId); if(!r) return;
+  document.getElementById('order-reward-id').value=rewardId;
+  document.getElementById('order-reward-info').textContent=`${r.icon} ${r.name} — koszt: ${r.pts} pkt`;
+  fillPersonSelect('order-person');
+  document.getElementById('order-reward-modal').classList.add('open');
+}
+
+function confirmOrderReward(){
+  const rewardId=document.getElementById('order-reward-id').value;
+  const personName=document.getElementById('order-person').value; if(!personName) return;
+  const r=S.rewards.find(x=>x.id===rewardId); if(!r) return;
+  const m=S.members.find(x=>x.name===personName); if(!m) return;
+  const pts=(S.points[m.id]||{pts:0}).pts;
+  if(pts<r.pts){toast(`Za mało punktów! Masz ${pts}, potrzebujesz ${r.pts}`,'var(--danger)');return;}
+  S.rewardRequests.push({id:uid(),rewardId,personName,memberColor:m.color,status:'pending',date:new Date().toLocaleDateString('pl-PL')});
+  save('rewardRequests'); closeModal('order-reward-modal'); renderRewards();
+  toast(`Zamówiono: ${r.name} ⏳`,'#f39c12');
+  addLog(`${personName} zamówił(a) nagrodę: ${r.name}`);
+}
+
+function approveReward(reqId){
+  const req=S.rewardRequests.find(x=>x.id===reqId); if(!req) return;
+  const r=S.rewards.find(x=>x.id===req.rewardId); if(!r) return;
+  const m=S.members.find(x=>x.name===req.personName); if(!m) return;
+  if(!S.points[m.id]) S.points[m.id]={pts:0,history:[]};
+  S.points[m.id].pts=Math.max(0,S.points[m.id].pts-r.pts);
+  S.points[m.id].history.unshift({pts:-r.pts,reason:`Nagroda: ${r.name}`,date:new Date().toLocaleDateString('pl-PL')});
+  req.status='approved';
+  save('points'); save('rewardRequests');
+  renderRewards(); renderDashboard();
+  confetti(); toast(`🎉 Nagroda zatwierdzona dla ${req.personName}!`,'var(--secondary)');
+  addLog(`Nagroda zatwierdzona: ${r.name} dla ${req.personName}`);
+}
+
+function rejectReward(reqId){
+  const req=S.rewardRequests.find(x=>x.id===reqId); if(!req) return;
+  req.status='rejected'; save('rewardRequests'); renderRewards();
+  toast('Nagroda odrzucona','var(--danger)');
+}
+
+// points on chore done
+function awardChorePoints(chore){
+  const m=S.members.find(x=>x.name===chore.person); if(!m) return;
+  if(!S.points[m.id]) S.points[m.id]={pts:0,history:[]};
+  S.points[m.id].pts+=chore.pts;
+  S.points[m.id].history.unshift({pts:chore.pts,reason:`Obowiązek: ${chore.name}`,date:new Date().toLocaleDateString('pl-PL')});
+  save('points'); toast(`+${chore.pts} pkt dla ${m.name} ⭐`,'var(--secondary)');
+  addLog(`${m.name} zdobył(a) ${chore.pts} pkt za: ${chore.name}`);
+}
+
+// ════════════════════════════════════════════
+//  HEALTH
+// ════════════════════════════════════════════
+let healthTab = '';
+
+function renderHealth(){
+  const tabs=document.getElementById('health-tabs');
+  tabs.innerHTML=S.members.map(m=>`
+    <button class="tab-btn ${healthTab===m.name?'active':''}" onclick="setHealthTab('${m.name}')" style="${healthTab===m.name?'background:'+m.color+';border-color:'+m.color:''}">
+      ${m.emoji} ${m.name}
+    </button>`).join('');
+  if(!healthTab && S.members.length) healthTab=S.members[0].name;
+  renderHealthContent();
+}
+
+function setHealthTab(name){ healthTab=name; renderHealth(); }
+
+function renderHealthContent(){
+  const el=document.getElementById('health-content');
+  const entries=S.health.filter(h=>h.person===healthTab);
+  const typeIcon={visit:'🏥',medication:'💊',allergy:'⚠️',vaccine:'💉'};
+  const typeLabel={visit:'Wizyta',medication:'Lek',allergy:'Alergia',vaccine:'Szczepienie'};
+  const today=new Date().toISOString().slice(0,10);
+
+  if(entries.length===0){
+    el.innerHTML=`<div class="card"><p style="color:var(--text-muted);font-size:14px;padding:10px 0">
+      Brak wpisów zdrowotnych dla tej osoby.
+      <br><br><button class="btn btn-primary btn-sm" onclick="openHealthModal()">+ Dodaj wpis</button>
+    </p></div>`; return;
+  }
+
+  el.innerHTML=`<div class="card"><div id="health-entries">`+
+    entries.map(h=>{
+      let nextBadge='';
+      if(h.next){
+        const diff=Math.ceil((new Date(h.next)-new Date(today))/(1000*86400));
+        nextBadge=diff<=7
+          ? `<span class="health-next-badge soon">⚠️ Za ${diff} dni</span>`
+          : `<span class="health-next-badge ok">📅 ${formatDate(h.next)}</span>`;
+      }
+      return `<div class="health-entry" onclick="openHealthModal('${h.id}')">
+        <div class="health-type-icon">${typeIcon[h.type]||'📋'}</div>
+        <div class="health-info">
+          <strong>${h.title}</strong>
+          <small>${typeLabel[h.type]||h.type}${h.date?' · '+formatDate(h.date):''}${h.notes?' · '+h.notes:''}</small>
+        </div>
+        ${nextBadge}
+      </div>`;
+    }).join('')+`</div></div>`;
+}
+
+function openHealthModal(id){
+  fillPersonSelect('health-person');
+  if(id){
+    const h=S.health.find(x=>x.id===id); if(!h) return;
+    document.getElementById('health-modal-title').textContent='Edytuj wpis';
+    document.getElementById('health-edit-id').value=id;
+    document.getElementById('health-person').value=h.person;
+    document.getElementById('health-type').value=h.type;
+    document.getElementById('health-title').value=h.title;
+    document.getElementById('health-date').value=h.date||'';
+    document.getElementById('health-next').value=h.next||'';
+    document.getElementById('health-notes').value=h.notes||'';
+    document.getElementById('health-delete-btn').style.display='inline-flex';
+  } else {
+    document.getElementById('health-modal-title').textContent='Nowy wpis zdrowotny';
+    document.getElementById('health-edit-id').value='';
+    document.getElementById('health-person').value=healthTab||'';
+    document.getElementById('health-type').value='visit';
+    document.getElementById('health-title').value='';
+    document.getElementById('health-date').value=new Date().toISOString().slice(0,10);
+    document.getElementById('health-next').value='';
+    document.getElementById('health-notes').value='';
+    document.getElementById('health-delete-btn').style.display='none';
+  }
+  document.getElementById('health-modal').classList.add('open');
+}
+
+function saveHealthEntry(){
+  const title=document.getElementById('health-title').value.trim();
+  if(!title){toast('Podaj tytuł','var(--danger)');return;}
+  const editId=document.getElementById('health-edit-id').value;
+  const data={person:document.getElementById('health-person').value,type:document.getElementById('health-type').value,
+    title,date:document.getElementById('health-date').value,next:document.getElementById('health-next').value,
+    notes:document.getElementById('health-notes').value};
+  if(editId){const i=S.health.findIndex(x=>x.id===editId);if(i>-1)S.health[i]={...S.health[i],...data};}
+  else{S.health.push({id:uid(),...data});addLog(`Dodano wpis zdrowotny: ${title} (${data.person})`);}
+  save('health'); closeModal('health-modal'); renderHealth(); toast('Zapisano ✓','var(--secondary)');
+}
+
+function deleteHealthEntry(){
+  const id=document.getElementById('health-edit-id').value;
+  S.health=S.health.filter(x=>x.id!==id); save('health');
+  closeModal('health-modal'); renderHealth(); toast('Usunięto wpis');
+}
+
+// ════════════════════════════════════════════
+//  SCHOOL
+// ════════════════════════════════════════════
+let schoolTab=''; let schoolSubTab='homework';
+const children=()=>S.members.filter(m=>m.role==='Dziecko');
+
+function renderSchool(){
+  const kids=children();
+  const tabs=document.getElementById('school-tabs');
+  if(!schoolTab && kids.length) schoolTab=kids[0].name;
+  tabs.innerHTML=kids.map(m=>`
+    <button class="tab-btn ${schoolTab===m.name?'active':''}" onclick="setSchoolTab('${m.name}')" style="${schoolTab===m.name?'background:'+m.color+';border-color:'+m.color:''}">
+      ${m.emoji} ${m.name}
+    </button>`).join('');
+  renderSchoolContent();
+}
+
+function setSchoolTab(name){ schoolTab=name; renderSchool(); }
+
+
+function openHomeworkModal(id){
+  const kids=children();
+  document.getElementById('hw-person').innerHTML=kids.map(m=>`<option value="${m.name}">${m.emoji} ${m.name}</option>`).join('');
+  if(id){
+    const h=S.homework.find(x=>x.id===id); if(!h) return;
+    document.getElementById('hw-modal-title').textContent='Edytuj zadanie';
+    document.getElementById('hw-edit-id').value=id;
+    document.getElementById('hw-person').value=h.person;
+    document.getElementById('hw-subject').value=h.subject;
+    document.getElementById('hw-desc').value=h.desc;
+    document.getElementById('hw-due').value=h.due||'';
+    document.getElementById('hw-status').value=h.status;
+    document.getElementById('hw-delete-btn').style.display='inline-flex';
+  } else {
+    document.getElementById('hw-modal-title').textContent='Nowe zadanie domowe';
+    document.getElementById('hw-edit-id').value='';
+    document.getElementById('hw-person').value=schoolTab||kids[0]?.name||'';
+    document.getElementById('hw-subject').value='';
+    document.getElementById('hw-desc').value='';
+    document.getElementById('hw-due').value=new Date(Date.now()+86400000).toISOString().slice(0,10);
+    document.getElementById('hw-status').value='todo';
+    document.getElementById('hw-delete-btn').style.display='none';
+  }
+  document.getElementById('homework-modal').classList.add('open');
+}
+
+function saveHomework(){
+  const desc=document.getElementById('hw-desc').value.trim();
+  if(!desc){toast('Podaj opis zadania','var(--danger)');return;}
+  const editId=document.getElementById('hw-edit-id').value;
+  const data={person:document.getElementById('hw-person').value,subject:document.getElementById('hw-subject').value,
+    desc,due:document.getElementById('hw-due').value,status:document.getElementById('hw-status').value};
+  if(editId){const i=S.homework.findIndex(x=>x.id===editId);if(i>-1)S.homework[i]={...S.homework[i],...data};}
+  else{S.homework.push({id:uid(),...data});addLog(`Dodano zadanie: ${data.subject} dla ${data.person}`);}
+  save('homework'); closeModal('homework-modal'); renderSchool(); toast('Zapisano ✓','var(--secondary)');
+}
+
+function deleteHomework(){
+  S.homework=S.homework.filter(x=>x.id!==document.getElementById('hw-edit-id').value);
+  save('homework'); closeModal('homework-modal'); renderSchool(); toast('Usunięto zadanie');
+}
+
+function toggleHomework(id){
+  const h=S.homework.find(x=>x.id===id); if(!h) return;
+  h.status=h.status==='done'?'todo':'done';
+  if(h.status==='done'){
+    const m=S.members.find(x=>x.name===h.person);
+    if(m){
+      if(!S.points[m.id]) S.points[m.id]={pts:0,history:[]};
+      S.points[m.id].pts+=10;
+      S.points[m.id].history.unshift({pts:10,reason:`Zadanie: ${h.subject}`,date:new Date().toLocaleDateString('pl-PL')});
+      save('points'); toast(`+10 pkt dla ${m.name} 📚`,'var(--secondary)');
+      addLog(`${m.name} odrobiła(ł) zadanie z ${h.subject} (+10 pkt)`);
+    }
+  }
+  save('homework'); renderSchool();
+}
+
+function openGradeModal(id){
+  if(id){
+    const g=S.grades.find(x=>x.id===id); if(!g) return;
+    document.getElementById('grade-modal-title').textContent='Edytuj ocenę';
+    document.getElementById('grade-edit-id').value=id;
+    document.getElementById('grade-person-id').value=g.person;
+    document.getElementById('grade-subject').value=g.subject;
+    document.getElementById('grade-value').value=g.value;
+    document.getElementById('grade-date').value=g.date;
+    document.getElementById('grade-comment').value=g.comment||'';
+    document.getElementById('grade-delete-btn').style.display='inline-flex';
+  } else {
+    document.getElementById('grade-modal-title').textContent='Nowa ocena';
+    document.getElementById('grade-edit-id').value='';
+    document.getElementById('grade-person-id').value=schoolTab||'';
+    document.getElementById('grade-subject').value='';
+    document.getElementById('grade-value').value='5';
+    document.getElementById('grade-date').value=new Date().toISOString().slice(0,10);
+    document.getElementById('grade-comment').value='';
+    document.getElementById('grade-delete-btn').style.display='none';
+  }
+  document.getElementById('grade-modal').classList.add('open');
+}
+
+function saveGrade(){
+  const subj=document.getElementById('grade-subject').value.trim();
+  if(!subj){toast('Podaj przedmiot','var(--danger)');return;}
+  const editId=document.getElementById('grade-edit-id').value;
+  const person=document.getElementById('grade-person-id').value||schoolTab;
+  const value=parseFloat(document.getElementById('grade-value').value)||5;
+  const data={person,subject:subj,value,date:document.getElementById('grade-date').value,
+    comment:document.getElementById('grade-comment').value};
+  if(editId){const i=S.grades.findIndex(x=>x.id===editId);if(i>-1)S.grades[i]={...S.grades[i],...data};}
+  else{
+    S.grades.push({id:uid(),...data});
+    const pts=value>=6?30:value>=5?20:value>=4?10:0;
+    if(pts){
+      const m=S.members.find(x=>x.name===person);
+      if(m){
+        if(!S.points[m.id]) S.points[m.id]={pts:0,history:[]};
+        S.points[m.id].pts+=pts;
+        S.points[m.id].history.unshift({pts,reason:`Ocena ${value} z ${subj}`,date:new Date().toLocaleDateString('pl-PL')});
+        save('points'); toast(`+${pts} pkt za ocenę ${value}! 🌟`,'var(--secondary)');
+      }
+    }
+    addLog(`Ocena ${value} z ${subj} dla ${person}`);
+  }
+  save('grades'); closeModal('grade-modal'); renderSchool(); toast('Zapisano ocenę ✓','var(--secondary)');
+}
+
+function deleteGrade(){
+  S.grades=S.grades.filter(x=>x.id!==document.getElementById('grade-edit-id').value);
+  save('grades'); closeModal('grade-modal'); renderSchool(); toast('Usunięto ocenę');
+}
+
+// ════════════════════════════════════════════
+//  DOCUMENTS
+// ════════════════════════════════════════════
+const docCatIcon={dowód:'🪪',paszport:'✈️',ubezpieczenie:'🏥',gwarancja:'📋',umowa:'📝',inne:'📄'};
+
+function renderDocuments(){
+  const today=new Date(); const el=document.getElementById('docs-list');
+  const alertsEl=document.getElementById('docs-alerts');
+
+  const daysUntil=iso=>iso?Math.ceil((new Date(iso)-today)/86400000):Infinity;
+
+  // alerts
+  const urgent=S.docs.filter(d=>d.expires&&daysUntil(d.expires)<=30&&daysUntil(d.expires)>0);
+  const soon  =S.docs.filter(d=>d.expires&&daysUntil(d.expires)<=90&&daysUntil(d.expires)>30);
+  const expired=S.docs.filter(d=>d.expires&&daysUntil(d.expires)<=0);
+
+  alertsEl.innerHTML=[
+    ...expired.map(d=>`<div class="alert-banner urgent">❌ <strong>${d.name}</strong> — wygasło!</div>`),
+    ...urgent.map(d=>`<div class="alert-banner urgent">⚠️ <strong>${d.name}</strong> — wygasa za ${daysUntil(d.expires)} dni!</div>`),
+    ...soon.map(d=>`<div class="alert-banner warn">📅 <strong>${d.name}</strong> — wygasa za ${daysUntil(d.expires)} dni</div>`),
+  ].join('');
+
+  if(S.docs.length===0){
+    el.innerHTML='<div class="card"><p style="color:var(--text-muted);font-size:14px">Brak dokumentów. Dodaj pierwszy dokument.</p></div>'; return;
+  }
+
+  el.innerHTML='<div class="card">'+S.docs.map(d=>{
+    const days=daysUntil(d.expires);
+    let expClass='exp-none', expText=d.expires?formatDate(d.expires):'Bezterminowy';
+    if(d.expires){
+      if(days<=0)       {expClass='exp-urgent';expText='Wygasło!';}
+      else if(days<=30) {expClass='exp-urgent';expText=`Za ${days} dni`;}
+      else if(days<=90) {expClass='exp-soon';  expText=`Za ${days} dni`;}
+      else               expClass='exp-ok';
+    }
+    return `<div class="doc-card" onclick="openDocModal('${d.id}')">
+      <div class="doc-cat-icon">${docCatIcon[d.cat]||'📄'}</div>
+      <div class="doc-info">
+        <strong>${d.name}</strong>
+        <small>${d.cat}${d.person?' · '+d.person:''}${d.location?' · 📍'+d.location:''}</small>
+      </div>
+      <span class="doc-expires ${expClass}">${expText}</span>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+function openDocModal(id){
+  fillPersonSelect('doc-person');
+  if(id){
+    const d=S.docs.find(x=>x.id===id); if(!d) return;
+    document.getElementById('doc-modal-title').textContent='Edytuj dokument';
+    document.getElementById('doc-edit-id').value=id;
+    document.getElementById('doc-name').value=d.name;
+    document.getElementById('doc-cat').value=d.cat;
+    document.getElementById('doc-person').value=d.person||'';
+    document.getElementById('doc-expires').value=d.expires||'';
+    document.getElementById('doc-number').value=d.number||'';
+    document.getElementById('doc-location').value=d.location||'';
+    document.getElementById('doc-notes').value=d.notes||'';
+    document.getElementById('doc-delete-btn').style.display='inline-flex';
+  } else {
+    document.getElementById('doc-modal-title').textContent='Nowy dokument';
+    document.getElementById('doc-edit-id').value='';
+    document.getElementById('doc-name').value='';
+    document.getElementById('doc-cat').value='dowód';
+    document.getElementById('doc-person').value='';
+    document.getElementById('doc-expires').value='';
+    document.getElementById('doc-number').value='';
+    document.getElementById('doc-location').value='';
+    document.getElementById('doc-notes').value='';
+    document.getElementById('doc-delete-btn').style.display='none';
+  }
+  document.getElementById('doc-modal').classList.add('open');
+}
+
+function saveDoc(){
+  const name=document.getElementById('doc-name').value.trim();
+  if(!name){toast('Podaj nazwę dokumentu','var(--danger)');return;}
+  const editId=document.getElementById('doc-edit-id').value;
+  const data={name,cat:document.getElementById('doc-cat').value,person:document.getElementById('doc-person').value,
+    expires:document.getElementById('doc-expires').value,number:document.getElementById('doc-number').value,
+    location:document.getElementById('doc-location').value,notes:document.getElementById('doc-notes').value};
+  if(editId){const i=S.docs.findIndex(x=>x.id===editId);if(i>-1)S.docs[i]={...S.docs[i],...data};}
+  else{S.docs.push({id:uid(),...data});addLog(`Dodano dokument: ${name}`);}
+  save('docs'); closeModal('doc-modal'); renderDocuments(); toast('Zapisano dokument ✓','var(--secondary)');
+}
+
+function deleteDoc(){
+  S.docs=S.docs.filter(x=>x.id!==document.getElementById('doc-edit-id').value);
+  save('docs'); closeModal('doc-modal'); renderDocuments(); toast('Usunięto dokument');
+}
+
+// ════════════════════════════════════════════
+//  NOTIFICATIONS
+// ════════════════════════════════════════════
+function renderNotifications(){
+  const today=new Date(); const todayISO=today.toISOString().slice(0,10);
+  const daysUntil=iso=>iso?Math.ceil((new Date(iso)-today)/86400000):Infinity;
+
+  // reminders
+  const reminders=[];
+  S.events.filter(e=>e.dateFrom>=todayISO).sort((a,b)=>a.dateFrom.localeCompare(b.dateFrom)).slice(0,5).forEach(e=>{
+    const d=daysUntil(e.dateFrom);
+    reminders.push({icon:'📅',text:e.title,sub:`${formatDate(e.dateFrom)}${e.timeFrom?' '+e.timeFrom:''}`,days:d,color:d<=1?'var(--danger)':d<=3?'#f39c12':'var(--primary)'});
+  });
+  S.docs.filter(d=>d.expires&&daysUntil(d.expires)<=90&&daysUntil(d.expires)>0).forEach(d=>{
+    const days=daysUntil(d.expires);
+    reminders.push({icon:'📄',text:d.name+' — wygasa',sub:formatDate(d.expires),days,color:days<=30?'var(--danger)':'#f39c12'});
+  });
+  S.health.filter(h=>h.next&&daysUntil(h.next)<=14&&daysUntil(h.next)>0).forEach(h=>{
+    reminders.push({icon:'🏥',text:h.title,sub:`Następna wizyta: ${formatDate(h.next)}`,days:daysUntil(h.next),color:'#f39c12'});
+  });
+  reminders.sort((a,b)=>a.days-b.days);
+
+  const rEl=document.getElementById('notif-reminders');
+  rEl.innerHTML=reminders.length===0
+    ?'<p style="color:var(--text-muted);font-size:14px">Brak nadchodzących przypomnień.</p>'
+    :reminders.map(r=>`
+      <div class="reminder-item">
+        <span class="reminder-icon">${r.icon}</span>
+        <div class="reminder-info">${r.text}<small>${r.sub}</small></div>
+        <span class="reminder-days" style="background:${r.color}22;color:${r.color}">
+          ${r.days===0?'Dziś':r.days===1?'Jutro':'Za '+r.days+' dni'}
+        </span>
+      </div>`).join('');
+
+  // log
+  const lEl=document.getElementById('notif-log');
+  lEl.innerHTML=S.log.length===0
+    ?'<p style="color:var(--text-muted);font-size:14px">Historia jest pusta.</p>'
+    :S.log.slice(0,30).map(l=>`
+      <div class="log-item">
+        <div class="log-dot"></div>
+        <span>${l.msg}</span>
+        <span class="log-time">${l.date} ${l.time}</span>
+      </div>`).join('');
+}
+
+// ════════════════════════════════════════════
+//  SIDEBAR TOGGLE (mobile)
+// ════════════════════════════════════════════
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+
+// ════════════════════════════════════════════
+//  EXTERNAL LINKS
+// ════════════════════════════════════════════
+function openExternal(type){
+  const url = type==='budget' ? S.settings.budgetUrl : S.settings.mealsUrl;
+  if(url) window.open(url,'_blank');
+  else{ show('settings', document.querySelector('#sidebar nav a:last-child')); toast('Skonfiguruj link w Ustawieniach','#f39c12'); }
+}
+function saveExternalLink(key,val){
+  S.settings[key]=val; save('settings');
+  renderDashboardWidgets();
+}
+
+// ════════════════════════════════════════════
+//  GAMIFICATION TOGGLE
+// ════════════════════════════════════════════
+function toggleGamification(on){
+  S.settings.gamificationOn=on; save('settings');
+  toast(on?'Gamifikacja włączona 🎮':'Gamifikacja wyłączona','#f39c12');
+}
+
+// ════════════════════════════════════════════
+//  DASHBOARD — mini week + widgets
+// ════════════════════════════════════════════
+function renderMiniWeek(){
+  const today=new Date(); const todayISO=today.toISOString().slice(0,10);
+  const dow=today.getDay(); const mondayOffset=(dow===0?-6:1-dow);
+  const dayNames=['Pon','Wt','Śr','Czw','Pt','Sob','Ndz'];
+  let html='';
+  for(let i=0;i<7;i++){
+    const d=new Date(today); d.setDate(today.getDate()+mondayOffset+i);
+    const iso=d.toISOString().slice(0,10);
+    const hasEvent=S.events.some(e=>e.dateFrom===iso);
+    const isToday=iso===todayISO;
+    html+=`<div class="mini-week-day ${isToday?'today':''}" onclick="show('calendar',null);calGotoDate('${iso}')">
+      <div class="mwd-name">${dayNames[i]}</div>
+      <div class="mwd-num">${d.getDate()}</div>
+      ${hasEvent?'<div class="mwd-dot"></div>':'<div style="height:7px"></div>'}
+    </div>`;
+  }
+  document.getElementById('dash-mini-week').innerHTML=html;
+}
+
+function renderDashboardWidgets(){
+  // points mini
+  const pts=document.getElementById('dash-points');
+  if(pts){
+    pts.innerHTML=S.members.map(m=>{
+      const p=S.points[m.id]||{pts:0};
+      return `<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:18px">${m.emoji||m.name[0]}</span>
+        <span style="flex:1;font-size:14px;color:var(--text)">${m.name}</span>
+        <strong style="color:${m.color}">${p.pts} pkt</strong>
+      </div>`;
+    }).join('');
+  }
+
+  // external links
+  const budgetUrl=S.settings.budgetUrl||'';
+  const mealsUrl=S.settings.mealsUrl||'';
+  const budgetEl=document.getElementById('dash-budget-widget');
+  const mealsEl=document.getElementById('dash-meals-widget');
+  if(budgetEl) budgetEl.innerHTML = budgetUrl
+    ? `<a class="dash-widget-link" href="${budgetUrl}" target="_blank">Otwórz planer budżetu →</a>`
+    : `<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="show('settings',null)">⚙️ Skonfiguruj link</button>`;
+  if(mealsEl) mealsEl.innerHTML = mealsUrl
+    ? `<a class="dash-widget-link" href="${mealsUrl}" target="_blank">Otwórz planer posiłków →</a>`
+    : `<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="show('settings',null)">⚙️ Skonfiguruj link</button>`;
+}
+
+// ════════════════════════════════════════════
+//  EMERGENCY CONTACTS
+// ════════════════════════════════════════════
+function renderEmergencyContacts(){
+  const list=document.getElementById('emergency-list');
+  if(!list) return;
+  const defaults=[
+    {icon:'🚑',name:'Pogotowie',phone:'112'},
+    {icon:'🚒',name:'Straż pożarna',phone:'998'},
+    {icon:'👮',name:'Policja',phone:'997'},
+  ];
+  const custom=S.contacts||[];
+  const all=[...defaults,...custom];
+  list.innerHTML=all.map((c,i)=>`
+    <div class="contact-item">
+      <span style="font-size:20px">${c.icon||'📞'}</span>
+      <span class="contact-name">${c.name}</span>
+      <span class="contact-phone">${c.phone}</span>
+      ${i>=3?`<button class="shop-del" onclick="deleteContact('${c.id}')">✕</button>`:''}
+    </div>`).join('');
+}
+
+function openContactModal(id){
+  if(id){
+    const c=(S.contacts||[]).find(x=>x.id===id); if(!c) return;
+    document.getElementById('contact-modal-title').textContent='Edytuj kontakt';
+    document.getElementById('contact-edit-id').value=id;
+    document.getElementById('contact-name').value=c.name;
+    document.getElementById('contact-phone').value=c.phone;
+    document.getElementById('contact-icon').value=c.icon||'📞';
+    document.getElementById('contact-delete-btn').style.display='inline-flex';
+  } else {
+    document.getElementById('contact-modal-title').textContent='Nowy kontakt awaryjny';
+    document.getElementById('contact-edit-id').value='';
+    document.getElementById('contact-name').value='';
+    document.getElementById('contact-phone').value='';
+    document.getElementById('contact-icon').value='📞';
+    document.getElementById('contact-delete-btn').style.display='none';
+  }
+  document.getElementById('contact-modal').classList.add('open');
+}
+
+function saveContact(){
+  const name=document.getElementById('contact-name').value.trim();
+  if(!name){toast('Podaj nazwę','var(--danger)');return;}
+  if(!S.contacts) S.contacts=[];
+  const editId=document.getElementById('contact-edit-id').value;
+  const data={name,phone:document.getElementById('contact-phone').value,icon:document.getElementById('contact-icon').value||'📞'};
+  if(editId){const i=S.contacts.findIndex(x=>x.id===editId);if(i>-1)S.contacts[i]={...S.contacts[i],...data};}
+  else S.contacts.push({id:uid(),...data});
+  LS.set('fp_contacts',S.contacts);
+  closeModal('contact-modal'); renderEmergencyContacts(); toast('Zapisano kontakt ✓','var(--secondary)');
+}
+
+function deleteContact(id){
+  const delId=id||document.getElementById('contact-edit-id').value;
+  S.contacts=(S.contacts||[]).filter(x=>x.id!==delId);
+  LS.set('fp_contacts',S.contacts);
+  if(!id) closeModal('contact-modal');
+  renderEmergencyContacts(); toast('Usunięto kontakt');
+}
+
+// ════════════════════════════════════════════
+//  SCHOOL — LESSON PLAN + ACTIVITIES
+// ════════════════════════════════════════════
+const DAYS_PL=['Poniedziałek','Wtorek','Środa','Czwartek','Piątek'];
+const SLOTS=['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00'];
+
+function renderSchoolContent(){
+  const el=document.getElementById('school-content');
+  if(!schoolTab){ el.innerHTML='<div class="card"><p style="color:var(--text-muted)">Brak dzieci. Dodaj dziecko w Ustawieniach.</p></div>'; return; }
+  const hw=S.homework.filter(h=>h.person===schoolTab);
+  const gr=S.grades.filter(g=>g.person===schoolTab);
+  const today=new Date().toISOString().slice(0,10);
+  const gradeColor=v=>v>=5?'#7BC67E':v>=4?'#4A90D9':v>=3?'#f39c12':'#e74c3c';
+  const avgMap={};
+  gr.forEach(g=>{if(!avgMap[g.subject])avgMap[g.subject]={sum:0,cnt:0};avgMap[g.subject].sum+=parseFloat(g.value);avgMap[g.subject].cnt++;});
+
+  // sub-tab buttons
+  const subTabs=`<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+    <button class="tab-btn ${schoolSubTab==='homework'?'active':''}" onclick="schoolSubTab='homework';renderSchoolContent()">📝 Zadania (${hw.filter(h=>h.status==='todo').length})</button>
+    <button class="tab-btn ${schoolSubTab==='grades'?'active':''}"   onclick="schoolSubTab='grades';renderSchoolContent()">📊 Oceny (${gr.length})</button>
+    <button class="tab-btn ${schoolSubTab==='schedule'?'active':''}" onclick="schoolSubTab='schedule';renderSchoolContent()">📅 Plan lekcji</button>
+    <button class="tab-btn ${schoolSubTab==='activities'?'active':''}" onclick="schoolSubTab='activities';renderSchoolContent()">🏃 Zajęcia</button>
+  </div>`;
+
+  if(schoolSubTab==='homework'){
+    el.innerHTML=subTabs+`<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <strong style="font-size:14px;color:var(--text)">Zadania — ${schoolTab}</strong>
+        <button class="btn btn-primary btn-sm" onclick="openHomeworkModal()">+ Dodaj</button>
+      </div>
+      ${hw.length===0?'<p style="color:var(--text-muted);font-size:14px">Brak zadań domowych.</p>':
+        [...hw].sort((a,b)=>a.status.localeCompare(b.status)||((a.due||'').localeCompare(b.due||''))).map(h=>{
+          const overdue=h.status==='todo'&&h.due&&h.due<today;
+          return `<div class="hw-item ${h.status==='done'?'done':''}">
+            <input type="checkbox" ${h.status==='done'?'checked':''} onchange="toggleHomework('${h.id}')">
+            <div class="hw-title" onclick="openHomeworkModal('${h.id}')" style="cursor:pointer">${h.desc}</div>
+            <span class="hw-subject">${h.subject}</span>
+            <span class="hw-due ${overdue?'hw-overdue':''}">${h.due?formatDate(h.due):''}</span>
+          </div>`;
+        }).join('')}
+    </div>`;
+
+  } else if(schoolSubTab==='grades'){
+    el.innerHTML=subTabs+`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <strong style="font-size:14px;color:var(--text)">Oceny</strong>
+          <button class="btn btn-primary btn-sm" onclick="openGradeModal()">+ Dodaj</button>
+        </div>
+        ${gr.length===0?'<p style="color:var(--text-muted);font-size:14px">Brak ocen.</p>':
+          [...gr].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(g=>`
+            <div class="grade-row" onclick="openGradeModal('${g.id}')">
+              <div class="grade-badge" style="background:${gradeColor(g.value)}">${g.value}</div>
+              <div class="grade-info">${g.subject}<small>${g.comment||''} · ${formatDate(g.date)}</small></div>
+            </div>`).join('')}
+      </div>
+      <div class="card">
+        <strong style="font-size:14px;color:var(--text);display:block;margin-bottom:12px">Średnie ocen</strong>
+        ${Object.entries(avgMap).map(([subj,v])=>{
+          const avg=(v.sum/v.cnt).toFixed(2);
+          return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <span style="flex:1;font-size:14px;color:var(--text)">${subj}</span>
+            <div class="grade-badge" style="background:${gradeColor(parseFloat(avg))};width:44px;height:28px;border-radius:8px;font-size:13px">${avg}</div>
+          </div>`;
+        }).join('')||'<p style="color:var(--text-muted);font-size:13px">Brak ocen.</p>'}
+      </div>
+    </div>`;
+
+  } else if(schoolSubTab==='schedule'){
+    const lessons=S.lessons||[];
+    const myLessons=lessons.filter(l=>l.person===schoolTab);
+    const getLesson=(day,slot)=>myLessons.find(l=>l.day===day&&l.slot===slot);
+    el.innerHTML=subTabs+`<div class="card" style="overflow-x:auto">
+      <strong style="font-size:14px;color:var(--text);display:block;margin-bottom:12px">Plan lekcji — ${schoolTab}</strong>
+      <table class="lesson-grid">
+        <thead><tr>
+          <th style="width:60px">Godz.</th>
+          ${DAYS_PL.map(d=>`<th>${d}</th>`).join('')}
+        </tr></thead>
+        <tbody>
+          ${SLOTS.map(slot=>`<tr>
+            <td style="font-size:11px;color:var(--text-muted);text-align:center;font-weight:700">${slot}</td>
+            ${DAYS_PL.map(day=>{
+              const l=getLesson(day,slot);
+              return `<td>${l
+                ? `<span class="lesson-cell" onclick="openLessonModal('${l.id}')" style="background:var(--primary);color:#fff">${l.subject}${l.room?'<br><small style=\'opacity:.7\'>'+l.room+'</small>':''}</span>`
+                : `<span class="lesson-add" onclick="openLessonModal(null,'${day}','${slot}')">+</span>`}
+              </td>`;
+            }).join('')}
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+
+  } else if(schoolSubTab==='activities'){
+    const acts=(S.activities||[]).filter(a=>a.person===schoolTab);
+    const dayOrder=['Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota','Niedziela'];
+    el.innerHTML=subTabs+`<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <strong style="font-size:14px;color:var(--text)">Zajęcia pozalekcyjne — ${schoolTab}</strong>
+        <button class="btn btn-primary btn-sm" onclick="openActivityModal()">+ Dodaj</button>
+      </div>
+      ${acts.length===0?'<p style="color:var(--text-muted);font-size:14px">Brak zajęć. Dodaj kółko lub aktywność!</p>':
+        [...acts].sort((a,b)=>dayOrder.indexOf(a.day)-dayOrder.indexOf(b.day)).map(a=>{
+          const colors=['#4A90D9','#7BC67E','#FF4D8D','#9C27B0','#f39c12','#00A8CC'];
+          const col=colors[dayOrder.indexOf(a.day)%colors.length];
+          return `<div class="activity-card" onclick="openActivityModal('${a.id}')">
+            <div class="activity-day" style="background:${col}">${a.day.slice(0,3)}</div>
+            <div class="activity-info">
+              <strong>${a.name}</strong>
+              <small>⏰ ${a.time||''}${a.place?' · 📍'+a.place:''}${a.note?' · '+a.note:''}</small>
+            </div>
+          </div>`;
+        }).join('')}
+    </div>`;
+  }
+}
+
+function openLessonModal(id,day,slot){
+  if(id){
+    const l=(S.lessons||[]).find(x=>x.id===id); if(!l) return;
+    document.getElementById('lesson-modal-title').textContent='Edytuj lekcję';
+    document.getElementById('lesson-edit-id').value=id;
+    document.getElementById('lesson-subject').value=l.subject;
+    document.getElementById('lesson-time').value=l.slot||'';
+    document.getElementById('lesson-room').value=l.room||'';
+    document.getElementById('lesson-delete-btn').style.display='inline-flex';
+  } else {
+    document.getElementById('lesson-modal-title').textContent='Dodaj lekcję';
+    document.getElementById('lesson-edit-id').value='';
+    document.getElementById('lesson-day-id').value=day||'';
+    document.getElementById('lesson-slot-id').value=slot||'';
+    document.getElementById('lesson-person-id').value=schoolTab||'';
+    document.getElementById('lesson-subject').value='';
+    document.getElementById('lesson-time').value=slot||'08:00';
+    document.getElementById('lesson-room').value='';
+    document.getElementById('lesson-delete-btn').style.display='none';
+  }
+  document.getElementById('lesson-modal').classList.add('open');
+}
+
+function saveLesson(){
+  const subj=document.getElementById('lesson-subject').value.trim();
+  if(!subj){toast('Podaj przedmiot','var(--danger)');return;}
+  if(!S.lessons) S.lessons=[];
+  const editId=document.getElementById('lesson-edit-id').value;
+  const data={person:document.getElementById('lesson-person-id').value||schoolTab,
+    day:document.getElementById('lesson-day-id').value,
+    slot:document.getElementById('lesson-slot-id').value,
+    subject:subj,room:document.getElementById('lesson-room').value};
+  if(editId){const i=S.lessons.findIndex(x=>x.id===editId);if(i>-1)S.lessons[i]={...S.lessons[i],...data};}
+  else S.lessons.push({id:uid(),...data});
+  LS.set('fp_lessons',S.lessons);
+  closeModal('lesson-modal'); renderSchoolContent(); toast('Zapisano ✓','var(--secondary)');
+}
+
+function deleteLesson(){
+  const id=document.getElementById('lesson-edit-id').value;
+  S.lessons=(S.lessons||[]).filter(x=>x.id!==id);
+  LS.set('fp_lessons',S.lessons);
+  closeModal('lesson-modal'); renderSchoolContent(); toast('Usunięto lekcję');
+}
+
+function openActivityModal(id){
+  const kids=children();
+  document.getElementById('activity-person').innerHTML=kids.map(m=>`<option value="${m.name}">${m.emoji} ${m.name}</option>`).join('');
+  if(id){
+    const a=(S.activities||[]).find(x=>x.id===id); if(!a) return;
+    document.getElementById('activity-modal-title').textContent='Edytuj zajęcie';
+    document.getElementById('activity-edit-id').value=id;
+    document.getElementById('activity-person').value=a.person;
+    document.getElementById('activity-name').value=a.name;
+    document.getElementById('activity-day').value=a.day;
+    document.getElementById('activity-time').value=a.time||'16:00';
+    document.getElementById('activity-place').value=a.place||'';
+    document.getElementById('activity-note').value=a.note||'';
+    document.getElementById('activity-delete-btn').style.display='inline-flex';
+  } else {
+    document.getElementById('activity-modal-title').textContent='Nowe zajęcie';
+    document.getElementById('activity-edit-id').value='';
+    document.getElementById('activity-person').value=schoolTab||kids[0]?.name||'';
+    document.getElementById('activity-name').value='';
+    document.getElementById('activity-day').value='Poniedziałek';
+    document.getElementById('activity-time').value='16:00';
+    document.getElementById('activity-place').value='';
+    document.getElementById('activity-note').value='';
+    document.getElementById('activity-delete-btn').style.display='none';
+  }
+  document.getElementById('activity-modal').classList.add('open');
+}
+
+function saveActivity(){
+  const name=document.getElementById('activity-name').value.trim();
+  if(!name){toast('Podaj nazwę zajęcia','var(--danger)');return;}
+  if(!S.activities) S.activities=[];
+  const editId=document.getElementById('activity-edit-id').value;
+  const data={person:document.getElementById('activity-person').value,name,
+    day:document.getElementById('activity-day').value,
+    time:document.getElementById('activity-time').value,
+    place:document.getElementById('activity-place').value,
+    note:document.getElementById('activity-note').value};
+  if(editId){const i=S.activities.findIndex(x=>x.id===editId);if(i>-1)S.activities[i]={...S.activities[i],...data};}
+  else S.activities.push({id:uid(),...data});
+  LS.set('fp_activities',S.activities);
+  closeModal('activity-modal'); renderSchoolContent(); toast('Zapisano zajęcie ✓','var(--secondary)');
+}
+
+function deleteActivity(){
+  const id=document.getElementById('activity-edit-id').value;
+  S.activities=(S.activities||[]).filter(x=>x.id!==id);
+  LS.set('fp_activities',S.activities);
+  closeModal('activity-modal'); renderSchoolContent(); toast('Usunięto zajęcie');
+}
+
+// ════════════════════════════════════════════
+//  SHOPPING — SUGGESTIONS
+// ════════════════════════════════════════════
+const SHOP_DICT={
+  warzywa:['Pomidory','Ogórki','Marchew','Ziemniaki','Cebula','Czosnek','Papryka','Sałata','Brokuły','Szpinak'],
+  nabiał: ['Mleko','Masło','Jogurt','Śmietana','Ser żółty','Twaróg','Jajka','Kefir'],
+  mięso:  ['Kurczak','Mielone','Schab','Łosoś','Indyk','Kiełbasa','Szynka','Boczek'],
+  piekarnia:['Chleb','Bułki','Bagietka','Ciabatta','Croissant','Tort'],
+  chemia: ['Płyn do naczyń','Proszek do prania','Płyn WC','Szampon','Mydło','Papier toaletowy','Ręczniki papierowe'],
+  inne:   ['Woda','Sok','Kawa','Herbata','Cukier','Mąka','Ryż','Makaron','Oliwa','Ketchup'],
+};
+
+function filterSuggestions(query){
+  const el=document.getElementById('shop-suggestions');
+  const cat=document.getElementById('shop-cat').value;
+  const dict=[...(SHOP_DICT[cat]||[]),...(SHOP_DICT.inne||[])];
+  if(!query||query.length<1){el.innerHTML='';return;}
+  const q=query.toLowerCase();
+  const hits=dict.filter(x=>x.toLowerCase().includes(q)&&!S.shopping.some(s=>s.name===x)).slice(0,6);
+  el.innerHTML=hits.map(h=>`<button class="suggestion-chip" onclick="pickSuggestion('${h}')">${h}</button>`).join('');
+}
+
+function pickSuggestion(name){
+  document.getElementById('shop-input').value=name;
+  document.getElementById('shop-suggestions').innerHTML='';
+  addShopItem();
+}
+
+// ════════════════════════════════════════════
+//  IMPORT DATA
+// ════════════════════════════════════════════
+function importData(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(confirm('Zaimportować dane? Nadpisze obecne dane aplikacji.')){
+        Object.entries(data).forEach(([k,v])=>LS.set('fp_'+k,v));
+        location.reload();
+      }
+    }catch{ toast('Błąd importu — nieprawidłowy plik JSON','var(--danger)'); }
+  };
+  reader.readAsText(file);
+}
+
+// ════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════
+function fillPersonSelect(selId){
+  document.getElementById(selId).innerHTML=
+    '<option value="">— Cała rodzina —</option>'+
+    S.members.map(m=>`<option value="${m.name}">${m.emoji} ${m.name}</option>`).join('');
+}
+
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-backdrop').forEach(b=>
+  b.addEventListener('click',e=>{ if(e.target===b) b.classList.remove('open'); })
+);
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+// load extra state from storage
+S.contacts   = LS.get('fp_contacts',   []);
+S.lessons    = LS.get('fp_lessons',    []);
+S.activities = LS.get('fp_activities', []);
+
+// ensure points exist for all members
+S.members.forEach(m=>{ if(!S.points[m.id]) S.points[m.id]={pts:0,history:[]}; });
+
+// set gamification default
+if(S.settings.gamificationOn===undefined) S.settings.gamificationOn=true;
+
+renderDashboard();
+renderChores();
+renderShopping();
+</script>
+</body>
+</html>
+

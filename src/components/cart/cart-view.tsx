@@ -14,6 +14,7 @@ import { useCart } from "@/components/cart/cart-provider";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
+import { getProductHref } from "@/data/interactive-planners";
 
 export function CartView() {
   const { items, isReady, subtotal, removeItem, updateQuantity } = useCart();
@@ -94,7 +95,7 @@ export function CartView() {
                     {product.category}
                   </p>
                   <Link
-                    href={`/produkty/${product.slug}`}
+                    href={getProductHref(product.slug)}
                     className="block text-2xl text-foreground transition hover:text-primary line-clamp-2 break-words"
                   >
                     {product.name}

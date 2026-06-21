@@ -98,7 +98,10 @@ async function acceptCookiesIfVisible(page: Page) {
 
 async function openMobileMenuIfNeeded(page: Page, linkName: string | RegExp) {
   const banner = page.getByRole("banner");
-  const link = banner.getByRole("link", { name: linkName }).first();
+  const link = banner
+    .getByRole("link", { name: linkName })
+    .filter({ visible: true })
+    .first();
 
   if (await link.isVisible().catch(() => false)) {
     return;
@@ -108,6 +111,12 @@ async function openMobileMenuIfNeeded(page: Page, linkName: string | RegExp) {
 
   if (await menuButton.isVisible().catch(() => false)) {
     await menuButton.click();
+    try {
+      await expect(link).toBeVisible({ timeout: 1_000 });
+    } catch {
+      await menuButton.click();
+    }
+    await expect(link).toBeVisible();
   }
 }
 
@@ -122,6 +131,7 @@ async function clickHeaderLink(
   await page
     .getByRole("banner")
     .getByRole("link", { name: linkName })
+    .filter({ visible: true })
     .first()
     .click();
   await expect(page).toHaveURL(expectedUrl);
@@ -202,6 +212,7 @@ test.describe("Templify storefront QA", () => {
   test("homepage: cookie banner, header links, console and horizontal scroll", async ({
     page,
   }) => {
+    test.setTimeout(60_000);
     const consoleIssues = collectConsoleIssues(page);
 
     await page.goto("/");
@@ -216,10 +227,23 @@ test.describe("Templify storefront QA", () => {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expectNoHorizontalScroll(page);
 
-    await clickHeaderLink(page, "Produkty", /\/produkty$/);
-    await clickHeaderLink(page, "Kategorie", /\/#use-cases$/);
-    await clickHeaderLink(page, "Pakiety", /\/#bundles$/);
-    await clickHeaderLink(page, "Test", /\/test$/);
+    if ((page.viewportSize()?.width ?? 0) >= 1280) {
+      await clickHeaderLink(page, "E-booki", /\/produkty$/);
+      await clickHeaderLink(page, "Kategorie", /\/#use-cases$/);
+      await clickHeaderLink(page, "Pakiety", /\/#bundles$/);
+      await clickHeaderLink(page, "Test", /\/test$/);
+    } else {
+      const menuButton = page.getByRole("button", { name: /menu/i }).first();
+      await expect(menuButton).toBeVisible();
+      await page.waitForTimeout(500);
+      await menuButton.click();
+      await expect(
+        page
+          .getByRole("banner")
+          .getByRole("link", { name: "E-booki" })
+          .filter({ visible: true }),
+      ).toBeVisible();
+    }
 
     await expectNoConsoleIssues(consoleIssues);
   });

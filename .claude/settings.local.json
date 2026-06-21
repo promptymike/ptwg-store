@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "mcp__Claude_Preview__preview_start",
+      "mcp__visualize__read_me",
+      "mcp__visualize__show_widget",
+      "WebFetch(domain:godly.website)",
+      "WebSearch",
+      "WebFetch(domain:www.hugoandmarie.com)",
+      "WebFetch(domain:www.studioandmarie.com)"
     ]
   }
 }

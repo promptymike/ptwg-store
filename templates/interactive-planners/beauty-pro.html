@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Beauty Pro — profesjonalne narzędzie do zarządzania salonem beauty. Zarządzaj klientami, wizytami, personelem, magazynem i finansami.">
+<meta name="theme-color" content="#e8749a">
+<meta property="og:title" content="Beauty Pro — Salon Manager">
+<meta property="og:description" content="Profesjonalne narzędzie do zarządzania salonem beauty">
+<meta property="og:type" content="website">
+<title>Beauty Pro — Salon Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --rose:#e8749a;--rose-dark:#c45a7e;--rose-light:#fce8ef;--rose-pale:#fff5f8;
+  --gold:#d4a853;--gold-light:#fdf3e0;
+  --sage:#7aaa8a;--sage-light:#e8f4ec;
+  --sky:#5b9bd5;--sky-light:#e3f0fa;
+  --text:#2c2c3a;--text2:#6b6b80;--text3:#a0a0b5;
+  --bg:#f9f6f8;--card:#ffffff;--border:rgba(0,0,0,.07);
+  --sidebar:#1e1b2e;--nav:220px;
+  --sh:0 2px 12px rgba(0,0,0,.07);--sh2:0 6px 28px rgba(0,0,0,.1);
+  --r:10px;--r2:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;overflow:hidden;}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--rose);border-radius:3px}
+
+/* SIDEBAR */
+.sidebar{width:var(--nav);min-height:100vh;background:var(--sidebar);display:flex;flex-direction:column;padding:24px 0 16px;position:fixed;left:0;top:0;bottom:0;z-index:100;box-shadow:4px 0 20px rgba(0,0,0,.2);}
+.logo{padding:0 20px 22px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:12px;}
+.logo-mark{width:38px;height:38px;background:linear-gradient(135deg,var(--rose),var(--gold));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.logo-text h1{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#fff;}
+.logo-text small{font-size:10px;color:rgba(255,255,255,.35);letter-spacing:.5px;}
+.nav-section{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.25);padding:14px 20px 4px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;margin:1px 10px;border:none;border-radius:8px;background:transparent;color:rgba(255,255,255,.5);font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .18s;text-align:left;width:calc(100% - 20px);}
+.nav-btn:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85);}
+.nav-btn.active{background:linear-gradient(135deg,rgba(232,116,154,.3),rgba(212,168,83,.2));color:#fff;box-shadow:inset 0 0 0 1px rgba(232,116,154,.3);}
+.nav-icon{font-size:16px;min-width:22px;text-align:center;}
+.sidebar-footer{margin-top:auto;padding:14px 16px;border-top:1px solid rgba(255,255,255,.06);font-size:11px;color:rgba(255,255,255,.25);text-align:center;}
+
+/* MAIN */
+.main{margin-left:var(--nav);flex:1;height:100vh;overflow-y:auto;padding:28px 32px 60px;}
+.view{display:none;}.view.active{display:block;}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:26px;flex-wrap:wrap;gap:12px;}
+.page-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;}
+.page-sub{font-size:13px;color:var(--text2);margin-top:3px;}
+
+/* CARDS */
+.card{background:var(--card);border-radius:var(--r2);box-shadow:var(--sh);padding:22px;}
+.card-sm{padding:16px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px;}
+@media(max-width:1100px){.grid-4{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:repeat(2,1fr)}}
+
+/* STAT CARDS */
+.stat-card{background:var(--card);border-radius:var(--r2);padding:20px;box-shadow:var(--sh);display:flex;flex-direction:column;gap:6px;}
+.stat-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);}
+.stat-value{font-size:28px;font-weight:700;line-height:1;}
+.stat-sub{font-size:12px;color:var(--text2);}
+.stat-icon{font-size:28px;align-self:flex-end;margin-top:-10px;}
+
+/* BUTTONS */
+.btn{padding:9px 18px;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .18s;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:linear-gradient(135deg,var(--rose),var(--rose-dark));color:#fff;box-shadow:0 3px 12px rgba(232,116,154,.35);}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(232,116,154,.45);}
+.btn-secondary{background:var(--rose-pale);color:var(--rose-dark);border:1px solid rgba(232,116,154,.2);}
+.btn-secondary:hover{background:var(--rose-light);}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{background:#f4f4f8;}
+.btn-danger{background:#fde8e8;color:#c0392b;border:1px solid rgba(192,57,43,.15);}
+.btn-danger:hover{background:#f5c0c0;}
+.btn-sm{padding:6px 12px;font-size:12px;}
+.btn-xs{padding:4px 8px;font-size:11px;}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:var(--r2);border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:#f8f6fb;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);padding:11px 14px;text-align:left;border-bottom:1px solid var(--border);}
+td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fdfcfe;}
+.td-actions{display:flex;gap:6px;}
+
+/* SEARCH / FILTER */
+.toolbar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
+.search-box{position:relative;flex:1;min-width:180px;}
+.search-box input{width:100%;padding:9px 12px 9px 36px;border:1px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;background:var(--card);outline:none;transition:border-color .2s;}
+.search-box input:focus{border-color:var(--rose);}
+.search-box::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;}
+select.filter{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;background:var(--card);outline:none;cursor:pointer;}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.badge-green{background:#e6f4ea;color:#2d7a2d;}
+.badge-orange{background:#fef3e2;color:#b8681a;}
+.badge-red{background:#fde8e8;color:#c0392b;}
+.badge-blue{background:#e3f0fa;color:#1a6ba0;}
+.badge-rose{background:var(--rose-light);color:var(--rose-dark);}
+.badge-gray{background:#f0f0f5;color:var(--text2);}
+
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group label{font-size:12px;font-weight:600;color:var(--text2);}
+.form-group input,.form-group select,.form-group textarea{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;background:var(--card);outline:none;transition:border-color .2s;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--rose);}
+.form-group textarea{resize:vertical;min-height:72px;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--card);border-radius:var(--r2);max-width:580px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--sh2);}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--border);}
+.modal-head h3{font-family:'Playfair Display',serif;font-size:18px;}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text2);padding:2px 6px;border-radius:4px;}
+.modal-close:hover{background:#f4f4f8;}
+.modal-body{padding:22px 24px;}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;}
+
+/* SCHEDULE / CALENDAR */
+.schedule-grid{display:grid;grid-template-columns:80px repeat(7,1fr);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;background:var(--card);}
+.sch-head{background:#f8f6fb;padding:10px 6px;text-align:center;font-size:12px;font-weight:600;border-bottom:1px solid var(--border);}
+.sch-time{padding:6px 8px;font-size:11px;color:var(--text2);text-align:right;border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+.sch-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);min-height:36px;position:relative;cursor:pointer;}
+.sch-cell:hover{background:var(--rose-pale);}
+.sch-appt{position:absolute;left:2px;right:2px;border-radius:5px;padding:2px 5px;font-size:10px;font-weight:600;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+
+/* AI */
+.ai-msg{display:flex;max-width:82%;}
+.ai-msg--user{align-self:flex-end;flex-direction:row-reverse;}
+.ai-msg--assistant{align-self:flex-start;}
+.ai-msg__bubble{padding:11px 15px;border-radius:13px;font-size:13.5px;line-height:1.6;}
+.ai-msg--user .ai-msg__bubble{background:linear-gradient(135deg,var(--rose),var(--rose-dark));color:#fff;border-bottom-right-radius:3px;}
+.ai-msg--assistant .ai-msg__bubble{background:#f2f0f8;color:var(--text);border-bottom-left-radius:3px;}
+.ai-msg--loading .ai-msg__bubble{opacity:.7;font-style:italic;}
+.ai-quick-btn{display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 10px;background:var(--card);border:1px solid var(--border);border-radius:12px;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .18s;box-shadow:var(--sh);}
+.ai-quick-btn:hover{border-color:var(--rose);color:var(--rose-dark);transform:translateY(-2px);}
+.ai-quick-btn .ai-qicon{font-size:24px;}
+
+/* MISC */
+.empty-state{text-align:center;padding:48px 20px;color:var(--text2);}
+.empty-state .empty-icon{font-size:48px;margin-bottom:12px;}
+.color-dot{width:12px;height:12px;border-radius:50%;display:inline-block;}
+.section-title{font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.client-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--rose),var(--gold));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
+
+/* ── FOCUS STATES (accessibility) ── */
+:focus-visible{outline:2px solid var(--rose);outline-offset:2px;border-radius:4px;}
+
+/* ── SKIP LINK ── */
+.skip-link{position:absolute;left:-9999px;top:8px;background:var(--rose);color:#fff;padding:8px 16px;border-radius:6px;font-weight:700;font-size:13px;z-index:9999;text-decoration:none;}
+.skip-link:focus{left:8px;}
+
+/* ── HAMBURGER ── */
+.hamburger{display:none;position:fixed;top:12px;left:12px;z-index:200;background:var(--sidebar);border:none;border-radius:8px;padding:9px 11px;cursor:pointer;flex-direction:column;gap:5px;align-items:center;box-shadow:0 2px 10px rgba(0,0,0,.3);}
+.hamburger span{display:block;width:20px;height:2px;background:rgba(255,255,255,.85);border-radius:2px;transition:all .2s;}
+
+/* ── SIDEBAR OVERLAY (mobile) ── */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:90;}
+.sidebar-overlay.open{display:block;}
+
+/* ── RESPONSIVE tablet ── */
+@media(max-width:1000px){
+  .grid-4{grid-template-columns:repeat(2,1fr)}
+  .grid-3{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ── RESPONSIVE mobile ── */
+@media(max-width:768px){
+  body{overflow-x:hidden;}
+  .sidebar{transform:translateX(-240px);transition:transform .25s ease;}
+  .sidebar.mobile-open{transform:translateX(0);}
+  .main{margin-left:0;padding:16px 14px 70px;height:auto;min-height:100vh;overflow-y:visible;}
+  .hamburger{display:flex;}
+  .page-title{font-size:20px;margin-top:46px;}
+  .page-header{flex-direction:column;align-items:flex-start;}
+  .grid-4,.grid-3,.grid-2{grid-template-columns:1fr !important;}
+  .stat-value{font-size:22px;}
+  .toolbar{flex-direction:column;align-items:stretch;}
+  .search-box{width:100%;}
+  select.filter,.filter{width:100%;}
+  .modal-box{max-width:calc(100vw - 16px);margin:8px;}
+  .modal-body{padding:16px 18px;}
+  .form-grid{grid-template-columns:1fr;}
+  table{font-size:12px;}
+  th,td{padding:8px 10px;}
+  .td-actions{flex-wrap:wrap;gap:4px;}
+  .schedule-grid{grid-template-columns:58px repeat(7,minmax(64px,1fr));}
+  #ai-chat-box{height:300px;}
+  .ai-quick-btn{padding:10px 8px;font-size:10px;}
+}
+@media(max-width:480px){
+  .main{padding:12px 10px 70px;}
+  .modal-overlay{padding:6px;}
+  .stat-card{padding:14px;}
+}
+
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Przejdź do treści</a>
+<button class="hamburger" id="hamburger-btn" aria-label="Otwórz menu nawigacji" aria-expanded="false" aria-controls="sidebar">
+  <span></span><span></span><span></span>
+</button>
+<div class="sidebar-overlay" id="sidebar-overlay" role="presentation"></div>
+
+<!-- ===== SIDEBAR ===== -->
+<nav class="sidebar" id="sidebar" aria-label="Nawigacja główna">
+  <div class="logo">
+    <div class="logo-mark">💅</div>
+    <div class="logo-text"><h1>Beauty Pro</h1><small>SALON MANAGER</small></div>
+  </div>
+  <div class="nav-section">Główne</div>
+  <button class="nav-btn active" data-view="dashboard" aria-current="page"><span class="nav-icon">🏠</span> Dashboard</button>
+  <div class="nav-section">Klienci &amp; Wizyty</div>
+  <button class="nav-btn" data-view="clients" aria-current="false"><span class="nav-icon">👥</span> Klienci</button>
+  <button class="nav-btn" data-view="appointments" aria-current="false"><span class="nav-icon">📅</span> Wizyty</button>
+  <div class="nav-section">Personel &amp; Grafik</div>
+  <button class="nav-btn" data-view="staff" aria-current="false"><span class="nav-icon">👩‍🎨</span> Personel</button>
+  <button class="nav-btn" data-view="schedule" aria-current="false"><span class="nav-icon">🗓️</span> Grafik</button>
+  <div class="nav-section">Salon</div>
+  <button class="nav-btn" data-view="services" aria-current="false"><span class="nav-icon">✨</span> Usługi</button>
+  <button class="nav-btn" data-view="inventory" aria-current="false"><span class="nav-icon">📦</span> Magazyn</button>
+  <div class="nav-section">Finanse</div>
+  <button class="nav-btn" data-view="reports" aria-current="false"><span class="nav-icon">📊</span> Raporty</button>
+  <div class="nav-section">AI</div>
+  <button class="nav-btn" data-view="ai" aria-current="false"><span class="nav-icon">🤖</span> Asystent AI</button>
+  <div class="sidebar-footer">Beauty Pro © 2025</div>
+</nav>
+
+<!-- ===== MAIN ===== -->
+<main class="main" id="main-content">
+
+<!-- DASHBOARD -->
+<div class="view active" id="dashboard-view">
+  <div class="page-header">
+    <div><div class="page-title">Dashboard 🌸</div><div class="page-sub" id="dash-date"></div></div>
+    <button class="btn btn-primary" onclick="openModal('appt-modal')">+ Nowa wizyta</button>
+  </div>
+  <div class="grid-4" id="dash-stats"></div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="section-title">📅 Dzisiaj</div>
+      <div id="dash-today"></div>
+    </div>
+    <div class="card">
+      <div class="section-title">🎂 Urodziny w tym tygodniu</div>
+      <div id="dash-birthdays"></div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="section-title">📉 Niski stan magazynu</div>
+      <div id="dash-low-stock"></div>
+    </div>
+    <div class="card">
+      <div class="section-title">💰 Przychody — ostatnie 7 dni</div>
+      <canvas id="chart-revenue" height="180"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENTS -->
+<div class="view" id="clients-view">
+  <div class="page-header">
+    <div><div class="page-title">Klienci 👥</div><div class="page-sub" id="clients-count"></div></div>
+    <button class="btn btn-primary" onclick="openModal('client-modal')">+ Nowy klient</button>
+  </div>
+  <div class="toolbar">
+    <div class="search-box"><input type="text" id="client-search" aria-label="Szukaj klienta" placeholder="Szukaj klienta..." oninput="renderClients()"></div>
+    <select class="filter" id="client-filter" aria-label="Filtruj klientów po statusie" onchange="renderClients()">
+      <option value="">Wszyscy</option><option value="active">Aktywni</option><option value="vip">VIP</option><option value="inactive">Nieaktywni</option>
+    </select>
+  </div>
+  <div class="table-wrap">
+    <table><thead><tr><th scope="col">Klient</th><th scope="col">Telefon</th><th scope="col">Email</th><th scope="col">Wizyty</th><th scope="col">Wydatki</th><th scope="col">Status</th><th scope="col">Akcje</th></tr></thead>
+    <tbody id="clients-tbody"></tbody></table>
+  </div>
+</div>
+
+<!-- APPOINTMENTS -->
+<div class="view" id="appointments-view">
+  <div class="page-header">
+    <div><div class="page-title">Wizyty 📅</div><div class="page-sub" id="appts-count"></div></div>
+    <button class="btn btn-primary" onclick="openModal('appt-modal')">+ Nowa wizyta</button>
+  </div>
+  <div class="toolbar">
+    <input type="date" class="filter" id="appt-date-filter" aria-label="Filtruj wizyty po dacie" onchange="renderAppointments()">
+    <select class="filter" id="appt-status-filter" aria-label="Filtruj wizyty po statusie" onchange="renderAppointments()">
+      <option value="">Wszystkie statusy</option><option value="scheduled">Zaplanowane</option><option value="completed">Zakończone</option><option value="cancelled">Anulowane</option><option value="no-show">Nieobecność</option>
+    </select>
+    <select class="filter" id="appt-staff-filter" aria-label="Filtruj wizyty po pracowniku" onchange="renderAppointments()">
+      <option value="">Cały personel</option>
+    </select>
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('appt-date-filter').value='';renderAppointments()">Wyczyść</button>
+  </div>
+  <div class="table-wrap">
+    <table><thead><tr><th scope="col">Data &amp; Czas</th><th scope="col">Klient</th><th scope="col">Usługa</th><th scope="col">Pracownik</th><th scope="col">Czas</th><th scope="col">Cena</th><th scope="col">Status</th><th scope="col">Akcje</th></tr></thead>
+    <tbody id="appts-tbody"></tbody></table>
+  </div>
+</div>
+
+<!-- STAFF -->
+<div class="view" id="staff-view">
+  <div class="page-header">
+    <div><div class="page-title">Personel 👩‍🎨</div><div class="page-sub" id="staff-count"></div></div>
+    <button class="btn btn-primary" onclick="openModal('staff-modal')">+ Dodaj pracownika</button>
+  </div>
+  <div id="staff-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;"></div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="view" id="schedule-view">
+  <div class="page-header">
+    <div><div class="page-title">Grafik 🗓️</div><div class="page-sub" id="schedule-week-label"></div></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="changeWeek(-1)">← Poprzedni</button>
+      <button class="btn btn-ghost btn-sm" onclick="changeWeek(0)">Dziś</button>
+      <button class="btn btn-ghost btn-sm" onclick="changeWeek(1)">Następny →</button>
+    </div>
+  </div>
+  <div id="schedule-container" style="overflow-x:auto;"></div>
+</div>
+
+<!-- SERVICES -->
+<div class="view" id="services-view">
+  <div class="page-header">
+    <div><div class="page-title">Usługi ✨</div><div class="page-sub" id="services-count"></div></div>
+    <button class="btn btn-primary" onclick="openModal('service-modal')">+ Nowa usługa</button>
+  </div>
+  <div class="toolbar">
+    <select class="filter" id="service-cat-filter" aria-label="Filtruj usługi po kategorii" onchange="renderServices()">
+      <option value="">Wszystkie kategorie</option>
+    </select>
+  </div>
+  <div class="table-wrap">
+    <table><thead><tr><th scope="col">Usługa</th><th scope="col">Kategoria</th><th scope="col">Czas</th><th scope="col">Cena</th><th scope="col">Opis</th><th scope="col">Akcje</th></tr></thead>
+    <tbody id="services-tbody"></tbody></table>
+  </div>
+</div>
+
+<!-- INVENTORY -->
+<div class="view" id="inventory-view">
+  <div class="page-header">
+    <div><div class="page-title">Magazyn 📦</div><div class="page-sub" id="inventory-count"></div></div>
+    <button class="btn btn-primary" onclick="openModal('product-modal')">+ Dodaj produkt</button>
+  </div>
+  <div class="toolbar">
+    <div class="search-box"><input type="text" id="inv-search" aria-label="Szukaj produktu" placeholder="Szukaj produktu..." oninput="renderInventory()"></div>
+    <select class="filter" id="inv-cat-filter" aria-label="Filtruj produkty po kategorii" onchange="renderInventory()">
+      <option value="">Wszystkie kategorie</option>
+    </select>
+    <select class="filter" id="inv-stock-filter" aria-label="Filtruj produkty po stanie" onchange="renderInventory()">
+      <option value="">Cały stan</option><option value="low">Niski stan</option><option value="ok">Dostępne</option>
+    </select>
+  </div>
+  <div class="table-wrap">
+    <table><thead><tr><th scope="col">Produkt</th><th scope="col">Marka</th><th scope="col">Kategoria</th><th scope="col">Stan</th><th scope="col">Min.</th><th scope="col">Cena kupna</th><th scope="col">Cena sprzedaży</th><th scope="col">Akcje</th></tr></thead>
+    <tbody id="inventory-tbody"></tbody></table>
+  </div>
+</div>
+
+<!-- REPORTS -->
+<div class="view" id="reports-view">
+  <div class="page-header">
+    <div><div class="page-title">Raporty &amp; Finanse 📊</div><div class="page-sub">Przegląd działalności salonu</div></div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <select class="filter" id="report-period" aria-label="Wybierz okres raportu" onchange="renderReports()">
+        <option value="7">Ostatnie 7 dni</option><option value="30" selected>Ostatnie 30 dni</option><option value="90">Ostatnie 90 dni</option><option value="365">Ostatni rok</option>
+      </select>
+    </div>
+  </div>
+  <div class="grid-4" id="report-stats"></div>
+  <div class="grid-2">
+    <div class="card"><div class="section-title">📈 Przychody w czasie</div><canvas id="chart-reports" height="200"></canvas></div>
+    <div class="card"><div class="section-title">✨ Popularne usługi</div><canvas id="chart-services" height="200"></canvas></div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="section-title">👥 Top 10 klientów</div>
+      <div id="report-top-clients"></div>
+    </div>
+    <div class="card">
+      <div class="section-title">👩‍🎨 Wyniki personelu</div>
+      <div id="report-staff-perf"></div>
+    </div>
+  </div>
+</div>
+
+<!-- AI VIEW -->
+<div class="view" id="ai-view">
+  <div class="page-header">
+    <div><div class="page-title">Asystent AI 🤖</div><div class="page-sub">Inteligentne wsparcie dla Twojego salonu</div></div>
+    <button class="btn btn-secondary" onclick="openModal('ai-settings-modal')">⚙️ Ustawienia AI</button>
+  </div>
+  <div id="ai-status-bar" style="display:none;padding:10px 16px;border-radius:10px;margin-bottom:20px;font-size:13px;font-weight:600;"></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:26px;">
+    <button class="ai-quick-btn" onclick="aiQuickAction('revenue')"><span class="ai-qicon">💰</span><span>Analiza przychodów</span></button>
+    <button class="ai-quick-btn" onclick="aiQuickAction('clients')"><span class="ai-qicon">👥</span><span>Retencja klientów</span></button>
+    <button class="ai-quick-btn" onclick="aiQuickAction('staff')"><span class="ai-qicon">👩‍🎨</span><span>Optymalizacja grafiku</span></button>
+    <button class="ai-quick-btn" onclick="aiQuickAction('services')"><span class="ai-qicon">✨</span><span>Strategia usług</span></button>
+    <button class="ai-quick-btn" onclick="aiQuickAction('marketing')"><span class="ai-qicon">📢</span><span>Pomysły marketingowe</span></button>
+    <button class="ai-quick-btn" onclick="aiQuickAction('inventory')"><span class="ai-qicon">📦</span><span>Zarządzanie magazynem</span></button>
+  </div>
+  <div style="background:var(--card);border-radius:16px;box-shadow:var(--sh);overflow:hidden;">
+    <div id="ai-chat-box" style="height:400px;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;">
+      <div class="ai-msg ai-msg--assistant"><div class="ai-msg__bubble">Cześć! Jestem Twoim asystentem salonu beauty 💅 Mogę pomóc w analizie przychodów, strategii marketingowej, optymalizacji grafiku, zarządzaniu klientami i wiele więcej. Jak mogę Ci pomóc?</div></div>
+    </div>
+    <div style="border-top:1px solid var(--border);padding:14px;display:flex;gap:10px;background:#fafafa;">
+      <input id="ai-user-input" type="text" aria-label="Wpisz pytanie do asystenta AI" placeholder="Napisz pytanie o salon..." style="flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;background:#fff;outline:none;" onkeydown="if(event.key==='Enter')sendAIChat()">
+      <button onclick="sendAIChat()" class="btn btn-primary">Wyślij</button>
+    </div>
+  </div>
+</div>
+
+</main><!-- end .main -->
+
+<!-- Floating AI button -->
+<button onclick="switchView('ai')" title="Asystent AI" aria-label="Otwórz Asystenta AI"
+  style="position:fixed;bottom:26px;right:26px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--rose),var(--rose-dark));border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 18px rgba(232,116,154,.5);z-index:800;display:flex;align-items:center;justify-content:center;transition:transform .2s;"
+  onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform='scale(1)'">🤖</button>
+
+<!-- ======== MODALS ======== -->
+
+<!-- CLIENT MODAL -->
+<div class="modal-overlay" id="client-modal">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="client-modal-title">Nowy klient</h3><button class="modal-close" onclick="closeModal('client-modal')" aria-label="Zamknij">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="client-id">
+      <div class="form-grid">
+        <div class="form-group"><label for="c-name">Imię i nazwisko *</label><input id="c-name" placeholder="Anna Kowalska"></div>
+        <div class="form-group"><label for="c-phone">Telefon</label><input id="c-phone" placeholder="+48 123 456 789"></div>
+        <div class="form-group"><label for="c-email">Email</label><input id="c-email" type="email" placeholder="anna@example.com"></div>
+        <div class="form-group"><label for="c-birthday">Data urodzenia</label><input id="c-birthday" type="date"></div>
+        <div class="form-group"><label for="c-status">Status</label>
+          <select id="c-status"><option value="active">Aktywny</option><option value="vip">VIP</option><option value="inactive">Nieaktywny</option></select>
+        </div>
+        <div class="form-group"><label for="c-skin">Typ skóry</label><input id="c-skin" placeholder="np. tłusta, sucha"></div>
+        <div class="form-group"><label for="c-hair">Typ włosów</label><input id="c-hair" placeholder="np. grube, kręcone"></div>
+        <div class="form-group"><label for="c-allergies">Alergie</label><input id="c-allergies" placeholder="np. laktoza, orzeszki"></div>
+      </div>
+      <div class="form-group" style="margin-top:12px;"><label for="c-notes">Notatki</label><textarea id="c-notes" placeholder="Dodatkowe informacje..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('client-modal')">Anuluj</button><button class="btn btn-primary" onclick="saveClient()">Zapisz</button></div>
+  </div>
+</div>
+
+<!-- APPOINTMENT MODAL -->
+<div class="modal-overlay" id="appt-modal">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="appt-modal-title">Nowa wizyta</h3><button class="modal-close" onclick="closeModal('appt-modal')" aria-label="Zamknij">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="appt-id">
+      <div class="form-grid">
+        <div class="form-group"><label for="a-client">Klient *</label><select id="a-client"></select></div>
+        <div class="form-group"><label for="a-service">Usługa *</label><select id="a-service" onchange="onServiceChange()"></select></div>
+        <div class="form-group"><label for="a-staff">Pracownik</label><select id="a-staff"></select></div>
+        <div class="form-group"><label for="a-date">Data *</label><input id="a-date" type="date"></div>
+        <div class="form-group"><label for="a-time">Godzina *</label><input id="a-time" type="time" value="10:00"></div>
+        <div class="form-group"><label for="a-duration">Czas (min)</label><input id="a-duration" type="number" value="60" min="5" step="5"></div>
+        <div class="form-group"><label for="a-price">Cena (PLN)</label><input id="a-price" type="number" step="0.01" min="0"></div>
+        <div class="form-group"><label for="a-status">Status</label>
+          <select id="a-status"><option value="scheduled">Zaplanowana</option><option value="completed">Zakończona</option><option value="cancelled">Anulowana</option><option value="no-show">Nieobecność</option></select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:12px;"><label for="a-notes">Notatki</label><textarea id="a-notes" placeholder="Notatki do wizyty..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('appt-modal')">Anuluj</button><button class="btn btn-primary" onclick="saveAppointment()">Zapisz</button></div>
+  </div>
+</div>
+
+<!-- STAFF MODAL -->
+<div class="modal-overlay" id="staff-modal">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="staff-modal-title">Nowy pracownik</h3><button class="modal-close" onclick="closeModal('staff-modal')" aria-label="Zamknij">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="staff-id">
+      <div class="form-grid">
+        <div class="form-group"><label for="s-name">Imię i nazwisko *</label><input id="s-name" placeholder="Marta Nowak"></div>
+        <div class="form-group"><label for="s-role">Rola / Specjalizacja *</label><input id="s-role" placeholder="np. Fryzjer, Kosmetolog"></div>
+        <div class="form-group"><label for="s-phone">Telefon</label><input id="s-phone" placeholder="+48 123 456 789"></div>
+        <div class="form-group"><label for="s-email">Email</label><input id="s-email" type="email"></div>
+        <div class="form-group"><label for="s-color">Kolor kalendarza</label><input id="s-color" type="color" value="#e8749a"></div>
+      </div>
+      <div class="form-group" style="margin-top:12px;"><label>Dni pracy (zaznacz)</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;" id="working-days-picker">
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:6px;"><input type="checkbox" value="1" checked> Pon</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:6px;"><input type="checkbox" value="2" checked> Wt</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:6px;"><input type="checkbox" value="3" checked> Śr</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:6px;"><input type="checkbox" value="4" checked> Czw</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:6px;"><input type="checkbox" value="5" checked> Pt</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:6px;"><input type="checkbox" value="6"> Sob</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:6px;"><input type="checkbox" value="0"> Nd</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('staff-modal')">Anuluj</button><button class="btn btn-primary" onclick="saveStaff()">Zapisz</button></div>
+  </div>
+</div>
+
+<!-- SERVICE MODAL -->
+<div class="modal-overlay" id="service-modal">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="service-modal-title">Nowa usługa</h3><button class="modal-close" onclick="closeModal('service-modal')" aria-label="Zamknij">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="service-id">
+      <div class="form-grid">
+        <div class="form-group"><label for="sv-name">Nazwa usługi *</label><input id="sv-name" placeholder="np. Strzyżenie damskie"></div>
+        <div class="form-group"><label for="sv-category">Kategoria</label><input id="sv-category" placeholder="np. Fryzjerstwo, Kosmetologia"></div>
+        <div class="form-group"><label for="sv-duration">Czas trwania (min)</label><input id="sv-duration" type="number" value="60" min="5" step="5"></div>
+        <div class="form-group"><label for="sv-price">Cena (PLN)</label><input id="sv-price" type="number" step="0.01" min="0"></div>
+      </div>
+      <div class="form-group" style="margin-top:12px;"><label for="sv-desc">Opis</label><textarea id="sv-desc" placeholder="Opis usługi..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('service-modal')">Anuluj</button><button class="btn btn-primary" onclick="saveService()">Zapisz</button></div>
+  </div>
+</div>
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="product-modal-title">Nowy produkt</h3><button class="modal-close" onclick="closeModal('product-modal')" aria-label="Zamknij">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="product-id">
+      <div class="form-grid">
+        <div class="form-group"><label for="p-name">Nazwa produktu *</label><input id="p-name" placeholder="np. Szampon Kerastase"></div>
+        <div class="form-group"><label for="p-brand">Marka</label><input id="p-brand" placeholder="np. Kerastase"></div>
+        <div class="form-group"><label for="p-category">Kategoria</label><input id="p-category" placeholder="np. Pielęgnacja, Koloryzacja"></div>
+        <div class="form-group"><label for="p-qty">Ilość</label><input id="p-qty" type="number" value="1" min="0"></div>
+        <div class="form-group"><label for="p-min">Minimum</label><input id="p-min" type="number" value="2" min="0"></div>
+        <div class="form-group"><label for="p-unit">Jednostka</label><input id="p-unit" placeholder="szt, ml, g"></div>
+        <div class="form-group"><label for="p-buy">Cena kupna (PLN)</label><input id="p-buy" type="number" step="0.01" min="0"></div>
+        <div class="form-group"><label for="p-sell">Cena sprzedaży (PLN)</label><input id="p-sell" type="number" step="0.01" min="0"></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('product-modal')">Anuluj</button><button class="btn btn-primary" onclick="saveProduct()">Zapisz</button></div>
+  </div>
+</div>
+
+<!-- AI SETTINGS MODAL -->
+<div class="modal-overlay" id="ai-settings-modal">
+  <div class="modal-box" style="max-width:460px;">
+    <div class="modal-head"><h3>⚙️ Ustawienia AI</h3><button class="modal-close" onclick="closeModal('ai-settings-modal')" aria-label="Zamknij">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label for="ai-key-input">Klucz API OpenRouter</label>
+        <input id="ai-key-input" type="password" placeholder="sk-or-v1-...">
+        <span style="font-size:11px;color:var(--text3);">Zdobądź klucz na <a href="https://openrouter.ai" target="_blank" style="color:var(--rose-dark);">openrouter.ai</a></span>
+      </div>
+      <div id="ai-model-status" style="font-size:13px;color:var(--text2);padding:10px 12px;background:#f7f6fb;border-radius:8px;margin-top:8px;min-height:38px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="clearAIKey()">Wyczyść</button>
+      <button class="btn btn-ghost" onclick="closeModal('ai-settings-modal')">Anuluj</button>
+      <button class="btn btn-primary" onclick="testAndSaveAIKey()">Zapisz i przetestuj</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STORAGE
+// ============================================================
+const PREF = 'beauty_';
+const db = {
+  get: k => { try { const v = localStorage.getItem(PREF+k); return v ? JSON.parse(v) : null; } catch { return null; }},
+  set: (k,v) => localStorage.setItem(PREF+k, JSON.stringify(v)),
+  del: k => localStorage.removeItem(PREF+k)
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let clients      = db.get('clients')      || [];
+let appointments = db.get('appointments') || [];
+let staff        = db.get('staff')        || [];
+let services     = db.get('services')     || [];
+let inventory    = db.get('inventory')    || [];
+
+function save() {
+  db.set('clients', clients);
+  db.set('appointments', appointments);
+  db.set('staff', staff);
+  db.set('services', services);
+  db.set('inventory', inventory);
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function today() { return new Date().toISOString().slice(0,10); }
+function fmtDate(d) { if(!d) return '—'; const [y,m,dd]=d.split('-'); return `${dd}.${m}.${y}`; }
+function fmtPrice(n) { return parseFloat(n||0).toFixed(2)+' zł'; }
+function clientName(id) { return clients.find(c=>c.id===id)?.name || '—'; }
+function staffName(id)  { return staff.find(s=>s.id===id)?.name  || '—'; }
+function serviceName(id){ return services.find(s=>s.id===id)?.name|| '—'; }
+
+// ============================================================
+// NAV
+// ============================================================
+function switchView(v) {
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    const active = b.dataset.view === v;
+    b.classList.toggle('active', active);
+    b.setAttribute('aria-current', active ? 'page' : 'false');
+  });
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById(v+'-view');
+  if (el) el.classList.add('active');
+  const map = {
+    dashboard: renderDashboard, clients: renderClients, appointments: renderAppointments,
+    staff: renderStaff, schedule: renderSchedule, services: renderServices,
+    inventory: renderInventory, reports: renderReports, ai: () => updateAIStatusBar()
+  };
+  map[v] && map[v]();
+}
+
+// ── MOBILE NAVIGATION ──
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const btn = document.getElementById('hamburger-btn');
+  const ov = document.getElementById('sidebar-overlay');
+  const open = sb.classList.toggle('mobile-open');
+  btn.setAttribute('aria-expanded', String(open));
+  ov.classList.toggle('open', open);
+  document.body.style.overflow = open ? 'hidden' : '';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  const btn = document.getElementById('hamburger-btn');
+  if(btn) btn.setAttribute('aria-expanded', 'false');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('hamburger-btn').addEventListener('click', toggleSidebar);
+document.getElementById('sidebar-overlay').addEventListener('click', closeSidebar);
+
+document.querySelectorAll('.nav-btn[data-view]').forEach(b => b.addEventListener('click', () => { switchView(b.dataset.view); if(window.innerWidth <= 768) closeSidebar(); }));
+
+// ============================================================
+// MODAL helpers
+// ============================================================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); }));
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+let revenueChart = null;
+function renderDashboard() {
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('pl-PL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const todayStr = today();
+  const todayAppts = appointments.filter(a => a.date === todayStr);
+  const revenue30 = appointments.filter(a=>a.status==='completed'&&a.date>=new Date(Date.now()-30*864e5).toISOString().slice(0,10)).reduce((s,a)=>s+(+a.price||0),0);
+  const totalClients = clients.filter(c=>c.status!=='inactive').length;
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Wizyty dziś</div><div class="stat-value" style="color:var(--rose)">${todayAppts.length}</div><div class="stat-sub">${todayAppts.filter(a=>a.status==='completed').length} zakończone</div></div>
+    <div class="stat-card"><div class="stat-label">Przychody (30 dni)</div><div class="stat-value" style="color:var(--gold)">${revenue30.toFixed(0)} zł</div></div>
+    <div class="stat-card"><div class="stat-label">Aktywni klienci</div><div class="stat-value" style="color:var(--sage)">${totalClients}</div></div>
+    <div class="stat-card"><div class="stat-label">Personel</div><div class="stat-value" style="color:var(--sky)">${staff.length}</div><div class="stat-sub">${services.length} usług</div></div>`;
+  // today appointments
+  const todayEl = document.getElementById('dash-today');
+  if (!todayAppts.length) { todayEl.innerHTML='<div class="empty-state" style="padding:20px"><div class="empty-icon">📭</div><p>Brak wizyt na dziś</p></div>'; }
+  else todayEl.innerHTML = todayAppts.sort((a,b)=>a.time>b.time?1:-1).map(a=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
+      <div style="min-width:46px;font-size:13px;font-weight:700;color:var(--rose)">${a.time||'?'}</div>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${clientName(a.client_id)}</div><div style="font-size:11px;color:var(--text2)">${serviceName(a.service_id)} · ${staffName(a.staff_id)}</div></div>
+      <span class="badge ${a.status==='completed'?'badge-green':a.status==='cancelled'?'badge-red':'badge-blue'}">${a.status==='completed'?'✓':a.status==='cancelled'?'✗':'⏰'}</span>
+    </div>`).join('');
+  // birthdays
+  const now = new Date();
+  const weekEnd = new Date(now.getTime()+7*864e5);
+  const mmdd = d => d.slice(5);
+  const upcoming = clients.filter(c => {
+    if(!c.birthday) return false;
+    const bd = new Date(now.getFullYear()+'-'+c.birthday.slice(5));
+    return bd >= now && bd <= weekEnd;
+  });
+  document.getElementById('dash-birthdays').innerHTML = upcoming.length
+    ? upcoming.map(c=>`<div style="padding:8px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;"><span style="font-size:20px">🎂</span><div><div style="font-weight:600;font-size:13px">${c.name}</div><div style="font-size:11px;color:var(--text2)">${fmtDate(c.birthday)}</div></div></div>`).join('')
+    : '<div class="empty-state" style="padding:20px"><p>Brak urodzin w tym tygodniu</p></div>';
+  // low stock
+  const lowStock = inventory.filter(p => (+p.quantity||0) <= (+p.min_quantity||2));
+  document.getElementById('dash-low-stock').innerHTML = lowStock.length
+    ? lowStock.map(p=>`<div style="padding:8px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;"><span style="font-size:13px">${p.name}</span><span class="badge badge-red">${p.quantity} ${p.unit||'szt'}</span></div>`).join('')
+    : '<div class="empty-state" style="padding:20px"><p>✅ Magazyn w porządku</p></div>';
+  // chart
+  const labels=[], data=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(Date.now()-i*864e5).toISOString().slice(0,10);
+    labels.push(fmtDate(d).slice(0,5));
+    data.push(appointments.filter(a=>a.date===d&&a.status==='completed').reduce((s,a)=>s+(+a.price||0),0));
+  }
+  if(revenueChart) revenueChart.destroy();
+  const ctx = document.getElementById('chart-revenue').getContext('2d');
+  revenueChart = new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Przychód (zł)',data,backgroundColor:'rgba(232,116,154,.6)',borderColor:'var(--rose)',borderWidth:2,borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+}
+
+// ============================================================
+// CLIENTS
+// ============================================================
+function renderClients() {
+  const search = document.getElementById('client-search').value.toLowerCase();
+  const filter = document.getElementById('client-filter').value;
+  let list = clients.filter(c => {
+    if(filter && c.status!==filter) return false;
+    if(search && !c.name.toLowerCase().includes(search) && !(c.phone||'').includes(search) && !(c.email||'').toLowerCase().includes(search)) return false;
+    return true;
+  });
+  document.getElementById('clients-count').textContent = `${list.length} klientów`;
+  const tbody = document.getElementById('clients-tbody');
+  if(!list.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">👥</div><p style="font-weight:600">Brak klientów</p><p style="font-size:12px;margin-top:6px">Kliknij <strong>+ Nowy klient</strong>, aby dodać pierwszego</p></div></td></tr>';return;}
+  tbody.innerHTML = list.map(c=>{
+    const statusBadge = c.status==='vip'?'badge-rose':c.status==='inactive'?'badge-gray':'badge-green';
+    const statusLabel = c.status==='vip'?'👑 VIP':c.status==='inactive'?'Nieaktywny':'Aktywny';
+    const visits = appointments.filter(a=>a.client_id===c.id).length;
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:10px"><div class="client-avatar">${c.name[0]}</div><div><div style="font-weight:600">${c.name}</div><div style="font-size:11px;color:var(--text2)">${c.birthday?'🎂 '+fmtDate(c.birthday):''}</div></div></div></td>
+      <td>${c.phone||'—'}</td><td>${c.email||'—'}</td>
+      <td>${visits}</td><td>${fmtPrice(c.total_spent)}</td>
+      <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
+      <td><div class="td-actions">
+        <button class="btn btn-secondary btn-xs" onclick="editClient('${c.id}')" aria-label="Edytuj klienta ${c.name}">✏️</button>
+        <button class="btn btn-danger btn-xs" onclick="deleteClient('${c.id}')" aria-label="Usuń klienta ${c.name}">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function openClientModal(reset=true){
+  if(reset){document.getElementById('client-id').value='';['c-name','c-phone','c-email','c-birthday','c-skin','c-hair','c-allergies','c-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('c-status').value='active';}
+  document.getElementById('client-modal-title').textContent = document.getElementById('client-id').value?'Edytuj klienta':'Nowy klient';
+  openModal('client-modal');
+}
+function editClient(id){
+  const c=clients.find(x=>x.id===id);if(!c)return;
+  document.getElementById('client-id').value=id;
+  document.getElementById('c-name').value=c.name||'';document.getElementById('c-phone').value=c.phone||'';document.getElementById('c-email').value=c.email||'';
+  document.getElementById('c-birthday').value=c.birthday||'';document.getElementById('c-status').value=c.status||'active';
+  document.getElementById('c-skin').value=c.skin_type||'';document.getElementById('c-hair').value=c.hair_type||'';
+  document.getElementById('c-allergies').value=c.allergies||'';document.getElementById('c-notes').value=c.notes||'';
+  openClientModal(false);
+}
+function saveClient(){
+  const name=document.getElementById('c-name').value.trim();if(!name){alert('Imię jest wymagane.');return;}
+  const id=document.getElementById('client-id').value||uid();
+  const obj={id,name,phone:document.getElementById('c-phone').value.trim(),email:document.getElementById('c-email').value.trim(),birthday:document.getElementById('c-birthday').value,status:document.getElementById('c-status').value,skin_type:document.getElementById('c-skin').value,hair_type:document.getElementById('c-hair').value,allergies:document.getElementById('c-allergies').value,notes:document.getElementById('c-notes').value};
+  const idx=clients.findIndex(c=>c.id===id);
+  if(idx>-1){obj.total_spent=clients[idx].total_spent||0;clients[idx]=obj;}else{obj.total_spent=0;clients.push(obj);}
+  save();closeModal('client-modal');renderClients();
+}
+function deleteClient(id){if(!confirm('Usuń klienta?'))return;clients=clients.filter(c=>c.id!==id);save();renderClients();}
+
+// ============================================================
+// APPOINTMENTS
+// ============================================================
+function populateApptSelects(){
+  const cs=document.getElementById('a-client');cs.innerHTML='<option value="">Wybierz klienta</option>'+clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  const sv=document.getElementById('a-service');sv.innerHTML='<option value="">Wybierz usługę</option>'+services.map(s=>`<option value="${s.id}" data-dur="${s.duration||60}" data-price="${s.price||0}">${s.name}</option>`).join('');
+  const st=document.getElementById('a-staff');st.innerHTML='<option value="">Brak preferencji</option>'+staff.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  // staff filter
+  const sf=document.getElementById('appt-staff-filter');sf.innerHTML='<option value="">Cały personel</option>'+staff.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+}
+function onServiceChange(){
+  const opt=document.getElementById('a-service').selectedOptions[0];
+  if(opt.dataset.dur)document.getElementById('a-duration').value=opt.dataset.dur;
+  if(opt.dataset.price)document.getElementById('a-price').value=opt.dataset.price;
+}
+function renderAppointments(){
+  const dateF=document.getElementById('appt-date-filter').value;
+  const statusF=document.getElementById('appt-status-filter').value;
+  const staffF=document.getElementById('appt-staff-filter').value;
+  let list=appointments.filter(a=>{
+    if(dateF&&a.date!==dateF)return false;
+    if(statusF&&a.status!==statusF)return false;
+    if(staffF&&a.staff_id!==staffF)return false;
+    return true;
+  }).sort((a,b)=>b.date>a.date?1:b.date<a.date?-1:b.time>a.time?1:-1);
+  document.getElementById('appts-count').textContent=`${list.length} wizyt`;
+  const tbody=document.getElementById('appts-tbody');
+  if(!list.length){tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📅</div><p style="font-weight:600">Brak wizyt</p><p style="font-size:12px;margin-top:6px">Kliknij <strong>+ Nowa wizyta</strong>, aby zaplanować wizytę</p></div></td></tr>';return;}
+  const sMap={'scheduled':'badge-blue','completed':'badge-green','cancelled':'badge-red','no-show':'badge-orange'};
+  const sLbl={'scheduled':'Zaplanowana','completed':'Zakończona','cancelled':'Anulowana','no-show':'Nieobecność'};
+  tbody.innerHTML=list.map(a=>`<tr>
+    <td><div style="font-weight:600">${fmtDate(a.date)}</div><div style="font-size:11px;color:var(--text2)">${a.time||''}</div></td>
+    <td>${clientName(a.client_id)}</td><td>${serviceName(a.service_id)}</td><td>${staffName(a.staff_id)}</td>
+    <td>${a.duration||'?'} min</td><td style="font-weight:600">${fmtPrice(a.price)}</td>
+    <td><span class="badge ${sMap[a.status]||'badge-gray'}">${sLbl[a.status]||a.status}</span></td>
+    <td><div class="td-actions">
+      <button class="btn btn-secondary btn-xs" onclick="editAppt('${a.id}')" aria-label="Edytuj wizytę">✏️</button>
+      <button class="btn btn-danger btn-xs" onclick="deleteAppt('${a.id}')" aria-label="Usuń wizytę">🗑️</button>
+    </div></td>
+  </tr>`).join('');
+}
+function editAppt(id){
+  const a=appointments.find(x=>x.id===id);if(!a)return;
+  populateApptSelects();
+  document.getElementById('appt-id').value=id;
+  document.getElementById('a-client').value=a.client_id||'';document.getElementById('a-service').value=a.service_id||'';
+  document.getElementById('a-staff').value=a.staff_id||'';document.getElementById('a-date').value=a.date||today();
+  document.getElementById('a-time').value=a.time||'10:00';document.getElementById('a-duration').value=a.duration||60;
+  document.getElementById('a-price').value=a.price||0;document.getElementById('a-status').value=a.status||'scheduled';
+  document.getElementById('a-notes').value=a.notes||'';
+  document.getElementById('appt-modal-title').textContent='Edytuj wizytę';
+  openModal('appt-modal');
+}
+function saveAppointment(){
+  const clientId=document.getElementById('a-client').value;const serviceId=document.getElementById('a-service').value;
+  const date=document.getElementById('a-date').value;
+  if(!clientId||!serviceId||!date){alert('Klient, usługa i data są wymagane.');return;}
+  const id=document.getElementById('appt-id').value||uid();
+  const price=parseFloat(document.getElementById('a-price').value)||0;
+  const status=document.getElementById('a-status').value;
+  const obj={id,client_id:clientId,service_id:serviceId,staff_id:document.getElementById('a-staff').value,date,time:document.getElementById('a-time').value,duration:document.getElementById('a-duration').value,price,status,notes:document.getElementById('a-notes').value};
+  const idx=appointments.findIndex(a=>a.id===id);
+  if(idx>-1)appointments[idx]=obj;else appointments.push(obj);
+  // update client total_spent
+  const ci=clients.findIndex(c=>c.id===clientId);
+  if(ci>-1){clients[ci].total_spent=(appointments.filter(a=>a.client_id===clientId&&a.status==='completed').reduce((s,a)=>s+(+a.price||0),0));}
+  save();closeModal('appt-modal');renderAppointments();if(document.getElementById('schedule-view').classList.contains('active'))renderSchedule();
+}
+function deleteAppt(id){if(!confirm('Usuń wizytę?'))return;appointments=appointments.filter(a=>a.id!==id);save();renderAppointments();}
+
+// ============================================================
+// STAFF
+// ============================================================
+const DAYS=['Nd','Pon','Wt','Śr','Czw','Pt','Sob'];
+function renderStaff(){
+  document.getElementById('staff-count').textContent=`${staff.length} pracowników`;
+  const grid=document.getElementById('staff-grid');
+  if(!staff.length){grid.innerHTML='<div class="empty-state card" style="grid-column:1/-1"><div class="empty-icon">👥</div><p>Dodaj pierwszego pracownika</p></div>';return;}
+  grid.innerHTML=staff.map(s=>{
+    const myAppts=appointments.filter(a=>a.staff_id===s.id);
+    const monthRevenue=myAppts.filter(a=>a.status==='completed'&&a.date>=new Date(Date.now()-30*864e5).toISOString().slice(0,10)).reduce((sum,a)=>sum+(+a.price||0),0);
+    return `<div class="card" style="border-left:4px solid ${s.color||'var(--rose)'}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:44px;height:44px;border-radius:50%;background:${s.color||'var(--rose)'};display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;font-weight:700">${s.name[0]}</div>
+          <div><div style="font-weight:700;font-size:15px">${s.name}</div><div style="font-size:12px;color:var(--text2)">${s.role||''}</div></div>
+        </div>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-secondary btn-xs" onclick="editStaff('${s.id}')" aria-label="Edytuj pracownika ${s.name}">✏️</button>
+          <button class="btn btn-danger btn-xs" onclick="deleteStaff('${s.id}')" aria-label="Usuń pracownika ${s.name}">🗑️</button>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">${s.phone||''} ${s.email?'· '+s.email:''}</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">${(s.working_days||[1,2,3,4,5]).map(d=>`<span style="background:${s.color||'var(--rose)'}22;color:${s.color||'var(--rose-dark)'};border-radius:5px;padding:2px 7px;font-size:11px;font-weight:600">${DAYS[d]}</span>`).join('')}</div>
+      <div style="display:flex;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border)">
+        <div style="text-align:center"><div style="font-size:18px;font-weight:700;color:var(--rose)">${myAppts.length}</div><div style="font-size:10px;color:var(--text2)">wizyt</div></div>
+        <div style="text-align:center"><div style="font-size:18px;font-weight:700;color:var(--gold)">${monthRevenue.toFixed(0)}zł</div><div style="font-size:10px;color:var(--text2)">30 dni</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function editStaff(id){
+  const s=staff.find(x=>x.id===id);if(!s)return;
+  document.getElementById('staff-id').value=id;document.getElementById('s-name').value=s.name||'';
+  document.getElementById('s-role').value=s.role||'';document.getElementById('s-phone').value=s.phone||'';
+  document.getElementById('s-email').value=s.email||'';document.getElementById('s-color').value=s.color||'#e8749a';
+  document.querySelectorAll('#working-days-picker input[type=checkbox]').forEach(cb=>{cb.checked=(s.working_days||[1,2,3,4,5]).includes(+cb.value);});
+  document.getElementById('staff-modal-title').textContent='Edytuj pracownika';
+  openModal('staff-modal');
+}
+function saveStaff(){
+  const name=document.getElementById('s-name').value.trim();if(!name){alert('Imię jest wymagane.');return;}
+  const id=document.getElementById('staff-id').value||uid();
+  const working_days=[...document.querySelectorAll('#working-days-picker input[type=checkbox]:checked')].map(cb=>+cb.value);
+  const obj={id,name,role:document.getElementById('s-role').value,phone:document.getElementById('s-phone').value,email:document.getElementById('s-email').value,color:document.getElementById('s-color').value,working_days};
+  const idx=staff.findIndex(s=>s.id===id);if(idx>-1)staff[idx]=obj;else staff.push(obj);
+  save();closeModal('staff-modal');document.getElementById('staff-id').value='';renderStaff();
+}
+function deleteStaff(id){if(!confirm('Usuń pracownika?'))return;staff=staff.filter(s=>s.id!==id);save();renderStaff();}
+
+// ============================================================
+// SCHEDULE
+// ============================================================
+let scheduleWeekOffset = 0;
+const HOURS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00'];
+const DAY_NAMES = ['Niedz','Pon','Wt','Śr','Czw','Pt','Sob'];
+
+function getWeekDates(offset){
+  const now=new Date(); const day=now.getDay(); const diff=now.getDate()-day+(day===0?-6:1);
+  const mon=new Date(now.setDate(diff+offset*7));
+  return Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d.toISOString().slice(0,10);});
+}
+function changeWeek(dir){ scheduleWeekOffset = dir===0?0:scheduleWeekOffset+dir; renderSchedule(); }
+function renderSchedule(){
+  const dates=getWeekDates(scheduleWeekOffset);
+  const fmt=d=>{ const[y,m,dd]=d.split('-');return `${dd}.${m}`; };
+  document.getElementById('schedule-week-label').textContent=`${fmt(dates[0])} – ${fmt(dates[6])}`;
+  if(!staff.length){document.getElementById('schedule-container').innerHTML='<div class="empty-state card"><p>Dodaj pracowników, aby zobaczyć grafik</p></div>';return;}
+  // Build grid per staff member
+  let html='';
+  staff.forEach(s=>{
+    html+=`<div style="margin-bottom:20px"><div class="section-title"><span class="color-dot" style="background:${s.color||'var(--rose)'};width:14px;height:14px;"></span> ${s.name} — ${s.role||''}</div>`;
+    html+=`<div class="schedule-grid">`;
+    // header
+    html+=`<div class="sch-head" style="background:#f8f6fb;"></div>`;
+    dates.forEach((d,i)=>html+=`<div class="sch-head">${DAY_NAMES[new Date(d).getDay()]}<br><small>${fmt(d)}</small></div>`);
+    // rows
+    HOURS.forEach(h=>{
+      html+=`<div class="sch-time">${h}</div>`;
+      dates.forEach(d=>{
+        const appt=appointments.find(a=>a.staff_id===s.id&&a.date===d&&a.time===h);
+        if(appt){
+          const cl=clients.find(c=>c.id===appt.client_id);
+          html+=`<div class="sch-cell" onclick="editAppt('${appt.id}')"><div class="sch-appt" style="background:${s.color||'var(--rose)'}33;color:${s.color||'var(--rose-dark)'};border-left:3px solid ${s.color||'var(--rose)'};top:2px;">${cl?.name||'?'}</div></div>`;
+        } else {
+          html+=`<div class="sch-cell" onclick="quickAddAppt('${d}','${h}','${s.id}')"></div>`;
+        }
+      });
+    });
+    html+='</div></div>';
+  });
+  document.getElementById('schedule-container').innerHTML=html;
+}
+function quickAddAppt(date,time,staffId){
+  populateApptSelects();
+  document.getElementById('appt-id').value='';document.getElementById('a-client').value='';document.getElementById('a-service').value='';
+  document.getElementById('a-staff').value=staffId;document.getElementById('a-date').value=date;document.getElementById('a-time').value=time;
+  document.getElementById('a-duration').value=60;document.getElementById('a-price').value=0;document.getElementById('a-status').value='scheduled';document.getElementById('a-notes').value='';
+  document.getElementById('appt-modal-title').textContent='Nowa wizyta';
+  openModal('appt-modal');
+}
+
+// ============================================================
+// SERVICES
+// ============================================================
+function renderServices(){
+  const catF=document.getElementById('service-cat-filter').value;
+  const cats=[...new Set(services.map(s=>s.category).filter(Boolean))];
+  const sel=document.getElementById('service-cat-filter');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Wszystkie kategorie</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  sel.value=cur;
+  let list=services.filter(s=>!catF||s.category===catF);
+  document.getElementById('services-count').textContent=`${list.length} usług`;
+  const tbody=document.getElementById('services-tbody');
+  if(!list.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">✨</div><p style="font-weight:600">Brak usług</p><p style="font-size:12px;margin-top:6px">Kliknij <strong>+ Nowa usługa</strong>, aby dodać ofertę</p></div></td></tr>';return;}
+  tbody.innerHTML=list.map(s=>`<tr>
+    <td style="font-weight:600">${s.name}</td>
+    <td>${s.category?`<span class="badge badge-blue">${s.category}</span>`:'—'}</td>
+    <td>${s.duration||'?'} min</td>
+    <td style="font-weight:600;color:var(--gold)">${fmtPrice(s.price)}</td>
+    <td style="color:var(--text2);font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.description||'—'}</td>
+    <td><div class="td-actions">
+      <button class="btn btn-secondary btn-xs" onclick="editService('${s.id}')" aria-label="Edytuj usługę ${s.name}">✏️</button>
+      <button class="btn btn-danger btn-xs" onclick="deleteService('${s.id}')" aria-label="Usuń usługę ${s.name}">🗑️</button>
+    </div></td>
+  </tr>`).join('');
+}
+function editService(id){
+  const s=services.find(x=>x.id===id);if(!s)return;
+  document.getElementById('service-id').value=id;document.getElementById('sv-name').value=s.name||'';document.getElementById('sv-category').value=s.category||'';
+  document.getElementById('sv-duration').value=s.duration||60;document.getElementById('sv-price').value=s.price||0;document.getElementById('sv-desc').value=s.description||'';
+  document.getElementById('service-modal-title').textContent='Edytuj usługę';openModal('service-modal');
+}
+function saveService(){
+  const name=document.getElementById('sv-name').value.trim();if(!name){alert('Nazwa jest wymagana.');return;}
+  const id=document.getElementById('service-id').value||uid();
+  const obj={id,name,category:document.getElementById('sv-category').value,duration:+document.getElementById('sv-duration').value||60,price:+document.getElementById('sv-price').value||0,description:document.getElementById('sv-desc').value};
+  const idx=services.findIndex(s=>s.id===id);if(idx>-1)services[idx]=obj;else services.push(obj);
+  save();closeModal('service-modal');document.getElementById('service-id').value='';renderServices();
+}
+function deleteService(id){if(!confirm('Usuń usługę?'))return;services=services.filter(s=>s.id!==id);save();renderServices();}
+
+// ============================================================
+// INVENTORY
+// ============================================================
+function renderInventory(){
+  const search=document.getElementById('inv-search').value.toLowerCase();
+  const catF=document.getElementById('inv-cat-filter').value;
+  const stockF=document.getElementById('inv-stock-filter').value;
+  const cats=[...new Set(inventory.map(p=>p.category).filter(Boolean))];
+  const sel=document.getElementById('inv-cat-filter');const cur=sel.value;
+  sel.innerHTML='<option value="">Wszystkie kategorie</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');sel.value=cur;
+  let list=inventory.filter(p=>{
+    if(search&&!p.name.toLowerCase().includes(search)&&!(p.brand||'').toLowerCase().includes(search))return false;
+    if(catF&&p.category!==catF)return false;
+    if(stockF==='low'&&(+p.quantity||0)>(+p.min_quantity||2))return false;
+    if(stockF==='ok'&&(+p.quantity||0)<=(+p.min_quantity||2))return false;
+    return true;
+  });
+  document.getElementById('inventory-count').textContent=`${list.length} produktów`;
+  const tbody=document.getElementById('inventory-tbody');
+  if(!list.length){tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📦</div><p style="font-weight:600">Brak produktów</p><p style="font-size:12px;margin-top:6px">Kliknij <strong>+ Dodaj produkt</strong>, aby uzupełnić magazyn</p></div></td></tr>';return;}
+  tbody.innerHTML=list.map(p=>{
+    const isLow=(+p.quantity||0)<=(+p.min_quantity||2);
+    return `<tr>
+      <td style="font-weight:600">${p.name}</td><td>${p.brand||'—'}</td>
+      <td>${p.category?`<span class="badge badge-blue">${p.category}</span>`:'—'}</td>
+      <td><span class="badge ${isLow?'badge-red':'badge-green'}">${p.quantity||0} ${p.unit||'szt'}</span></td>
+      <td>${p.min_quantity||2} ${p.unit||'szt'}</td>
+      <td>${fmtPrice(p.price_buy)}</td><td style="font-weight:600;color:var(--gold)">${fmtPrice(p.price_sell)}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-secondary btn-xs" onclick="editProduct('${p.id}')" aria-label="Edytuj produkt ${p.name}">✏️</button>
+        <button class="btn btn-danger btn-xs" onclick="deleteProduct('${p.id}')" aria-label="Usuń produkt ${p.name}">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function editProduct(id){
+  const p=inventory.find(x=>x.id===id);if(!p)return;
+  document.getElementById('product-id').value=id;document.getElementById('p-name').value=p.name||'';document.getElementById('p-brand').value=p.brand||'';
+  document.getElementById('p-category').value=p.category||'';document.getElementById('p-qty').value=p.quantity||0;document.getElementById('p-min').value=p.min_quantity||2;
+  document.getElementById('p-unit').value=p.unit||'szt';document.getElementById('p-buy').value=p.price_buy||0;document.getElementById('p-sell').value=p.price_sell||0;
+  document.getElementById('product-modal-title').textContent='Edytuj produkt';openModal('product-modal');
+}
+function saveProduct(){
+  const name=document.getElementById('p-name').value.trim();if(!name){alert('Nazwa jest wymagana.');return;}
+  const id=document.getElementById('product-id').value||uid();
+  const obj={id,name,brand:document.getElementById('p-brand').value,category:document.getElementById('p-category').value,quantity:+document.getElementById('p-qty').value||0,min_quantity:+document.getElementById('p-min').value||2,unit:document.getElementById('p-unit').value||'szt',price_buy:+document.getElementById('p-buy').value||0,price_sell:+document.getElementById('p-sell').value||0};
+  const idx=inventory.findIndex(p=>p.id===id);if(idx>-1)inventory[idx]=obj;else inventory.push(obj);
+  save();closeModal('product-modal');document.getElementById('product-id').value='';renderInventory();
+}
+function deleteProduct(id){if(!confirm('Usuń produkt?'))return;inventory=inventory.filter(p=>p.id!==id);save();renderInventory();}
+
+// ============================================================
+// REPORTS
+// ============================================================
+let rChart=null,sChart=null;
+function renderReports(){
+  const days=+document.getElementById('report-period').value||30;
+  const since=new Date(Date.now()-days*864e5).toISOString().slice(0,10);
+  const period=appointments.filter(a=>a.date>=since);
+  const completed=period.filter(a=>a.status==='completed');
+  const revenue=completed.reduce((s,a)=>s+(+a.price||0),0);
+  const avgTicket=completed.length?revenue/completed.length:0;
+  document.getElementById('report-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Przychód</div><div class="stat-value" style="color:var(--gold)">${revenue.toFixed(0)} zł</div></div>
+    <div class="stat-card"><div class="stat-label">Zakończone wizyty</div><div class="stat-value" style="color:var(--rose)">${completed.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Średni paragon</div><div class="stat-value" style="color:var(--sage)">${avgTicket.toFixed(0)} zł</div></div>
+    <div class="stat-card"><div class="stat-label">Nowi klienci</div><div class="stat-value" style="color:var(--sky)">${clients.filter(c=>c.created&&c.created>=since).length}</div></div>`;
+  // Revenue chart
+  const buckets=days<=30?days:days<=90?Math.ceil(days/7):Math.ceil(days/30);
+  const bucketSize=days/buckets;
+  const labels=[],data=[];
+  for(let i=buckets-1;i>=0;i--){
+    const start=new Date(Date.now()-(i+1)*bucketSize*864e5).toISOString().slice(0,10);
+    const end=new Date(Date.now()-i*bucketSize*864e5).toISOString().slice(0,10);
+    labels.push(fmtDate(end).slice(0,5));
+    data.push(completed.filter(a=>a.date>=start&&a.date<end).reduce((s,a)=>s+(+a.price||0),0));
+  }
+  if(rChart)rChart.destroy();
+  rChart=new Chart(document.getElementById('chart-reports').getContext('2d'),{type:'line',data:{labels,datasets:[{label:'Przychód (zł)',data,borderColor:'var(--rose)',backgroundColor:'rgba(232,116,154,.1)',fill:true,tension:.4,borderWidth:2,pointRadius:3}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+  // Services chart
+  const svcCounts={};completed.forEach(a=>{const n=serviceName(a.service_id);svcCounts[n]=(svcCounts[n]||0)+1;});
+  const svcSorted=Object.entries(svcCounts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(sChart)sChart.destroy();
+  if(svcSorted.length){
+    sChart=new Chart(document.getElementById('chart-services').getContext('2d'),{type:'doughnut',data:{labels:svcSorted.map(x=>x[0]),datasets:[{data:svcSorted.map(x=>x[1]),backgroundColor:['#e8749a','#d4a853','#7aaa8a','#5b9bd5','#a89bc2','#e88a74','#74c2e8','#c274e8']}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}});
+  }
+  // Top clients
+  const topC=clients.map(c=>({...c,rev:completed.filter(a=>a.client_id===c.id).reduce((s,a)=>s+(+a.price||0),0)})).filter(c=>c.rev>0).sort((a,b)=>b.rev-a.rev).slice(0,10);
+  document.getElementById('report-top-clients').innerHTML=topC.length?topC.map((c,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><div style="min-width:22px;font-weight:700;color:var(--text3);font-size:12px">#${i+1}</div><div class="client-avatar" style="width:30px;height:30px;font-size:12px">${c.name[0]}</div><div style="flex:1;font-size:13px">${c.name}</div><div style="font-weight:700;color:var(--gold);font-size:13px">${c.rev.toFixed(0)} zł</div></div>`).join(''):'<div class="empty-state" style="padding:20px"><p>Brak danych</p></div>';
+  // Staff performance
+  const staffPerf=staff.map(s=>({...s,rev:completed.filter(a=>a.staff_id===s.id).reduce((sum,a)=>sum+(+a.price||0),0),cnt:completed.filter(a=>a.staff_id===s.id).length})).sort((a,b)=>b.rev-a.rev);
+  document.getElementById('report-staff-perf').innerHTML=staffPerf.length?staffPerf.map(s=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)"><div style="width:30px;height:30px;border-radius:50%;background:${s.color||'var(--rose)'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff">${s.name[0]}</div><div style="flex:1"><div style="font-size:13px;font-weight:600">${s.name}</div><div style="font-size:11px;color:var(--text2)">${s.cnt} wizyt</div></div><div style="font-weight:700;color:var(--gold);font-size:13px">${s.rev.toFixed(0)} zł</div></div>`).join(''):'<div class="empty-state" style="padding:20px"><p>Brak danych</p></div>';
+}
+
+// ============================================================
+// AI MODULE
+// ============================================================
+const AI_MODELS=[
+  {id:'anthropic/claude-3.5-haiku',     name:'Claude 3.5 Haiku'},
+  {id:'openai/gpt-4o-mini',              name:'GPT-4o Mini'},
+  {id:'google/gemini-flash-1.5-8b',      name:'Gemini Flash 1.5 8B'},
+  {id:'meta-llama/llama-3.1-8b-instruct',name:'Llama 3.1 8B'},
+  {id:'mistralai/mistral-7b-instruct',   name:'Mistral 7B'}
+];
+let aiChatHistory=[];
+function getAIKey(){return db.get('ai_api_key')||'';}
+function getAIModel(){return db.get('ai_model')||'';}
+
+function getAISystemPrompt(){
+  const today_str=today();
+  const todayAppts=appointments.filter(a=>a.date===today_str);
+  const since30=new Date(Date.now()-30*864e5).toISOString().slice(0,10);
+  const completed30=appointments.filter(a=>a.status==='completed'&&a.date>=since30);
+  const revenue30=completed30.reduce((s,a)=>s+(+a.price||0),0);
+  return `Jesteś inteligentnym asystentem managera salonu beauty. Znasz dane salonu:
+- Klienci: ${clients.length} (VIP: ${clients.filter(c=>c.status==='vip').length})
+- Personel: ${staff.length} osób, usługi: ${services.length}
+- Wizyty dziś: ${todayAppts.length}
+- Przychód 30 dni: ${revenue30.toFixed(2)} PLN (${completed30.length} wizyt)
+- Produkty w magazynie: ${inventory.length} (niski stan: ${inventory.filter(p=>(+p.quantity||0)<=(+p.min_quantity||2)).length})
+
+Odpowiadaj zawsze po polsku. Bądź konkretny, praktyczny i profesjonalny. Uwzględniaj specyfikę branży beauty.`;
+}
+
+async function callOpenRouter(msg,sys){
+  const key=getAIKey(),model=getAIModel();
+  if(!key||!model)throw new Error('Brak klucza API. Skonfiguruj w ustawieniach AI.');
+  const messages=[{role:'system',content:sys||getAISystemPrompt()},...aiChatHistory.slice(-6),{role:'user',content:msg}];
+  const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({model,messages,max_tokens:900})});
+  if(!res.ok)throw new Error(`API error ${res.status}`);
+  const data=await res.json();return data.choices?.[0]?.message?.content||'Brak odpowiedzi.';
+}
+
+async function testAndSaveAIKey(){
+  const key=document.getElementById('ai-key-input').value.trim();if(!key){alert('Wklej klucz API.');return;}
+  const st=document.getElementById('ai-model-status');st.textContent='⏳ Testowanie...';
+  for(const m of AI_MODELS){
+    st.textContent=`⏳ Testuję ${m.name}...`;
+    try{
+      const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({model:m.id,messages:[{role:'user',content:'OK'}],max_tokens:5})});
+      if(res.ok){db.set('ai_api_key',key);db.set('ai_model',m.id);st.innerHTML=`✅ Model: <strong>${m.name}</strong>`;st.style.color='#2d7a2d';updateAIStatusBar();closeModal('ai-settings-modal');return;}
+    }catch(e){}
+  }
+  st.textContent='❌ Żaden model nie działa. Sprawdź klucz.';st.style.color='#c0392b';
+}
+function clearAIKey(){db.del('ai_api_key');db.del('ai_model');document.getElementById('ai-key-input').value='';updateAIStatusBar();}
+function updateAIStatusBar(){
+  const bar=document.getElementById('ai-status-bar');if(!bar)return;
+  const key=getAIKey(),model=getAIModel();
+  const name=AI_MODELS.find(m=>m.id===model)?.name||model;
+  bar.style.display='block';
+  if(key&&model){
+    bar.setAttribute('style','display:block;padding:10px 16px;border-radius:10px;margin-bottom:20px;font-size:13px;font-weight:600;background:linear-gradient(135deg,#e6f4e6,#d4edda);color:#2d7a2d;');
+    bar.innerHTML=`✅ AI aktywne — ${name} &nbsp;·&nbsp; <a href="#" onclick="openModal('ai-settings-modal');return false;" style="color:#2d7a2d;">Zmień</a>`;
+  }else{
+    bar.setAttribute('style','display:block;padding:10px 16px;border-radius:10px;margin-bottom:20px;font-size:13px;font-weight:600;background:linear-gradient(135deg,#fff3cd,#ffeeba);color:#856404;');
+    bar.innerHTML=`⚠️ AI nie skonfigurowane &nbsp;·&nbsp; <a href="#" onclick="openModal('ai-settings-modal');return false;" style="color:#856404;font-weight:700;">Dodaj klucz API →</a>`;
+  }
+  const inp=document.getElementById('ai-key-input');if(inp&&key)inp.value=key;
+}
+function addChatMessage(role,text,isLoading){
+  const box=document.getElementById('ai-chat-box');if(!box)return null;
+  const div=document.createElement('div');div.className=`ai-msg ai-msg--${role}${isLoading?' ai-msg--loading':''}`;
+  div.innerHTML=`<div class="ai-msg__bubble">${text.replace(/\n/g,'<br>')}</div>`;
+  box.appendChild(div);box.scrollTop=box.scrollHeight;return div;
+}
+async function sendAIChat(){
+  const inp=document.getElementById('ai-user-input');const msg=inp.value.trim();if(!msg)return;
+  inp.value='';addChatMessage('user',msg);aiChatHistory.push({role:'user',content:msg});
+  const loading=addChatMessage('assistant','...⏳',true);
+  try{const reply=await callOpenRouter(msg);loading?.remove();addChatMessage('assistant',reply);aiChatHistory.push({role:'assistant',content:reply});}
+  catch(e){loading?.remove();addChatMessage('assistant','❌ '+e.message);}
+}
+async function aiQuickAction(type){
+  const since30=new Date(Date.now()-30*864e5).toISOString().slice(0,10);
+  const c30=appointments.filter(a=>a.status==='completed'&&a.date>=since30);
+  const rev=c30.reduce((s,a)=>s+(+a.price||0),0);
+  const prompts={
+    'revenue':`Przychód ostatnich 30 dni: ${rev.toFixed(2)} PLN z ${c30.length} wizyt. Jak mogę zwiększyć przychody salonu? Podaj 5 konkretnych strategii.`,
+    'clients':`Mam ${clients.length} klientów (${clients.filter(c=>c.status==='vip').length} VIP). Jak poprawić retencję klientów i zwiększyć lojalność? Jakie programy lojalnościowe są skuteczne w branży beauty?`,
+    'staff':`Mam ${staff.length} pracowników i ${services.length} usług. Jak optymalnie ułożyć grafik pracy w salonie beauty? Jakie są najlepsze praktyki?`,
+    'services':`Moje usługi: ${services.slice(0,5).map(s=>s.name+' ('+s.price+'zł)').join(', ')}. Jak optymalizować ofertę usług? Co dodać, co zmienić, jak wyceniać?`,
+    'marketing':`Salon beauty z ${clients.length} klientami. Zaproponuj 5 pomysłów marketingowych na pozyskanie nowych klientów. Uwzględnij social media, lokalne działania i programy poleceń.`,
+    'inventory':`Magazyn: ${inventory.length} produktów, ${inventory.filter(p=>(+p.quantity||0)<=(+p.min_quantity||2)).length} z niskim stanem. Jak zarządzać magazynem w salonie beauty? Jakie produkty warto mieć zawsze w stock?`
+  };
+  switchView('ai');
+  const prompt=prompts[type]||'Jak mogę ulepszyć mój salon beauty?';
+  addChatMessage('user',prompt);aiChatHistory.push({role:'user',content:prompt});
+  const loading=addChatMessage('assistant','...⏳',true);
+  try{const reply=await callOpenRouter(prompt);loading?.remove();addChatMessage('assistant',reply);aiChatHistory.push({role:'assistant',content:reply});}
+  catch(e){loading?.remove();addChatMessage('assistant','❌ '+e.message);}
+}
+
+// ============================================================
+// DEMO DATA
+// ============================================================
+function loadDemoData(){
+  if(staff.length||services.length)return;
+  staff=[
+    {id:'s1',name:'Marta Kowalska',role:'Fryzjer',phone:'501 111 222',email:'marta@salon.pl',color:'#e8749a',working_days:[1,2,3,4,5]},
+    {id:'s2',name:'Zofia Wiśniewska',role:'Kosmetolog',phone:'502 333 444',email:'zofia@salon.pl',color:'#7aaa8a',working_days:[1,2,3,4,5,6]}
+  ];
+  services=[
+    {id:'sv1',name:'Strzyżenie damskie',category:'Fryzjerstwo',duration:60,price:120,description:'Mycie, strzyżenie i stylizacja'},
+    {id:'sv2',name:'Koloryzacja',category:'Fryzjerstwo',duration:120,price:250,description:'Koloryzacja jednolita + pielęgnacja'},
+    {id:'sv3',name:'Zabieg na twarz',category:'Kosmetologia',duration:90,price:180,description:'Oczyszczanie i nawilżanie'},
+    {id:'sv4',name:'Manicure hybrydowy',category:'Paznokcie',duration:60,price:100,description:'Manicure + lakier hybrydowy'},
+    {id:'sv5',name:'Masaż relaksacyjny',category:'Spa',duration:60,price:150,description:'Masaż całego ciała'}
+  ];
+  clients=[
+    {id:'c1',name:'Anna Nowak',phone:'600 111 222',email:'anna@mail.pl',status:'vip',birthday:'1990-03-15',total_spent:1250},
+    {id:'c2',name:'Katarzyna Wiśniak',phone:'600 333 444',email:'kasia@mail.pl',status:'active',birthday:'1985-07-22',total_spent:580},
+    {id:'c3',name:'Monika Kowalczyk',phone:'600 555 666',email:'monika@mail.pl',status:'active',total_spent:320}
+  ];
+  inventory=[
+    {id:'p1',name:'Szampon Kerastase',brand:'Kerastase',category:'Pielęgnacja',quantity:3,min_quantity:2,unit:'szt',price_buy:85,price_sell:130},
+    {id:'p2',name:'Farba L\'Oreal 7.0',brand:"L'Oreal",category:'Koloryzacja',quantity:1,min_quantity:3,unit:'szt',price_buy:45,price_sell:0},
+    {id:'p3',name:'Krem nawilżający Dermalogica',brand:'Dermalogica',category:'Kosmetologia',quantity:5,min_quantity:2,unit:'szt',price_buy:120,price_sell:180}
+  ];
+  const now=today();
+  appointments=[
+    {id:'a1',client_id:'c1',service_id:'sv1',staff_id:'s1',date:now,time:'10:00',duration:60,price:120,status:'scheduled',notes:''},
+    {id:'a2',client_id:'c2',service_id:'sv3',staff_id:'s2',date:now,time:'11:30',duration:90,price:180,status:'completed',notes:''},
+    {id:'a3',client_id:'c3',service_id:'sv4',staff_id:'s2',date:now,time:'14:00',duration:60,price:100,status:'scheduled',notes:''}
+  ];
+  save();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadDemoData();
+  populateApptSelects();
+  document.getElementById('a-date').value = today();
+  renderDashboard();
+  updateAIStatusBar();
+});
+</script>
+</body>
+</html>

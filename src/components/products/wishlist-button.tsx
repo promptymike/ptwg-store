@@ -13,9 +13,10 @@ import {
 
 let cachedRaw: string | null = "";
 let cachedSnapshot: WishlistEntry[] = [];
+const EMPTY_WISHLIST: WishlistEntry[] = [];
 
 function getSnapshot(): WishlistEntry[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined") return EMPTY_WISHLIST;
   const raw = window.localStorage.getItem("templify:wishlist");
   if (raw === cachedRaw) return cachedSnapshot;
   cachedRaw = raw;
@@ -24,7 +25,7 @@ function getSnapshot(): WishlistEntry[] {
 }
 
 function getServerSnapshot(): WishlistEntry[] {
-  return [];
+  return EMPTY_WISHLIST;
 }
 
 function subscribe(onChange: () => void) {
