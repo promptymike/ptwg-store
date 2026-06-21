@@ -3,12 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, Cloud, LockKeyhole, Smartphone, Sparkles } from "lucide-react";
 
-import { PlannerCard, PlannerVisual } from "@/components/planners/planner-card";
+import { PlannerCard, PlannerLivePreview } from "@/components/planners/planner-card";
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getInteractivePlanner, interactivePlanners } from "@/data/interactive-planners";
 import { formatCurrency } from "@/lib/format";
+import { buildCanonicalMetadata, getCanonicalUrl, safeJsonLd } from "@/lib/seo";
 
 export function generateStaticParams() {
   return interactivePlanners.map(({ slug }) => ({ slug }));
@@ -18,7 +19,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const planner = getInteractivePlanner(slug);
   if (!planner) return {};
-  return { title: `${planner.name} — interaktywny planer`, description: planner.description };
+  return buildCanonicalMetadata({
+    title: `${planner.name} — interaktywny planer online`,
+    description: planner.description,
+    path: `/planery/${planner.slug}`,
+    image: `/api/planners/${planner.slug}/opengraph-image`,
+  });
 }
 
 export default async function PlannerDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -26,12 +32,45 @@ export default async function PlannerDetailPage({ params }: { params: Promise<{ 
   const planner = getInteractivePlanner(slug);
   if (!planner) notFound();
   const related = interactivePlanners.filter((item) => item.audience === planner.audience && item.slug !== planner.slug).slice(0, 2);
+  const plannerUrl = getCanonicalUrl(`/planery/${planner.slug}`);
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": ["Product", "SoftwareApplication"],
+    name: planner.name,
+    description: planner.description,
+    sku: planner.slug,
+    productID: planner.id,
+    category: planner.category,
+    applicationCategory: "ProductivityApplication",
+    operatingSystem: "Web",
+    url: plannerUrl,
+    image: getCanonicalUrl(`/api/planners/${planner.slug}/opengraph-image`),
+    offers: {
+      "@type": "Offer",
+      price: String(planner.price),
+      priceCurrency: "PLN",
+      availability: "https://schema.org/InStock",
+      url: plannerUrl,
+    },
+    featureList: planner.features.join(", "),
+    brand: { "@type": "Brand", name: "Templify" },
+  };
 
   return (
     <main className="shell section-space">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(structuredData) }} />
       <Link href="/planery" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />Wszystkie planery</Link>
       <section className="mt-6 grid gap-8 lg:grid-cols-[1.04fr_.96fr] lg:items-start">
-        <div className="overflow-hidden rounded-[2rem] border border-border/60 shadow-[0_35px_100px_-48px_rgba(0,0,0,.6)]"><PlannerVisual planner={planner} /></div>
+        <div>
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <span className="eyebrow">Zajrzyj do środka</span>
+              <h2 className="mt-3 text-2xl text-foreground sm:text-3xl">To nie okładka. To działający planer.</h2>
+            </div>
+            <p className="max-w-xs text-sm leading-6 text-muted-foreground">Klikaj w menu i sprawdź prawdziwe widoki przed zakupem.</p>
+          </div>
+          <PlannerLivePreview planner={planner} />
+        </div>
         <div className="surface-panel p-6 sm:p-8 lg:sticky lg:top-28">
           <div className="flex flex-wrap gap-2"><Badge>{planner.audience}</Badge><Badge variant="outline">Interaktywny planer</Badge></div>
           <h1 className="mt-5 text-4xl text-foreground sm:text-6xl">{planner.name}</h1>

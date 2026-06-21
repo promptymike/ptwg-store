@@ -3,6 +3,7 @@ import type { MetadataRoute } from "next";
 import { env } from "@/lib/env";
 import { getPublishedBlogPosts } from "@/lib/supabase/blog";
 import { getLegalPagesSnapshot, getStoreProducts } from "@/lib/supabase/store";
+import { getInteractivePlanner, interactivePlanners } from "@/data/interactive-planners";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [products, legalPages, blogPosts] = await Promise.all([
@@ -28,16 +29,34 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
+      url: `${baseUrl}/planery`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/test`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.65,
+    },
+    {
       url: `${baseUrl}/blog`,
       lastModified: now,
       changeFrequency: "weekly",
       priority: 0.7,
     },
-    ...products.map((product) => ({
+    ...products.filter((product) => !getInteractivePlanner(product.slug)).map((product) => ({
       url: `${baseUrl}/produkty/${product.slug}`,
       lastModified: now,
       changeFrequency: "weekly" as const,
       priority: 0.8,
+    })),
+    ...interactivePlanners.map((planner) => ({
+      url: `${baseUrl}/planery/${planner.slug}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.85,
     })),
     ...blogPosts.map((post) => ({
       url: `${baseUrl}/blog/${post.slug}`,

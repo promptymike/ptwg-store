@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 
 import { getCoverArt } from "@/lib/product-cover-art";
+import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { getStoreProductBySlug } from "@/lib/supabase/store";
 
 export const runtime = "nodejs";
@@ -263,21 +264,24 @@ function workbookItems(category: string): string[] {
   ];
 }
 
-function PaperFrame({ children }: { children: React.ReactNode }) {
+function PaperFrame({ children, category }: { children: React.ReactNode; category: string }) {
+  const art = getCoverArt(category);
   return (
     <div
       style={{
         width: "100%",
         height: "100%",
-        background: PAPER,
+        background: `linear-gradient(135deg, ${PAPER} 0%, ${art.from} 62%, ${art.to} 100%)`,
         display: "flex",
         flexDirection: "column",
-        padding: "60px 80px",
+        padding: "54px 72px 54px 92px",
         fontFamily: "system-ui, -apple-system, sans-serif",
         color: INK,
         position: "relative",
       }}
     >
+      <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 22, background: art.accent, display: "flex" }} />
+      <div style={{ position: "absolute", right: -90, top: -120, width: 360, height: 360, borderRadius: 9999, background: art.shape, display: "flex" }} />
       {children}
     </div>
   );
@@ -335,8 +339,9 @@ function PageHeader({ category, label }: { category: string; label: string }) {
 
 function TocPreview({ product }: { product: { name: string; category: string } }) {
   const chapters = tocChapters(product.category);
+  const art = getCoverArt(product.category);
   return (
-    <PaperFrame>
+    <PaperFrame category={product.category}>
       <PageHeader category={product.category} label="Spis treści" />
       <div
         style={{
@@ -364,11 +369,16 @@ function TocPreview({ product }: { product: { name: string; category: string } }
           >
             <div
               style={{
-                width: 38,
+                width: 44,
+                height: 34,
                 fontSize: 18,
                 fontWeight: 700,
-                color: MUTED,
+                color: idx === 0 ? "#fff" : art.text,
+                background: idx === 0 ? art.accent : "rgba(255,255,255,.65)",
+                borderRadius: 10,
                 display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
               {String(idx + 1).padStart(2, "0")}
@@ -392,7 +402,7 @@ function SamplePagePreview({
   const block = samplePageBlocks(product.category);
   const art = getCoverArt(product.category);
   return (
-    <PaperFrame>
+    <PaperFrame category={product.category}>
       <PageHeader category={product.category} label="Przykładowa strona" />
       <div
         style={{
@@ -426,9 +436,12 @@ function SamplePagePreview({
           <div
             key={idx}
             style={{
-              fontSize: 21,
+              fontSize: idx === 0 ? 23 : 20,
               lineHeight: 1.45,
-              color: idx === 0 ? INK : "rgba(26,22,18,0.78)",
+              color: idx === 0 ? "#fff" : "rgba(26,22,18,0.78)",
+              background: idx === 0 ? art.accent : "rgba(255,255,255,.58)",
+              padding: idx === 0 ? "18px 22px" : "13px 18px",
+              borderRadius: 14,
               display: "flex",
             }}
           >
@@ -448,7 +461,7 @@ function WorkbookPreview({
   const items = workbookItems(product.category);
   const art = getCoverArt(product.category);
   return (
-    <PaperFrame>
+    <PaperFrame category={product.category}>
       <PageHeader category={product.category} label="Workbook" />
       <div
         style={{
@@ -475,6 +488,12 @@ function WorkbookPreview({
       >
         Pierwsze 30 dni
       </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 24 }}>
+        <div style={{ display: "flex", fontSize: 16, fontWeight: 700, color: art.accent }}>Postęp 50%</div>
+        <div style={{ display: "flex", flex: 1, height: 12, borderRadius: 99, background: "rgba(255,255,255,.72)", overflow: "hidden" }}>
+          <div style={{ display: "flex", width: "50%", background: art.accent }} />
+        </div>
+      </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 18, flex: 1 }}>
         {items.map((item, idx) => (
           <div
@@ -483,8 +502,11 @@ function WorkbookPreview({
               display: "flex",
               alignItems: "center",
               gap: 18,
-              fontSize: 22,
+              fontSize: 20,
               color: INK,
+              background: "rgba(255,255,255,.62)",
+              padding: "12px 16px",
+              borderRadius: 14,
             }}
           >
             <div
@@ -514,13 +536,50 @@ function WorkbookPreview({
 
 export async function GET(_request: Request, { params }: Props) {
   const { slug, index } = await params;
+  const idx = Math.max(0, Math.min(2, Number.parseInt(index, 10) || 0));
+  const admin = createSupabaseAdminClient();
+  if (admin) {
+    const { data: productRow } = await admin
+      .from("products")
+      .select("id")
+      .eq("slug", slug)
+      .eq("is_active", true)
+      .eq("status", "published")
+      .maybeSingle();
+    if (productRow) {
+      const { data: previews } = await admin
+        .from("product_previews")
+        .select("storage_path")
+        .eq("product_id", productRow.id)
+        .order("sort_order", { ascending: true });
+      const storagePath = previews?.[idx]?.storage_path;
+      if (storagePath) {
+        const asset = /^https?:\/\//i.test(storagePath)
+          ? await fetch(storagePath).then((response) =>
+              response.ok ? response.blob() : null,
+            )
+          : await admin.storage
+              .from("product-covers")
+              .download(storagePath)
+              .then(({ data }) => data);
+        if (asset) {
+          return new Response(await asset.arrayBuffer(), {
+            headers: {
+              "Content-Type": asset.type || "image/png",
+              "Cache-Control":
+                "public, max-age=86400, s-maxage=31536000, stale-while-revalidate=604800",
+              "X-Robots-Tag": "index, follow",
+            },
+          });
+        }
+      }
+    }
+  }
   const product = await getStoreProductBySlug(slug).catch(() => null);
   const fallback = { name: "Templify", category: "" };
   const resolved = product
     ? { name: product.name, category: product.category }
     : fallback;
-
-  const idx = Math.max(0, Math.min(2, Number.parseInt(index, 10) || 0));
 
   let element: React.ReactElement;
   if (idx === 0) element = <TocPreview product={resolved} />;
@@ -530,7 +589,8 @@ export async function GET(_request: Request, { params }: Props) {
   return new ImageResponse(element, {
     ...SIZE,
     headers: {
-      "Cache-Control": "public, max-age=3600, s-maxage=86400",
+      "Cache-Control": "public, max-age=86400, s-maxage=31536000, stale-while-revalidate=604800",
+      "X-Robots-Tag": "index, follow",
     },
   });
 }

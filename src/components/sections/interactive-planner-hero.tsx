@@ -19,7 +19,7 @@ export function InteractivePlannerHero() {
               <Sparkles className="size-3.5 text-amber-300" /> Planery nowej generacji
             </div>
             <h1 className="mt-6 max-w-4xl font-heading text-[clamp(3rem,7vw,6.8rem)] font-bold leading-[.88] tracking-[-.055em]">
-              Skończ z Excelem. <span className="text-amber-300">Ogarnij życie</span> z telefonu.
+              Interaktywne planery online. <span className="text-amber-300">Ogarnij życie</span> z telefonu.
             </h1>
             <p className="mt-7 max-w-2xl text-base leading-7 text-white/65 sm:text-lg">
               Najlepsze interaktywne planery do finansów, rodziny, posiłków i pracy. Wpisujesz raz, dane zapisują się automatycznie, a Ty masz wszystko zawsze pod ręką.

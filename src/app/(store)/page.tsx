@@ -24,10 +24,11 @@ function getSectionOrFallback(
 }
 
 export const metadata: Metadata = buildCanonicalMetadata({
-  title: "Interaktywne planery — skończ z Excelem",
+  title: "Interaktywne planery online do życia i pracy",
   description:
-    "Najlepsze interaktywne planery do finansów, rodziny, posiłków i pracy. Automatyczny zapis i dostęp prosto z telefonu.",
+    "Interaktywne planery online Templify pomagają prowadzić finanse, dom, posiłki i pracę z automatycznym zapisem na telefonie i komputerze.",
   path: "/",
+  image: "/opengraph-image",
 });
 
 export default async function HomePage() {

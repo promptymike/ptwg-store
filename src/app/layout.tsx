@@ -39,9 +39,11 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "Templify",
     locale: "pl_PL",
+    images: ["/opengraph-image"],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/opengraph-image"],
   },
 };
 

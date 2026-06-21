@@ -179,12 +179,12 @@ export function PersonalityTest({
             Bezpłatny test
           </span>
           <h1 className="text-4xl text-foreground sm:text-5xl">
-            Poznaj swój styl pracy w 2 minuty
+            Znajdź planer lub e-book dla siebie w 2 minuty
           </h1>
           <p className="max-w-2xl text-base leading-7 text-muted-foreground">
-            Krótki, naukowy kwestionariusz osobowości Big Five w wersji TIPI. Po odpowiedzi
-            dostaniesz profil Twoich pięciu cech, mocne strony, obszary do pilnowania oraz
-            kategorię szablonów najlepiej dopasowaną do Ciebie.
+            Odpowiedz na 10 krótkich pytań opartych na modelu Big Five. Dostaniesz czytelny
+            profil, jeden obszar o największym potencjale poprawy i konkretny zestaw produktów,
+            który pomoże Ci zacząć bez przekopywania całego katalogu.
           </p>
           <p className="text-xs uppercase tracking-[0.24em] text-primary/75">
             {INTRO_SUBTITLE}

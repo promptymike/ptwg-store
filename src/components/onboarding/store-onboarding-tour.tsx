@@ -8,7 +8,7 @@ import {
 const STORE_STEPS: OnboardingStep[] = [
   {
     title: "Katalog z filtrowaniem",
-    body: "Na /produkty znajdziesz wszystkie ebooki i planery. Filtruj po kategorii (np. Finanse, Macierzyństwo) lub typie (Ebook / Planer) — możesz łączyć oba.",
+    body: "W sekcji E-booki znajdziesz materiały do czytania, a w osobnej sekcji Planery — interaktywne narzędzia z automatycznym zapisem.",
     href: "/produkty",
     hrefLabel: "Przeglądaj katalog",
   },

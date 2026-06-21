@@ -6,6 +6,10 @@ export function getCanonicalUrl(path: string) {
   return new URL(path, env.siteUrl).toString();
 }
 
+export function safeJsonLd(value: unknown) {
+  return JSON.stringify(value).replace(/</g, "\\u003c");
+}
+
 export function buildCanonicalMetadata({
   title,
   description,
@@ -18,6 +22,7 @@ export function buildCanonicalMetadata({
   image?: string;
 }): Metadata {
   const canonical = getCanonicalUrl(path);
+  const socialImage = getCanonicalUrl(image ?? "/opengraph-image");
 
   return {
     title,
@@ -30,14 +35,22 @@ export function buildCanonicalMetadata({
       description,
       url: canonical,
       siteName: "Templify",
+      locale: "pl_PL",
       type: "website",
-      images: image
-        ? [
-            {
-              url: image,
-            },
-          ]
-        : undefined,
+      images: [
+        {
+          url: socialImage,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [socialImage],
     },
   };
 }

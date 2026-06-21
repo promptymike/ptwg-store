@@ -8,6 +8,8 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { StoreOnboardingTour } from "@/components/onboarding/store-onboarding-tour";
 import { WishlistSync } from "@/components/products/wishlist-sync";
+import { TesterFeedbackWidget } from "@/components/testing/tester-feedback-widget";
+import { TestNudge } from "@/components/test/test-nudge";
 import { getCurrentProfile } from "@/lib/session";
 import { getPublishedBlogPostCount } from "@/lib/supabase/blog";
 
@@ -38,6 +40,7 @@ export default async function StoreLayout({
           profile.full_name?.trim() || profile.email?.split("@")[0] || "Konto",
         email: profile.email ?? "",
         isAdmin: profile.role === "admin",
+        isTester: profile.is_tester,
       }
     : null;
   // Hide /blog from nav until the editorial pipeline has at least one post —
@@ -54,8 +57,10 @@ export default async function StoreLayout({
       {/* Store tour fires on the first visit for any logged-in shopper.
           Skipped for anonymous browsers — they get the slim cookie banner
           instead and see the product cards work without a modal. */}
-      {profileSummary ? <StoreOnboardingTour /> : null}
+      {profileSummary && !profileSummary.isTester ? <StoreOnboardingTour /> : null}
       {profileSummary ? <WishlistSync /> : null}
+      {profileSummary?.isTester ? <TesterFeedbackWidget /> : null}
+      <TestNudge />
       <AffiliateCapture />
       <CampaignAttributionCapture />
     </div>

@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 
 import { getCoverArt } from "@/lib/product-cover-art";
+import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { getStoreProductBySlug } from "@/lib/supabase/store";
 
 export const runtime = "nodejs";
@@ -13,6 +14,36 @@ type Props = {
 
 export async function GET(_request: Request, { params }: Props) {
   const { slug } = await params;
+  const admin = createSupabaseAdminClient();
+  if (admin) {
+    const { data: row } = await admin
+      .from("products")
+      .select("cover_path")
+      .eq("slug", slug)
+      .eq("is_active", true)
+      .eq("status", "published")
+      .maybeSingle();
+    if (row?.cover_path) {
+      const asset = /^https?:\/\//i.test(row.cover_path)
+        ? await fetch(row.cover_path).then((response) =>
+            response.ok ? response.blob() : null,
+          )
+        : await admin.storage
+            .from("product-covers")
+            .download(row.cover_path)
+            .then(({ data }) => data);
+      if (asset) {
+        return new Response(await asset.arrayBuffer(), {
+          headers: {
+            "Content-Type": asset.type || "image/png",
+            "Cache-Control":
+              "public, max-age=86400, s-maxage=31536000, stale-while-revalidate=604800",
+            "X-Robots-Tag": "index, follow",
+          },
+        });
+      }
+    }
+  }
   const product = await getStoreProductBySlug(slug).catch(() => null);
 
   const art = getCoverArt(product?.category);
@@ -160,7 +191,8 @@ export async function GET(_request: Request, { params }: Props) {
     {
       ...SIZE,
       headers: {
-        "Cache-Control": "public, max-age=3600, s-maxage=86400",
+        "Cache-Control": "public, max-age=86400, s-maxage=31536000, stale-while-revalidate=604800",
+        "X-Robots-Tag": "index, follow",
       },
     },
   );

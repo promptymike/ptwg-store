@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Heart,
@@ -39,6 +40,7 @@ export type SiteHeaderProfile = {
   displayName: string;
   email: string;
   isAdmin: boolean;
+  isTester: boolean;
 };
 
 type SiteHeaderProps = {
@@ -113,9 +115,16 @@ export function SiteHeader({ profile, hasBlogPosts = false }: SiteHeaderProps) {
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-2xl">
       <div className="shell flex items-center justify-between gap-4 py-3 xl:py-4">
-        <Link href="/" className="flex min-h-[36px] items-baseline gap-3">
-          <span className="font-heading text-3xl leading-none text-foreground">
-            Templify
+        <Link href="/" className="flex min-h-[40px] items-center gap-3" aria-label="Templify.pl — strona główna">
+          <span className="inline-flex rounded-xl bg-[#f7f3ec] px-2 py-1 shadow-sm ring-1 ring-stone-950/8">
+            <Image
+              src="/brand/templify-wordmark-header.png"
+              alt="Templify.pl"
+              width={720}
+              height={164}
+              className="h-8 w-auto sm:h-9"
+              preload
+            />
           </span>
           <span className="hidden text-[11px] uppercase tracking-[0.34em] text-muted-foreground sm:inline">
             ebooki i planery

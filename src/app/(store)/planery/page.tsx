@@ -9,7 +9,7 @@ import { buildCanonicalMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildCanonicalMetadata({
   title: "Interaktywne planery online — skończ z Excelem",
-  description: "Najlepsze interaktywne planery do finansów, rodziny, posiłków, podróży i pracy. Automatyczny zapis i dostęp z telefonu.",
+  description: "Porównaj planery online Templify do budżetu, rodziny, podróży, posiłków i firmy. Zobacz działające demo i wybierz system dla siebie.",
   path: "/planery",
 });
 

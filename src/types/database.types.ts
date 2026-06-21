@@ -1191,6 +1191,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          is_tester: boolean
           role: Database["public"]["Enums"]["user_role"]
         }
         Insert: {
@@ -1198,6 +1199,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          is_tester?: boolean
           role?: Database["public"]["Enums"]["user_role"]
         }
         Update: {
@@ -1205,6 +1207,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          is_tester?: boolean
           role?: Database["public"]["Enums"]["user_role"]
         }
         Relationships: []
@@ -1349,6 +1352,53 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      tester_feedback: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          message: string
+          page_url: string
+          screenshot_path: string | null
+          status: string
+          user_agent: string | null
+          user_id: string
+          viewport: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          message: string
+          page_url: string
+          screenshot_path?: string | null
+          status?: string
+          user_agent?: string | null
+          user_id: string
+          viewport?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          message?: string
+          page_url?: string
+          screenshot_path?: string | null
+          status?: string
+          user_agent?: string | null
+          user_id?: string
+          viewport?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tester_feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       testimonials: {
         Row: {

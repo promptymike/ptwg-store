@@ -14,6 +14,7 @@ import {
 } from "@/lib/supabase/store";
 import { getCurrentUser } from "@/lib/session";
 import { buildCanonicalMetadata } from "@/lib/seo";
+import { getInteractivePlanner } from "@/data/interactive-planners";
 
 export const metadata: Metadata = buildCanonicalMetadata({
   title: "Produkty",
@@ -45,19 +46,26 @@ export default async function ProductsPage({
   ]);
   const ownedProductIds = await getOwnedProductIds(user?.id ?? null);
 
+  // /produkty is the ebook shelf. Interactive planners have their own,
+  // purpose-built storefront under /planery and should not leak into this
+  // listing just because they also exist in the shared products table.
+  const ebookProducts = allProducts.filter(
+    (product) => !getInteractivePlanner(product.slug),
+  );
+
   const formatOptions = Array.from(
-    new Set(allProducts.map((p) => p.format).filter(Boolean) as string[]),
+    new Set(ebookProducts.map((p) => p.format).filter(Boolean) as string[]),
   ).sort();
   const format = formatOptions.includes(resolvedSearchParams.typ ?? "")
     ? resolvedSearchParams.typ
     : undefined;
 
-  const products = allProducts.filter(
+  const products = ebookProducts.filter(
     (p) =>
       (!category || p.category === category) &&
       (!format || p.format === format),
   );
-  const populatedCategories = new Set(allProducts.map((p) => p.category));
+  const populatedCategories = new Set(ebookProducts.map((p) => p.category));
   const categories = allCategories.filter((c) => populatedCategories.has(c));
 
   return (
@@ -67,8 +75,8 @@ export default async function ProductsPage({
           and avoids two h1s in the document on the way to a product. */}
       <SectionHeading
         badge="Katalog"
-        title="Praktyczne ebooki i planery dla każdego obszaru życia"
-        description="Templify grupuje ebooki według dziedziny: finanse, zdrowie, fitness, macierzyństwo, produktywność, mindset, praca i podróże."
+        title="Praktyczne e-booki dla każdego obszaru życia"
+        description="W tej sekcji znajdziesz wyłącznie e-booki. Interaktywne narzędzia z automatycznym zapisem czekają w osobnej kolekcji Planery."
       />
 
       <div className="surface-panel space-y-5 p-6">

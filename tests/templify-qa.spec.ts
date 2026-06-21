@@ -259,6 +259,12 @@ test.describe("Templify storefront QA", () => {
     const cards = productCards(page);
     await expect(cards.first()).toBeVisible();
     expect(await cards.count()).toBeGreaterThan(0);
+    await expect(
+      page.getByRole("heading", {
+        name: "Praktyczne e-booki dla każdego obszaru życia",
+      }),
+    ).toBeVisible();
+    await expect(page.getByText("Beauty Pro", { exact: true })).toHaveCount(0);
 
     const firstCard = cards.first();
     await expect(firstCard.getByRole("heading").first()).toBeVisible();

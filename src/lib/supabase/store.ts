@@ -447,29 +447,7 @@ async function mapProductRow(
   // them only when `includeAssets` was set caused the whole homepage to fall
   // back to the dynamic /api cover even when admins had uploaded real artwork
   // — the single biggest reason the storefront "looked like just gradients".
-  // Signed-URL generation is cheap (parallelized below); previews stay gated
-  // because they're a heavier per-row fan-out only needed on the detail view.
   const coverPath = normalizeText(row.cover_path);
-  const [storageCoverUrl, mappedPreviews] = await Promise.all([
-    coverPath ? createProductCoverSignedUrl(coverPath) : Promise.resolve(null),
-    includeAssets
-      ? Promise.all(
-          previews
-            .filter((preview) => {
-              const storagePath = normalizeText(preview.storage_path);
-              return !storagePath || isImagePath(storagePath);
-            })
-            .map(async (preview) => ({
-              id: preview.id,
-              imageUrl: normalizeText(preview.storage_path)
-                ? await createProductCoverSignedUrl(normalizeText(preview.storage_path))
-                : null,
-              altText: normalizeText(preview.alt_text),
-            })),
-        )
-      : Promise.resolve([]),
-  ]);
-
   const slug = normalizeText(row.slug, row.id);
 
   // Cache-busting suffix tied to the row's last update — admins editing the
@@ -478,6 +456,18 @@ async function mapProductRow(
   // cache. The endpoint ignores `?v=...`; this is purely a client/CDN key.
   const updatedAt = (row as { updated_at?: string | null }).updated_at;
   const versionSig = updatedAt ? new Date(updatedAt).getTime() : Date.now();
+  const mappedPreviews = includeAssets
+    ? previews
+        .filter((preview) => {
+          const storagePath = normalizeText(preview.storage_path);
+          return !storagePath || isImagePath(storagePath);
+        })
+        .map((preview, index) => ({
+          id: preview.id,
+          imageUrl: `/api/produkty/${slug}/preview/${index}?v=${versionSig}`,
+          altText: normalizeText(preview.alt_text),
+        }))
+    : [];
 
   // Dynamic cover fallback: when neither admin-uploaded cover nor a slug-based
   // mock is available, point at our `/api/produkty/{slug}/cover` endpoint so
@@ -488,10 +478,11 @@ async function mapProductRow(
   // PNG is itself a designed gradient + decoration, so we force opacity to
   // 100 — otherwise it gets muddied by the underlying gradient and the
   // card's title overlay competes with a half-faded second layer.
-  let coverImageUrl: string | null = storageCoverUrl;
+  const coverImageUrl: string | null = slug
+    ? `/api/produkty/${slug}/cover?v=${versionSig}`
+    : null;
   let coverImageOpacity = normalizeCoverImageOpacity(row.cover_image_opacity);
-  if (!coverImageUrl && slug) {
-    coverImageUrl = `/api/produkty/${slug}/cover?v=${versionSig}`;
+  if (!coverPath) {
     coverImageOpacity = 100;
   }
 
@@ -546,6 +537,7 @@ async function mapProductRow(
     bestseller: normalizeBoolean(row.bestseller),
     featured: normalizeBoolean(row.featured),
     coverImageUrl,
+    hasUploadedCover: Boolean(coverPath),
     previews: resolvedPreviews,
     filePath: normalizeNullableText(row.file_path),
   };
@@ -956,19 +948,13 @@ export async function getBundlesSnapshot(): Promise<Bundle[]> {
           const categoryRel = Array.isArray(product.categories)
             ? product.categories[0]
             : product.categories;
-          const coverPath = normalizeText(product.cover_path);
           const updatedAt = product.updated_at;
           const versionSig = updatedAt
             ? new Date(updatedAt).getTime()
             : Date.now();
-          const storageCoverUrl = coverPath
-            ? await createProductCoverSignedUrl(coverPath)
+          const coverImageUrl = product.slug
+            ? `/api/produkty/${product.slug}/cover?v=${versionSig}`
             : null;
-          const coverImageUrl =
-            storageCoverUrl ??
-            (product.slug
-              ? `/api/produkty/${product.slug}/cover?v=${versionSig}`
-              : null);
 
           return {
             id: product.id,
@@ -1887,9 +1873,7 @@ export async function getLibrarySnapshot(userId: string): Promise<LibrarySnapsho
         format: item.products.format,
         category: normalizeCategory(item.products.categories?.name),
         filePath: item.products.file_path,
-        coverImageUrl: item.products.cover_path
-          ? await createProductCoverSignedUrl(item.products.cover_path)
-          : null,
+        coverImageUrl: `/api/produkty/${item.products.slug}/cover?v=${new Date(item.products.updated_at).getTime()}`,
         coverGradient: normalizeText(
           item.products.cover_gradient,
           "from-[#fbf5ea] via-[#f4ead9] to-[#e4c58d]",
@@ -2031,7 +2015,7 @@ export async function getCustomerLibrarySnapshot(
 
           return rows.findIndex((row) => row.product_id === item.product_id) === index;
         })
-        .map(async (item) => {
+        .map(async (item): Promise<LibraryItemSnapshot | null> => {
           const product = productsById.get(item.product_id);
 
           if (!product) {
@@ -2055,9 +2039,7 @@ export async function getCustomerLibrarySnapshot(
             format: normalizeText(product.format, "Plik cyfrowy"),
             category: normalizeCategory(category?.name),
             filePath: normalizeNullableText(product.file_path),
-            coverImageUrl: product.cover_path
-              ? await createProductCoverSignedUrl(product.cover_path)
-              : null,
+            coverImageUrl: `/api/produkty/${normalizeText(product.slug, product.id)}/cover?v=${new Date(product.updated_at).getTime()}`,
             coverGradient: normalizeText(
               product.cover_gradient,
               "from-[#fbf5ea] via-[#f4ead9] to-[#e4c58d]",
