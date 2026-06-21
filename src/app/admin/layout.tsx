@@ -17,6 +17,7 @@ const adminLinks = [
   { href: "/admin/kategorie", label: "Kategorie" },
   { href: "/admin/zamowienia", label: "Zamówienia" },
   { href: "/admin/recenzje", label: "Recenzje" },
+  { href: "/admin/feedback", label: "Feedback testerów" },
   { href: "/admin/newsletter", label: "Newsletter" },
   { href: "/admin/blog", label: "Blog" },
   { href: "/admin/eksperymenty", label: "A/B testy" },

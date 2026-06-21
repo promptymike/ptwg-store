@@ -193,7 +193,9 @@ export function pickRecommendation(scores: TraitScores): CategoryRecommendation 
     trait: key,
     score: scores[key],
   }));
-  entries.sort((a, b) => b.score - a.score);
+  // Recommend support for the dimension that currently needs the most help,
+  // rather than selling more of what already comes naturally.
+  entries.sort((a, b) => a.score - b.score);
   const top = entries[0];
   const mapping = TRAIT_TO_CATEGORY[top.trait];
   return { trait: top.trait, ...mapping };

@@ -24,6 +24,9 @@ export const checkoutSchema = z.object({
   promoCode: z.string().trim().max(40).optional(),
   orderBumpProductId: z.string().trim().min(1).optional(),
   giftCode: z.string().trim().max(40).optional(),
+  digitalDeliveryConsent: z.literal(true, {
+    error: "Potwierdź natychmiastowe dostarczenie treści cyfrowych.",
+  }),
   affiliateRef: z
     .string()
     .trim()

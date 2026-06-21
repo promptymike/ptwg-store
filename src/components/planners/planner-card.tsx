@@ -50,6 +50,37 @@ export function PlannerVisual({
   );
 }
 
+export function PlannerLivePreview({
+  planner,
+}: {
+  planner: InteractivePlanner;
+}) {
+  return (
+    <div className="overflow-hidden rounded-[2rem] border border-border/70 bg-stone-950 shadow-[0_35px_100px_-48px_rgba(0,0,0,.65)]">
+      <div className="flex items-center justify-between gap-4 border-b border-white/10 bg-stone-950 px-4 py-3 text-white sm:px-5">
+        <div className="flex items-center gap-2">
+          <span className="size-2.5 rounded-full bg-rose-400" />
+          <span className="size-2.5 rounded-full bg-amber-300" />
+          <span className="size-2.5 rounded-full bg-emerald-400" />
+        </div>
+        <p className="truncate text-[10px] font-semibold uppercase tracking-[.2em] text-white/60 sm:text-xs">
+          Prawdziwy podgląd — możesz klikać
+        </p>
+        <span className="hidden rounded-full border border-white/15 px-2.5 py-1 text-[10px] text-white/55 sm:inline">
+          {planner.name}
+        </span>
+      </div>
+      <iframe
+        src={`/api/planners/${planner.slug}/embed?mode=demo`}
+        title={`Interaktywny podgląd planera ${planner.name}`}
+        sandbox="allow-scripts allow-forms allow-modals"
+        loading="eager"
+        className="block h-[570px] w-full bg-white sm:h-[650px] lg:h-[680px]"
+      />
+    </div>
+  );
+}
+
 export function PlannerCard({ planner }: { planner: InteractivePlanner }) {
   return (
     <article className="group overflow-hidden rounded-[1.6rem] border border-border/70 bg-card/65 shadow-[0_24px_70px_-45px_rgba(0,0,0,.45)] transition duration-500 hover:-translate-y-1 hover:border-foreground/20">

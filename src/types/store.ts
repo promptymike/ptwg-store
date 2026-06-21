@@ -78,6 +78,7 @@ export type Product = {
   bestseller?: boolean;
   featured?: boolean;
   coverImageUrl?: string | null;
+  hasUploadedCover?: boolean;
   previews?: ProductPreview[];
   /**
    * Storage path of the uploaded ebook (HTML zip / PDF). Exposed on the

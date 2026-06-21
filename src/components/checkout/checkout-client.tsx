@@ -90,6 +90,7 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
   const [giftMessage, setGiftMessage] = useState<string | null>(null);
   const [giftBusy, setGiftBusy] = useState(false);
   const [health, setHealth] = useState<CheckoutHealth | null>(null);
+  const [digitalDeliveryConsent, setDigitalDeliveryConsent] = useState(false);
   const trackedCheckoutRef = useRef(false);
   const clientStripeStatus = useMemo(() => getClientStripeStatus(), []);
 
@@ -310,6 +311,7 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
           giftCode: giftCode?.code,
           affiliateRef: readAffiliateRef()?.code,
           attribution: readAttribution() ?? undefined,
+          digitalDeliveryConsent,
         }),
       });
 
@@ -393,11 +395,23 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
           </ol>
         </div>
 
+        <label className="flex cursor-pointer items-start gap-3 rounded-[1.2rem] border border-border/70 bg-background/70 p-4 text-sm leading-6 text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={digitalDeliveryConsent}
+            onChange={(event) => setDigitalDeliveryConsent(event.target.checked)}
+            className="mt-1 size-4 shrink-0 accent-[var(--color-foreground)]"
+          />
+          <span>
+            Akceptuję <Link href="/regulamin" target="_blank" className="font-semibold text-foreground underline underline-offset-2">Regulamin</Link> i żądam rozpoczęcia dostarczania treści cyfrowych przed upływem 14 dni. Przyjmuję do wiadomości, że po uzyskaniu dostępu tracę ustawowe prawo odstąpienia; dobrowolna gwarancja zwrotu Templify pozostaje bez zmian.
+          </span>
+        </label>
+
         <Button
           className="w-full"
           size="lg"
           onClick={handleCheckout}
-          disabled={isSubmitting || lines.length === 0}
+          disabled={isSubmitting || lines.length === 0 || !digitalDeliveryConsent}
         >
           {isSubmitting ? "Przekierowanie do płatności..." : "Przejdź do bezpiecznej płatności"}
         </Button>

@@ -1,17 +1,17 @@
-import type { Metadata } from "next";
-
 import { PersonalityTest } from "@/components/test/personality-test";
 import { getCurrentUser } from "@/lib/session";
+import { buildCanonicalMetadata } from "@/lib/seo";
 import {
   getOwnedProductIds,
   getStoreProducts,
 } from "@/lib/supabase/store";
 
-export const metadata: Metadata = {
-  title: "Test stylu pracy — Big Five w 2 minuty",
+export const metadata = buildCanonicalMetadata({
+  title: "Test dopasowania planera i e-booka — 2 minuty",
   description:
-    "Bezpłatny naukowy test osobowości TIPI (Big Five). Poznaj swoje mocne strony, obszary do pilnowania i ebooki dopasowane do Twojego stylu pracy.",
-};
+    "Bezpłatny test stylu działania oparty na Big Five. Poznaj swój profil i otrzymaj konkretne planery oraz e-booki dopasowane do Twoich potrzeb.",
+  path: "/test",
+});
 
 export default async function TestPage() {
   const [products, user] = await Promise.all([

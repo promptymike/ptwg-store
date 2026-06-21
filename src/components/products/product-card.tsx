@@ -47,9 +47,7 @@ export function ProductCard({
   // title-empty mockup that needs the storefront <h3> overlay on top.
   // Real artwork ALREADY has the book title baked in, so we drop the overlay
   // there to avoid the double-title look users complained about.
-  const isUploadedCover = Boolean(
-    product.coverImageUrl && /^https?:\/\//i.test(product.coverImageUrl),
-  );
+  const isUploadedCover = Boolean(product.hasUploadedCover);
 
   return (
     <article className="surface-panel group flex h-full flex-col overflow-hidden transition duration-300 ease-out hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_24px_70px_-30px_rgba(0,0,0,0.5)]">

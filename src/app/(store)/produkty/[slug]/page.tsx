@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
 import { getCurrentUser } from "@/lib/session";
 import { getCoverImageOverlayOpacity } from "@/lib/product";
-import { getCanonicalUrl } from "@/lib/seo";
+import { getCanonicalUrl, safeJsonLd } from "@/lib/seo";
 import {
   getApprovedReviewsForProduct,
   getCustomerReviewForProduct,
@@ -66,20 +66,9 @@ export async function generateMetadata({
     };
   }
 
-  // Social-share preview image. Prefer the admin-uploaded cover (real
-  // artwork drives much higher CTR than a generated mockup); fall back to the
-  // dynamic /api/produkty/[slug]/cover route so EVERY product still ships
-  // with a valid og:image instead of dropping back to the generic site OG.
-  // Twitter / Facebook / LinkedIn crawlers fetch absolute URLs only, so any
-  // relative URL must be promoted through getCanonicalUrl first.
-  const coverIsAbsolute = Boolean(
-    product.coverImageUrl && /^https?:\/\//i.test(product.coverImageUrl),
-  );
-  const shareImageUrl = product.coverImageUrl
-    ? coverIsAbsolute
-      ? product.coverImageUrl
-      : getCanonicalUrl(product.coverImageUrl)
-    : getCanonicalUrl(`/api/produkty/${product.slug}/cover`);
+  // Stable first-party URL. The endpoint proxies private Supabase assets, so
+  // crawlers never receive an expiring JWT URL.
+  const shareImageUrl = getCanonicalUrl(`/api/produkty/${product.slug}/cover`);
 
   const ogTitle = `${product.seoTitle ?? product.name} | Templify`;
   const ogDescription = product.seoDescription ?? product.shortDescription;
@@ -185,7 +174,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     category: product.category,
     sku: product.slug,
     productID: product.id,
-    ...(product.coverImageUrl ? { image: [product.coverImageUrl] } : {}),
+    image: [getCanonicalUrl(`/api/produkty/${product.slug}/cover`)],
     url: productUrl,
     brand: {
       "@type": "Brand",
@@ -243,6 +232,35 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     ],
   };
 
+  const faqStructuredData =
+    faqs.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.slice(0, 4).map((faq) => ({
+            "@type": "Question",
+            name: faq.question,
+            acceptedAnswer: { "@type": "Answer", text: faq.answer },
+          })),
+        }
+      : null;
+
+  const reviewStructuredData = productReviews.slice(0, 10).map((review) => ({
+    "@context": "https://schema.org",
+    "@type": "Review",
+    itemReviewed: { "@type": "Product", name: product.name, url: productUrl },
+    author: { "@type": "Person", name: review.authorName },
+    reviewRating: {
+      "@type": "Rating",
+      ratingValue: review.rating,
+      bestRating: 5,
+      worstRating: 1,
+    },
+    name: review.title,
+    reviewBody: review.body,
+    datePublished: review.createdAt,
+  }));
+
   return (
     <div className="shell space-y-8 py-10 pb-28 sm:py-12 sm:pb-0 lg:py-16">
       <AnalyticsProductView
@@ -255,15 +273,21 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(productStructuredData),
+          __html: safeJsonLd(productStructuredData),
         }}
       />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbStructuredData),
+          __html: safeJsonLd(breadcrumbStructuredData),
         }}
       />
+      {faqStructuredData ? (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqStructuredData) }} />
+      ) : null}
+      {reviewStructuredData.map((review, index) => (
+        <script key={`review-schema-${index}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(review) }} />
+      ))}
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
         {(() => {
@@ -271,9 +295,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           // hero artwork itself (title baked in), so we drop the gradient
           // and the stacked <h1> overlay there. The dynamic /api fallback
           // is title-empty on purpose, so it still gets the overlay title.
-          const isUploadedCover = Boolean(
-            product.coverImageUrl && /^https?:\/\//i.test(product.coverImageUrl),
-          );
+          const isUploadedCover = Boolean(product.hasUploadedCover);
           const heroOpacity = getCoverImageOverlayOpacity(product);
 
           return (
@@ -516,20 +538,37 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             <h2 className="text-4xl text-foreground">Zobacz wnętrze produktu</h2>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {product.previews.map((preview) => (
-              <div key={preview.id} className="surface-panel overflow-hidden">
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {product.previews.map((preview, index) => (
+              <a
+                key={preview.id}
+                href={preview.imageUrl ?? undefined}
+                target="_blank"
+                rel="noreferrer"
+                className="group overflow-hidden rounded-[1.7rem] border border-border/70 bg-card/70 shadow-[0_24px_70px_-48px_rgba(0,0,0,.65)] transition hover:-translate-y-1 hover:border-primary/40"
+              >
                 {preview.imageUrl ? (
-                  <img
-                    src={preview.imageUrl}
-                    alt={preview.altText}
-                    className="h-72 w-full object-cover"
-                  />
+                  <div className="relative aspect-[3/2] overflow-hidden bg-secondary/50 p-3 sm:p-4">
+                    <img
+                      src={preview.imageUrl}
+                      alt={preview.altText}
+                      className="h-full w-full rounded-xl object-cover shadow-[0_18px_45px_-24px_rgba(0,0,0,.7)] transition duration-500 group-hover:scale-[1.025]"
+                    />
+                    <span className="absolute left-6 top-6 rounded-full bg-stone-950/85 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.18em] text-white backdrop-blur">
+                      Podgląd {index + 1}/3
+                    </span>
+                  </div>
                 ) : (
-                  <div className="h-72 w-full bg-secondary" />
+                  <div className="aspect-[3/2] w-full bg-secondary" />
                 )}
-                <div className="p-4 text-sm text-muted-foreground">{preview.altText}</div>
-              </div>
+                <div className="flex items-center justify-between gap-3 p-5">
+                  <div>
+                    <p className="font-semibold text-foreground">{preview.altText}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Kliknij, aby zobaczyć pełny rozmiar</p>
+                  </div>
+                  <span className="text-xl text-primary transition group-hover:translate-x-1">↗</span>
+                </div>
+              </a>
             ))}
           </div>
         </section>
