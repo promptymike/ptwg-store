@@ -107,4 +107,4 @@ $$;
 revoke all on function public.record_coupon_redemption(text, uuid, uuid, text, integer) from public;
 revoke all on function public.record_coupon_redemption(text, uuid, uuid, text, integer) from anon;
 revoke all on function public.record_coupon_redemption(text, uuid, uuid, text, integer) from authenticated;
-grant execute on function public.record_coupon_redemption(text, uuid, uuid, text, integer) to service_role;
+grant execute on function public.record_coupon_redemption(text, uuid, uuid, text, integer) to service_role;;

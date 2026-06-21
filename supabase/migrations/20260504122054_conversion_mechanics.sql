@@ -90,4 +90,4 @@ values
   ('order_bump_enabled', 'true'),
   ('order_bump_product_id', ''),
   ('order_bump_percent_off', '20')
-on conflict (key) do nothing;
+on conflict (key) do nothing;;

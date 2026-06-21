@@ -91,4 +91,4 @@ on public.analytics_events (visitor_id, created_at desc);
 
 create index if not exists analytics_events_product_created_idx
 on public.analytics_events (product_id, created_at desc)
-where product_id is not null;
+where product_id is not null;;
