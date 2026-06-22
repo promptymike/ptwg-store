@@ -1,5 +1,22 @@
 import { expect, test } from "@playwright/test";
 
+test("homepage uses Templify favicon and includes planners in categories", async ({ page }) => {
+  await page.goto("/");
+
+  const faviconHref = await page.locator('link[rel="icon"]').first().getAttribute("href");
+  expect(faviconHref).toContain("favicon.ico");
+  await expect(page.getByRole("heading", { name: /Planery i template/i })).toBeVisible();
+
+  const bundleCards = page.locator("#bundles article");
+  expect(await bundleCards.count()).toBeGreaterThan(0);
+  if ((page.viewportSize()?.width ?? 0) >= 1280 && (await bundleCards.count()) >= 3) {
+    const rows = await bundleCards.evaluateAll((cards) =>
+      cards.slice(0, 3).map((card) => Math.round(card.getBoundingClientRect().y)),
+    );
+    expect(new Set(rows).size).toBe(1);
+  }
+});
+
 test("desktop header keeps the logo readable and mini-cart fully opaque", async ({ page }, testInfo) => {
   test.skip((page.viewportSize()?.width ?? 0) < 1280, "Desktop-only layout regression");
 

@@ -9,6 +9,7 @@ import { InteractivePlannerHero } from "@/components/sections/interactive-planne
 import { NewArrivalsSection } from "@/components/sections/new-arrivals-section";
 import { NewsletterSection } from "@/components/sections/newsletter-section";
 import { categoryHighlights } from "@/data/mock-store";
+import { interactivePlanners } from "@/data/interactive-planners";
 import { buildCanonicalMetadata, getCanonicalUrl } from "@/lib/seo";
 import { getCurrentUser } from "@/lib/session";
 import {
@@ -140,6 +141,7 @@ export default async function HomePage() {
           content={getSectionOrFallback(sections, "use-cases")}
           categories={populatedCategoryHighlights}
           categoryProductCounts={categoryProductCounts}
+          plannerCount={interactivePlanners.length}
         />
       ) : null}
       <BundlesSection
