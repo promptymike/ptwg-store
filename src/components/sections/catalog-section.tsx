@@ -5,6 +5,7 @@ import {
   Coins,
   LineChart,
   PenLine,
+  Smartphone,
   Sparkles,
   Target,
   type LucideIcon,
@@ -21,6 +22,7 @@ type CatalogSectionProps = {
   // each tile instead of the historic mock-data count, which kept claiming
   // products that never existed in Supabase.
   categoryProductCounts?: Record<string, number>;
+  plannerCount?: number;
 };
 
 const categoryIcons: Record<string, LucideIcon> = {
@@ -39,6 +41,7 @@ export function CatalogSection({
   content,
   categories,
   categoryProductCounts = {},
+  plannerCount = 0,
 }: CatalogSectionProps) {
   const getCountForCategory = (category: CategoryHighlight) =>
     categoryProductCounts[category.title] ?? 0;
@@ -53,6 +56,39 @@ export function CatalogSection({
         />
 
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {plannerCount > 0 ? (
+            <Link
+              href="/planery"
+              className="group relative isolate overflow-hidden rounded-[2rem] border border-stone-950/10 bg-[#171510] p-6 text-white shadow-[0_24px_70px_-36px_rgba(0,0,0,.8)] transition hover:-translate-y-1"
+            >
+              <div className="absolute -right-16 -top-16 size-48 rounded-full bg-emerald-400/25 blur-3xl" />
+              <div className="absolute -bottom-20 -left-12 size-52 rounded-full bg-violet-500/25 blur-3xl" />
+              <div className="relative flex h-full flex-col gap-5">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="inline-flex size-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-emerald-300">
+                    <Smartphone className="size-5" />
+                  </span>
+                  <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/75">
+                    Interaktywne
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  <h3 className="text-2xl" style={{ color: "#fff" }}>Planery i template’y online</h3>
+                  <p className="text-sm leading-7 text-white/65">
+                    Finanse, rodzina, posiłki, podróże i praca. Automatyczny zapis oraz prywatny dostęp z telefonu.
+                  </p>
+                </div>
+                <div className="rounded-[1.25rem] border border-white/10 bg-white/8 px-4 py-3">
+                  <p className="text-xs uppercase tracking-[0.18em] text-emerald-300">Bez Excela</p>
+                  <p className="mt-2 text-sm text-white">{plannerCount} interaktywnych planerów</p>
+                </div>
+                <span className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-emerald-300">
+                  Zobacz planery
+                  <ArrowUpRight className="size-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </span>
+              </div>
+            </Link>
+          ) : null}
           {categories.map((category) => {
             const Icon = pickIcon(category.slug);
             const productCount = getCountForCategory(category);
@@ -85,7 +121,7 @@ export function CatalogSection({
                   </p>
                   <p className="mt-2 text-sm text-foreground">
                     {productCount}{" "}
-                    {productCount === 1 ? "produkt" : "produktów"}
+                    {productCount === 1 ? "e-book" : "e-booków"}
                   </p>
                 </div>
 

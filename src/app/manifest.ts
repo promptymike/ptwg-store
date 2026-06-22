@@ -15,13 +15,13 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "pl",
     icons: [
       {
-        src: "/api/pwa-icon",
+        src: "/brand/templify-app-icon.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/api/pwa-icon?maskable=1",
+        src: "/brand/templify-app-icon-maskable.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",

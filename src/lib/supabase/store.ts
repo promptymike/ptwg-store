@@ -24,6 +24,7 @@ import {
   siteSections as mockSiteSections,
   testimonials as mockTestimonials,
 } from "@/data/mock-store";
+import { getInteractivePlanner } from "@/data/interactive-planners";
 import { hasSupabaseEnv } from "@/lib/env";
 import { formatCurrency } from "@/lib/format";
 import { normalizeCoverImageOpacity } from "@/lib/product";
@@ -3186,7 +3187,10 @@ export async function getStorefrontSnapshot() {
   // that's the field surfaced on each mapped product row.
   const categoryProductCounts = allProducts.reduce<Record<string, number>>(
     (acc, product) => {
-      if (!product.category) return acc;
+      // The homepage category tiles link to the ebook shelf. Interactive
+      // planners get their own featured category tile and must not inflate
+      // counts for links that intentionally filter them out.
+      if (!product.category || getInteractivePlanner(product.slug)) return acc;
       acc[product.category] = (acc[product.category] ?? 0) + 1;
       return acc;
     },

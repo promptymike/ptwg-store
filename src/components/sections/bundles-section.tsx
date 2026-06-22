@@ -2,7 +2,6 @@
 import { CheckCircle2 } from "lucide-react";
 
 import { BundleCheckoutButton } from "@/components/cart/bundle-checkout-button";
-import { SectionHeading } from "@/components/shared/section-heading";
 import { formatCurrency } from "@/lib/format";
 import type { Bundle } from "@/types/store";
 
@@ -25,7 +24,7 @@ function BundleBookshelf({ products }: { products: Bundle["products"] }) {
 
   return (
     <div
-      className="relative isolate h-48 sm:h-56"
+      className="relative isolate h-40"
       aria-hidden
     >
       {/* Soft shelf shadow on the floor — anchors the "books" so they don't
@@ -40,7 +39,7 @@ function BundleBookshelf({ products }: { products: Bundle["products"] }) {
           return (
             <div
               key={product.id}
-              className="relative aspect-[3/4] h-40 shrink-0 overflow-hidden rounded-xl border border-stone-200/80 bg-stone-100 shadow-[0_18px_36px_-18px_rgba(0,0,0,0.45)] transition duration-500 ease-out group-hover:-translate-y-1 sm:h-48"
+              className="relative aspect-[3/4] h-32 shrink-0 overflow-hidden rounded-xl border border-white/35 bg-stone-100 shadow-[0_18px_36px_-18px_rgba(0,0,0,0.55)] transition duration-500 ease-out group-hover:-translate-y-1 sm:h-36"
               style={{
                 transform: `rotate(${rotation}deg) translateY(${translateY}px)`,
                 zIndex: shelfProducts.length - Math.abs(offset),
@@ -84,14 +83,19 @@ export function BundlesSection({
 
   return (
     <section id="bundles" className="shell section-space">
-      <div className="space-y-8">
-        <SectionHeading
-          badge="Pakiety"
-          title="Zestawy z lepszą ceną niż pojedyncze ebooki"
-          description="Pakiety łączą produkty wokół jednego celu. Dorzucasz drugi temat z rabatem, a wszystkie pliki lądują w jednej bibliotece od razu po zakupie."
-        />
+      <div className="relative isolate overflow-hidden rounded-[2.8rem] bg-[#15130f] px-5 py-10 text-white shadow-[0_40px_120px_-60px_rgba(0,0,0,.9)] sm:px-8 lg:px-10 lg:py-12">
+        <div className="pointer-events-none absolute -right-32 -top-40 size-96 rounded-full bg-amber-300/10 blur-[100px]" />
+        <div className="pointer-events-none absolute -bottom-52 -left-28 size-[28rem] rounded-full bg-violet-500/10 blur-[120px]" />
+        <div className="relative space-y-8">
+          <div className="max-w-3xl space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300/80">Pakiety</p>
+            <h2 className="text-4xl sm:text-5xl" style={{ color: "#fff" }}>Cały system. Jedna decyzja. Lepsza cena.</h2>
+            <p className="max-w-2xl text-sm leading-7 text-white/60 sm:text-base">
+              Dobieramy e-booki i planery, które wspólnie rozwiązują jeden konkretny problem. Kupujesz raz, a cały zestaw trafia od razu do biblioteki.
+            </p>
+          </div>
 
-        <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid gap-5 lg:grid-cols-3">
           {orderedBundles.map((bundle, index) => {
             const isRecommended =
               index === 0 && recommendedBundle?.id === bundle.id;
@@ -103,105 +107,69 @@ export function BundlesSection({
             return (
               <article
                 key={bundle.id}
-                className="surface-panel group p-6 sm:p-8"
+                className="group flex h-full min-w-0 flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-[#211e18] shadow-[0_24px_80px_-45px_rgba(0,0,0,.95)]"
               >
-                <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-                  <div className="space-y-4">
-                    {/* Decorative shelf carrying a fan of the included covers
-                        — replaces the previous empty gradient placeholder
-                        with a real preview of what's in the pakiet. The
-                        background uses the bundle accent gradient as a soft
-                        backdrop so brand styling stays intact. */}
-                    <div
-                      className={`relative overflow-hidden rounded-[1.8rem] border border-border/70 bg-gradient-to-br ${bundle.accent} px-4 pt-6`}
-                    >
-                      <BundleBookshelf products={bundle.products} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs uppercase tracking-[0.24em] text-primary/75">
-                        {isRecommended ? "Polecany pakiet" : "Pakiet premium"}
-                      </p>
-                      <h3 className="mt-2 break-words text-4xl text-foreground">
-                        {bundle.name}
-                      </h3>
-                      <p className="mt-3 break-words text-sm leading-7 text-muted-foreground">
-                        {bundle.description}
+                <div className={`relative overflow-hidden bg-gradient-to-br ${bundle.accent} px-5 pt-5`}>
+                  <div className="absolute left-5 top-5 z-20 rounded-full border border-white/35 bg-stone-950/70 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white backdrop-blur-sm">
+                    {isRecommended ? "Najczęściej wybierany" : "Pakiet premium"}
+                  </div>
+                  <BundleBookshelf products={bundle.products} />
+                </div>
+
+                <div className="flex flex-1 flex-col gap-5 p-6">
+                  <div className="min-w-0">
+                    <div className="flex items-start justify-between gap-4">
+                      <h3 className="break-words text-3xl" style={{ color: "#fff" }}>{bundle.name}</h3>
+                      <p className="shrink-0 text-xl font-semibold text-amber-300">
+                        {formatCurrency(bundle.price)}
                       </p>
                     </div>
+                    <p className="mt-3 break-words text-sm leading-6 text-white/60">{bundle.description}</p>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="rounded-[1.5rem] border border-border/70 bg-background/70 p-5">
-                      <div className="flex items-baseline gap-3">
-                        <p className="text-3xl text-foreground">
-                          {formatCurrency(bundle.price)}
-                        </p>
-                      </div>
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        Jednorazowy zakup. Dostęp bezterminowy.
-                      </p>
-                    </div>
-
-                    <div className="space-y-3">
-                      <p className="text-sm font-medium text-foreground">
-                        W zestawie znajdziesz
-                      </p>
-                      {bundle.products.map((product) => {
-                        const isOwned =
-                          ownedProductIds?.has(product.id) ?? false;
-                        return (
-                          <div
-                            key={product.id}
-                            className={`rounded-[1.2rem] border px-4 py-3 text-sm transition ${
-                              isOwned
-                                ? "border-emerald-500/30 bg-emerald-500/5 text-muted-foreground"
-                                : "border-border/70 bg-background/70 text-muted-foreground"
-                            }`}
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <span className="block break-words text-foreground">
-                                {product.name}
-                              </span>
-                              {isOwned ? (
-                                <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-600">
-                                  W bibliotece
-                                </span>
-                              ) : null}
-                            </div>
-                            <span className="mt-0.5 block text-xs uppercase tracking-[0.18em] text-primary/75">
-                              {product.category}
-                            </span>
+                  <div className="space-y-2">
+                    {bundle.products.map((product) => {
+                      const isOwned = ownedProductIds?.has(product.id) ?? false;
+                      return (
+                        <div key={product.id} className="flex items-start gap-3 rounded-xl border border-white/8 bg-white/[0.04] px-3 py-2.5">
+                          <CheckCircle2 className={`mt-0.5 size-4 shrink-0 ${isOwned ? "text-emerald-300" : "text-amber-300"}`} />
+                          <div className="min-w-0">
+                            <p className="line-clamp-2 text-sm" style={{ color: "rgba(255,255,255,.9)" }}>{product.name}</p>
+                            <p className="mt-0.5 text-[10px] uppercase tracking-[0.16em] text-white/40">
+                              {isOwned ? "Masz w bibliotece" : product.category}
+                            </p>
                           </div>
-                        );
-                      })}
-                      {ownedProductIds && ownedCount > 0 && !allOwned ? (
-                        <p className="text-xs text-emerald-700 dark:text-emerald-400">
-                          Masz już {ownedCount} z {bundle.products.length} pozycji.
-                          Kupując pakiet dostajesz pozostałe w lepszej cenie.
-                        </p>
-                      ) : null}
-                    </div>
+                        </div>
+                      );
+                    })}
+                  </div>
 
-                    <ul className="space-y-2 text-sm text-muted-foreground">
-                      {bundle.perks.map((perk) => (
-                        <li key={perk} className="flex items-start gap-2">
-                          <CheckCircle2 className="mt-0.5 size-4 text-primary" />
-                          <span>{perk}</span>
-                        </li>
-                      ))}
-                    </ul>
+                  <ul className="space-y-2 text-sm text-white/55">
+                    {bundle.perks.slice(0, 4).map((perk) => (
+                      <li key={perk} className="flex items-start gap-2">
+                        <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-amber-300/80" />
+                        <span>{perk}</span>
+                      </li>
+                    ))}
+                  </ul>
 
+                  <div className="mt-auto space-y-3 pt-2">
+                    {ownedProductIds && ownedCount > 0 && !allOwned ? (
+                      <p className="text-xs text-emerald-300">Masz już {ownedCount} z {bundle.products.length} pozycji.</p>
+                    ) : null}
                     <BundleCheckoutButton
                       bundleId={bundle.id}
                       bundleName={bundle.name}
                       price={bundle.price}
                       allOwned={allOwned}
                     />
+                    <p className="text-center text-[11px] text-white/35">Jednorazowy zakup · dostęp bezterminowy</p>
                   </div>
                 </div>
               </article>
             );
           })}
+          </div>
         </div>
       </div>
     </section>
