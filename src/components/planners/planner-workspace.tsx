@@ -36,7 +36,25 @@ export function PlannerWorkspace({ planner, demo = false }: { planner: Interacti
 
     async function onMessage(event: MessageEvent) {
       const message = event.data;
-      if (!message || message.slug !== planner.slug) return;
+      if (!message || message.slug !== planner.slug || event.source !== iframeRef.current?.contentWindow) return;
+      if (message.type === "templify:planner-ai-request" && !demo) {
+        const response = await fetch(`/api/planner-instances/${planner.slug}/ai`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(message.body ?? {}),
+        }).catch(() => null);
+        const body = response
+          ? await response.json().catch(() => ({ error: { message: "Nie udało się odczytać odpowiedzi AI." } }))
+          : { error: { message: "Asystent AI jest chwilowo niedostępny." } };
+        iframeRef.current?.contentWindow?.postMessage({
+          type: "templify:planner-ai-response",
+          slug: planner.slug,
+          requestId: String(message.requestId ?? ""),
+          status: response?.status ?? 503,
+          body,
+        }, "*");
+        return;
+      }
       if (message.type === "templify:planner-ready" && !demo && !hydratedRef.current) {
         const response = await fetch(`/api/planner-instances/${planner.slug}`).catch(() => null);
         if (!response?.ok) { setSaveState("error"); return; }

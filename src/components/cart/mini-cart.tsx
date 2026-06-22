@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Minus, Plus, ShoppingBag, Sparkles, Trash2, X } from "lucide-react";
 
 import {
@@ -68,17 +69,17 @@ export function MiniCart({ open, onClose }: MiniCartProps) {
 
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-50">
+  return createPortal(
+    <div className="fixed inset-0 z-[70]">
       <div
-        className="absolute inset-0 bg-stone-950/45 backdrop-blur-sm animate-in fade-in duration-200"
+        className="absolute inset-0 bg-stone-950/60 animate-in fade-in duration-200"
         onClick={onClose}
         aria-hidden
       />
       <aside
         role="dialog"
         aria-label="Mini koszyk"
-        className="absolute inset-x-0 bottom-0 flex max-h-[92vh] flex-col rounded-t-[28px] border-t border-border/30 bg-card/80 shadow-[0_-24px_90px_-10px_rgba(0,0,0,0.55)] backdrop-blur-2xl backdrop-saturate-150 animate-in slide-in-from-bottom duration-320 ease-[cubic-bezier(0.32,0.72,0,1)] sm:bottom-auto sm:right-0 sm:top-0 sm:left-auto sm:h-full sm:max-h-none sm:w-full sm:max-w-md sm:rounded-none sm:border-t-0 sm:border-l sm:duration-300 sm:slide-in-from-right"
+        className="absolute inset-x-0 bottom-0 flex max-h-[92vh] flex-col rounded-t-[28px] border-t border-border bg-background shadow-[0_-24px_90px_-10px_rgba(0,0,0,0.55)] animate-in slide-in-from-bottom duration-320 ease-[cubic-bezier(0.32,0.72,0,1)] sm:bottom-auto sm:right-0 sm:top-0 sm:left-auto sm:h-full sm:max-h-none sm:w-full sm:max-w-[30rem] sm:rounded-none sm:border-t-0 sm:border-l sm:duration-300 sm:slide-in-from-right"
       >
         <div className="flex justify-center pt-3 pb-1 sm:hidden">
           <div className="h-1 w-10 rounded-full bg-foreground/20" aria-hidden />
@@ -206,7 +207,7 @@ export function MiniCart({ open, onClose }: MiniCartProps) {
         </div>
 
         {items.length > 0 && recommendations.length > 0 ? (
-          <div className="border-t border-border/60 bg-background/30 px-5 py-4">
+          <div className="border-t border-border/60 bg-secondary/35 px-5 py-4">
             <div className="mb-3 flex items-center gap-2">
               <Sparkles className="size-3.5 text-primary" />
               <p className="text-[11px] uppercase tracking-[0.18em] text-primary/80">
@@ -217,7 +218,7 @@ export function MiniCart({ open, onClose }: MiniCartProps) {
               {recommendations.map((product) => (
                 <li
                   key={product.id}
-                  className="flex items-center gap-3 rounded-2xl border border-border/60 bg-background/60 px-3 py-2"
+                  className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card px-3 py-2"
                 >
                   <Link
                     href={getProductHref(product.slug)}
@@ -252,7 +253,7 @@ export function MiniCart({ open, onClose }: MiniCartProps) {
         ) : null}
 
         {items.length > 0 ? (
-          <footer className="space-y-3 border-t border-border/60 bg-background/40 px-5 py-4">
+          <footer className="space-y-3 border-t border-border/60 bg-background px-5 py-4">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Suma</span>
               <span className="text-lg font-semibold text-foreground tabular-nums">
@@ -277,6 +278,7 @@ export function MiniCart({ open, onClose }: MiniCartProps) {
           </footer>
         ) : null}
       </aside>
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -60,8 +60,8 @@ export async function SiteFooter({ hasBlogPosts = false }: SiteFooterProps) {
     <footer className="relative bg-gradient-to-b from-transparent via-background to-background before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-border/30 before:to-transparent">
       <div className="shell section-space grid gap-10 xl:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
         <div className="space-y-5">
-          <Link href="/" className="inline-flex rounded-xl bg-[#f7f3ec] px-3 py-2 shadow-sm ring-1 ring-stone-950/8">
-            <Image src="/brand/templify-wordmark-header.png" alt="Templify.pl" width={720} height={164} className="h-10 w-auto" />
+          <Link href="/" className="inline-flex">
+            <Image src="/brand/templify-wordmark-header.png" alt="Templify.pl" width={720} height={164} className="h-auto w-[190px] max-w-none" />
           </Link>
           <div className="space-y-3">
             <h2 className="max-w-md text-3xl text-foreground sm:text-4xl">
