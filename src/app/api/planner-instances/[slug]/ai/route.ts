@@ -54,7 +54,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       Authorization: `Bearer ${env.openRouterApiKey}`,
       "Content-Type": "application/json",
       "HTTP-Referer": env.siteUrl,
-      "X-Title": `Templify — ${planner.name}`,
+      // Fetch headers must be ByteString-compatible. Product names can contain
+      // Polish characters, so use the ASCII-only slug in the upstream label.
+      "X-Title": `Templify - ${planner.slug}`,
     },
     body: JSON.stringify({ model: env.openRouterModel, messages, max_tokens: maxTokens }),
     signal: AbortSignal.timeout(40_000),
