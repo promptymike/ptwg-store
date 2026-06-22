@@ -40,6 +40,10 @@ export const env = {
   // subscription syncs to that audience so admins can fire broadcasts
   // straight from resend.com/audiences.
   resendAudienceId: process.env.RESEND_AUDIENCE_ID,
+  // Managed AI for interactive planners. The private key is read only by
+  // authenticated Route Handlers and is never passed into an iframe/client.
+  openRouterApiKey: process.env.OPENROUTER_API_KEY,
+  openRouterModel: process.env.OPENROUTER_MODEL ?? "openrouter/free",
   // Vercel Cron sends Authorization: Bearer <CRON_SECRET>. Required for
   // /api/cron/* endpoints — without it they 503 so a public hit never
   // accidentally fires the drip.

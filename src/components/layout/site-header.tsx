@@ -113,22 +113,17 @@ export function SiteHeader({ profile, hasBlogPosts = false }: SiteHeaderProps) {
   }, [isAccountOpen]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-2xl">
+    <header className="sticky top-0 z-40 border-b border-border/70 bg-background">
       <div className="shell flex items-center justify-between gap-4 py-3 xl:py-4">
-        <Link href="/" className="flex min-h-[40px] items-center gap-3" aria-label="Templify.pl — strona główna">
-          <span className="inline-flex rounded-xl bg-[#f7f3ec] px-2 py-1 shadow-sm ring-1 ring-stone-950/8">
-            <Image
-              src="/brand/templify-wordmark-header.png"
-              alt="Templify.pl"
-              width={720}
-              height={164}
-              className="h-8 w-auto sm:h-9"
-              preload
-            />
-          </span>
-          <span className="hidden text-[11px] uppercase tracking-[0.34em] text-muted-foreground sm:inline">
-            ebooki i planery
-          </span>
+        <Link href="/" className="flex min-h-[40px] shrink-0 items-center" aria-label="Templify.pl — strona główna">
+          <Image
+            src="/brand/templify-wordmark-header.png"
+            alt="Templify.pl"
+            width={720}
+            height={164}
+            className="h-auto w-[142px] max-w-none sm:w-[158px] 2xl:w-[174px]"
+            preload
+          />
         </Link>
 
         <nav
@@ -185,7 +180,7 @@ export function SiteHeader({ profile, hasBlogPosts = false }: SiteHeaderProps) {
               {isAccountOpen ? (
                 <div
                   role="menu"
-                  className="absolute right-0 mt-2 w-72 origin-top-right rounded-3xl border border-border/30 bg-card/55 p-2 shadow-[0_36px_100px_-32px_rgba(0,0,0,0.55)] backdrop-blur-[40px] backdrop-saturate-150 animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-220 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+                  className="absolute right-0 mt-2 w-72 origin-top-right rounded-3xl border border-border/70 bg-popover p-2 shadow-[0_24px_70px_-24px_rgba(0,0,0,0.45)] animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-220 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
                 >
                   <div className="flex items-center gap-3 rounded-xl px-3 py-2">
                     <span className="inline-flex size-9 items-center justify-center rounded-full bg-foreground text-xs font-semibold uppercase tracking-[0.14em] text-background">
