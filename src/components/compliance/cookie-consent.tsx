@@ -97,6 +97,7 @@ export function CookieConsentBanner({
   );
   const [dismissed, setDismissed] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isPreviewLightboxOpen, setIsPreviewLightboxOpen] = useState(false);
   const [analytics, setAnalytics] = useState(false);
   const [marketing, setMarketing] = useState(false);
 
@@ -108,22 +109,31 @@ export function CookieConsentBanner({
     }
   }, [consent]);
 
+  useEffect(() => {
+    function syncPreviewHash() {
+      setIsPreviewLightboxOpen(window.location.hash.startsWith("#preview-"));
+    }
+
+    syncPreviewHash();
+    window.addEventListener("hashchange", syncPreviewHash);
+    return () => window.removeEventListener("hashchange", syncPreviewHash);
+  }, []);
+
   const saveConsent = useCallback((next: ConsentState) => {
     writeConsent(next);
     setDismissed(true);
     setIsSettingsOpen(false);
   }, []);
 
-  if (consent !== null || dismissed) {
+  if (consent !== null || dismissed || isPreviewLightboxOpen) {
     return null;
   }
 
-  // Slim, single-row strip on desktop. Settings panel expands ABOVE the
-  // strip when the user opens it — never overlaps form CTAs in the
-  // viewport, never blocks the area where buyers read product detail.
+  // Compact consent card. On desktop it stays in the corner instead of
+  // floating over the main purchase CTA.
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-3 z-50 px-3 sm:bottom-4 sm:px-4">
-      <div className="pointer-events-auto mx-auto max-w-5xl space-y-2">
+    <div className="pointer-events-none fixed inset-x-0 bottom-3 z-0 px-3 sm:inset-x-auto sm:left-4 sm:bottom-4 sm:w-[min(440px,calc(100vw-2rem))] sm:px-0">
+      <div className="pointer-events-auto mx-auto max-w-5xl space-y-2 sm:mx-0 sm:max-w-none">
         {isSettingsOpen ? (
           <div className="rounded-[1.5rem] border border-border/80 bg-card/95 p-4 shadow-[0_30px_90px_-40px_rgba(0,0,0,0.4)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-200">
             <div className="grid gap-3 md:grid-cols-3">
@@ -182,14 +192,14 @@ export function CookieConsentBanner({
           </div>
         ) : null}
 
-        <div className="flex flex-col gap-3 rounded-full border border-border/80 bg-card/95 px-4 py-2.5 shadow-[0_18px_60px_-30px_rgba(0,0,0,0.4)] backdrop-blur-xl sm:flex-row sm:items-center sm:gap-4 sm:py-2">
+        <div className="flex flex-col gap-3 rounded-[1.65rem] border border-border/80 bg-card/95 px-4 py-3 shadow-[0_18px_60px_-30px_rgba(0,0,0,0.4)] backdrop-blur-xl sm:gap-3 sm:py-3">
           <p className="min-w-0 flex-1 text-sm leading-5 text-foreground">
             <span className="font-semibold">Cookies i prywatność.</span>{" "}
             <span className="text-muted-foreground">
               Używamy niezbędnych cookies do działania sklepu. Wybierz, co dodatkowo.
             </span>
           </p>
-          <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+          <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:justify-end">
             <button
               type="button"
               onClick={() => {

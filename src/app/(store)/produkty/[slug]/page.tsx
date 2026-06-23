@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,6 +6,7 @@ import { BookOpen, CheckCircle2, Download, LibraryBig, ShieldCheck, Sparkles, Za
 import { AnalyticsProductView } from "@/components/analytics/analytics-product-view";
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
 import { ProductCard } from "@/components/products/product-card";
+import { ProductPreviewGallery } from "@/components/products/product-preview-gallery";
 import { ProductReviews } from "@/components/products/product-reviews";
 import { ProductTestimonials } from "@/components/products/product-testimonials";
 import { Badge } from "@/components/ui/badge";
@@ -532,46 +532,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       </section>
 
       {product.previews && product.previews.length > 0 ? (
-        <section className="space-y-6">
-          <div className="space-y-2">
-            <p className="text-xs uppercase tracking-[0.24em] text-primary/75">Preview</p>
-            <h2 className="text-4xl text-foreground">Zobacz wnętrze produktu</h2>
-          </div>
-
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {product.previews.map((preview, index) => (
-              <a
-                key={preview.id}
-                href={preview.imageUrl ?? undefined}
-                target="_blank"
-                rel="noreferrer"
-                className="group overflow-hidden rounded-[1.7rem] border border-border/70 bg-card/70 shadow-[0_24px_70px_-48px_rgba(0,0,0,.65)] transition hover:-translate-y-1 hover:border-primary/40"
-              >
-                {preview.imageUrl ? (
-                  <div className="relative aspect-[3/2] overflow-hidden bg-secondary/50 p-3 sm:p-4">
-                    <img
-                      src={preview.imageUrl}
-                      alt={preview.altText}
-                      className="h-full w-full rounded-xl object-cover shadow-[0_18px_45px_-24px_rgba(0,0,0,.7)] transition duration-500 group-hover:scale-[1.025]"
-                    />
-                    <span className="absolute left-6 top-6 rounded-full bg-stone-950/85 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.18em] text-white backdrop-blur">
-                      Podgląd {index + 1}/3
-                    </span>
-                  </div>
-                ) : (
-                  <div className="aspect-[3/2] w-full bg-secondary" />
-                )}
-                <div className="flex items-center justify-between gap-3 p-5">
-                  <div>
-                    <p className="font-semibold text-foreground">{preview.altText}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Kliknij, aby zobaczyć pełny rozmiar</p>
-                  </div>
-                  <span className="text-xl text-primary transition group-hover:translate-x-1">↗</span>
-                </div>
-              </a>
-            ))}
-          </div>
-        </section>
+        <ProductPreviewGallery previews={product.previews} />
       ) : null}
 
       {faqs.length > 0 ? (
