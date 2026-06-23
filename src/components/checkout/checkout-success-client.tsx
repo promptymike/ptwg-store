@@ -144,7 +144,7 @@ export function CheckoutSuccessClient({
           </li>
           <li className="flex items-start gap-2">
             <CheckCircle2 className="mt-0.5 size-4 text-primary" />
-            Zduplikuj workspace Notion lub otwórz PDF w przeglądarce.
+            Otwórz produkt w bibliotece albo pobierz PDF do czytania offline.
           </li>
           <li className="flex items-start gap-2">
             <CheckCircle2 className="mt-0.5 size-4 text-primary" />

@@ -25,6 +25,10 @@ import {
   testimonials as mockTestimonials,
 } from "@/data/mock-store";
 import { getInteractivePlanner } from "@/data/interactive-planners";
+import {
+  formatCustomerFacingProductFormat,
+  formatCustomerFacingText,
+} from "@/lib/customer-facing-format";
 import { hasSupabaseEnv } from "@/lib/env";
 import { formatCurrency } from "@/lib/format";
 import { normalizeCoverImageOpacity } from "@/lib/product";
@@ -517,9 +521,11 @@ async function mapProductRow(
     compareAtPrice: normalizeNullableText(String(row.compare_at_price ?? "")) === null
       ? undefined
       : normalizeNumber(row.compare_at_price),
-    // DB wins for format so admin-driven values like "Ebook" / "Planer"
-    // surface even when mock-store.ts still ships a stale "HTML" override.
-    format: normalizeText(row.format, polishOverride?.format ?? "Brak formatu"),
+    // DB wins for format, then we translate legacy technical labels like
+    // "HTML" / "ZIP (HTML)" into customer-facing language.
+    format: formatCustomerFacingProductFormat(
+      normalizeText(row.format, polishOverride?.format ?? "Brak formatu"),
+    ),
     pages: normalizeInteger(row.pages),
     tags: polishOverride?.tags ?? normalizeStringList(row.tags),
     rating: normalizeNumber(row.rating),
@@ -976,7 +982,7 @@ export async function getBundlesSnapshot(): Promise<Bundle[]> {
         price: row.price,
         compareAtPrice: row.compare_at_price ?? row.price,
         accent: row.accent ?? "from-[#fbf5ea] via-[#f4ead9] to-[#e4c58d]",
-        perks: row.perks ?? [],
+        perks: (row.perks ?? []).map(formatCustomerFacingText),
         productIds: linked.map((p) => p.id),
         products: linked,
       };
@@ -1871,7 +1877,7 @@ export async function getLibrarySnapshot(userId: string): Promise<LibrarySnapsho
         slug: item.products.slug,
         name: item.products.name,
         shortDescription: item.products.short_description,
-        format: item.products.format,
+        format: formatCustomerFacingProductFormat(item.products.format),
         category: normalizeCategory(item.products.categories?.name),
         filePath: item.products.file_path,
         coverImageUrl: `/api/produkty/${item.products.slug}/cover?v=${new Date(item.products.updated_at).getTime()}`,
@@ -2037,7 +2043,9 @@ export async function getCustomerLibrarySnapshot(
               product.short_description,
               "Kupiony produkt cyfrowy dostępny na Twoim koncie.",
             ),
-            format: normalizeText(product.format, "Plik cyfrowy"),
+            format: formatCustomerFacingProductFormat(
+              normalizeText(product.format, "Plik cyfrowy"),
+            ),
             category: normalizeCategory(category?.name),
             filePath: normalizeNullableText(product.file_path),
             coverImageUrl: `/api/produkty/${normalizeText(product.slug, product.id)}/cover?v=${new Date(product.updated_at).getTime()}`,
@@ -2175,7 +2183,11 @@ export async function getAccountOrderDetails(
         shortDescription: product
           ? normalizeText(product.short_description)
           : "Produkt z zamówienia.",
-        format: product ? normalizeText(product.format, "Plik cyfrowy") : "Plik cyfrowy",
+        format: product
+          ? formatCustomerFacingProductFormat(
+              normalizeText(product.format, "Plik cyfrowy"),
+            )
+          : "Plik cyfrowy",
         category: normalizeCategory(category?.name),
         filePath: product ? normalizeNullableText(product.file_path) : null,
       };
@@ -2594,7 +2606,9 @@ export async function getAdminProductsSnapshot(filters?: {
               : normalizeNumber(product.compareAtPrice),
           category: normalizeCategory(product.category),
           categoryId: normalizeText(product.categoryId),
-          format: normalizeText(product.format, "Brak formatu"),
+          format: formatCustomerFacingProductFormat(
+            normalizeText(product.format, "Brak formatu"),
+          ),
           pages: normalizeInteger(product.pages),
           tags: normalizeStringList(product.tags),
           rating: normalizeNumber(product.rating),

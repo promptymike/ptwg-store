@@ -24,7 +24,7 @@ const steps = [
     step: "04",
     title: "Czytaj na każdym urządzeniu",
     description:
-      "Każdy ebook to plik HTML, który otwierasz w przeglądarce na telefonie, tablecie lub komputerze. Bez aplikacji.",
+      "E-book otwierasz od razu na stronie na telefonie, tablecie lub komputerze. Możesz też pobrać PDF do czytania offline.",
   },
 ];
 

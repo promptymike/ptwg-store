@@ -14,7 +14,7 @@ const ADMIN_STEPS: OnboardingStep[] = [
   },
   {
     title: "Produkty — sercem sklepu",
-    body: "Dodajesz i edytujesz ebooki + planery. Okładka, opis, plik HTML/PDF, screenshoty, cena, status (draft / published). Po publikacji od razu w sklepie.",
+    body: "Dodajesz i edytujesz ebooki + planery. Okładka, opis, plik źródłowy, screenshoty, cena, status (draft / published). Po publikacji od razu w sklepie.",
     href: "/admin/produkty",
     hrefLabel: "Otwórz Produkty",
   },

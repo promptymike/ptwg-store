@@ -219,7 +219,7 @@ async function migrateCategories() {
 // Soft-launch product catalog. Each entry maps a real ebook from
 // PTWG / Filar 1 - E - produkty (Drive) to a Supabase product row.
 // File paths point to ebook-staging/, where we put the downloaded
-// .html files. Cover image is left null — we use cover_gradient
+// source files. Cover image is left null — we use cover_gradient
 // only for the soft launch (proper covers come in wave 2).
 const SOFT_LAUNCH_PRODUCTS = [
   {
@@ -230,7 +230,7 @@ const SOFT_LAUNCH_PRODUCTS = [
     price: 49,
     compareAtPrice: 79,
     pages: 35,
-    format: "ZIP (HTML)",
+    format: "Dostęp online + PDF",
     salesLabel: "Najczęściej kupowany start",
     heroNote: "Pieniądze pod kontrolą w 30 dni",
     badge: "bestseller",
@@ -260,7 +260,7 @@ const SOFT_LAUNCH_PRODUCTS = [
     price: 79,
     compareAtPrice: 119,
     pages: 17,
-    format: "ZIP (HTML)",
+    format: "Dostęp online + PDF",
     salesLabel: "Wybór mam i przyszłych mam",
     heroNote: "Ciąża, poród, połóg — wszystko w jednym miejscu",
     badge: "featured",
@@ -291,7 +291,7 @@ const SOFT_LAUNCH_PRODUCTS = [
     price: 39,
     compareAtPrice: 59,
     pages: 13,
-    format: "ZIP (HTML)",
+    format: "Dostęp online + PDF",
     salesLabel: "Niezbędna baza wiedzy",
     heroNote: "Bez żargonu, z przykładami, praktycznie",
     badge: "new",
@@ -321,7 +321,7 @@ const SOFT_LAUNCH_PRODUCTS = [
     price: 59,
     compareAtPrice: 89,
     pages: 10,
-    format: "ZIP (HTML)",
+    format: "Dostęp online + PDF",
     salesLabel: "Bestseller wśród planerów",
     heroNote: "Planner zaprojektowany pod ADHD — bez pułapek",
     badge: "bestseller",
@@ -352,7 +352,7 @@ const SOFT_LAUNCH_PRODUCTS = [
     price: 79,
     compareAtPrice: 129,
     pages: 19,
-    format: "ZIP (HTML)",
+    format: "Dostęp online + PDF",
     salesLabel: "Najczęściej polecany na prezent",
     heroNote: "Czas to Twój najcenniejszy zasób",
     badge: "featured",
@@ -383,7 +383,7 @@ const SOFT_LAUNCH_PRODUCTS = [
     price: 69,
     compareAtPrice: 99,
     pages: 68,
-    format: "ZIP (HTML)",
+    format: "Dostęp online + PDF",
     salesLabel: "Bestseller w kategorii dieta",
     heroNote: "Schudnij bez jojo — opracowane przez kobiety dla kobiet",
     badge: "featured",
@@ -414,7 +414,7 @@ const SOFT_LAUNCH_PRODUCTS = [
     price: 59,
     compareAtPrice: 89,
     pages: 27,
-    format: "ZIP (HTML)",
+    format: "Dostęp online + PDF",
     salesLabel: "Najczęściej kupowany w styczniu",
     heroNote: "Twój dom to najlepsza siłownia",
     badge: "new",
@@ -445,7 +445,7 @@ const SOFT_LAUNCH_PRODUCTS = [
     price: 49,
     compareAtPrice: 79,
     pages: 37,
-    format: "ZIP (HTML)",
+    format: "Dostęp online + PDF",
     salesLabel: "Niezbędne dla każdego pracującego",
     heroNote: "Co naprawdę warto wiedzieć o swojej umowie",
     badge: "pack",

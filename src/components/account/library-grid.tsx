@@ -258,7 +258,7 @@ function ContinueReadingCard({
               render={<Link href={`/api/library/${item.productId}/download`} />}
             >
               <Download className="size-4" />
-              Pobierz plik
+              Pobierz PDF
             </Button>
           </div>
         </div>
@@ -431,10 +431,10 @@ function LibraryCard({
                 render={
                   <Link href={`/api/library/${item.productId}/download`} />
                 }
-                aria-label="Pobierz plik"
+                aria-label="Pobierz PDF"
               >
                 <Download className="size-4" />
-                <span className="sm:sr-only">Pobierz</span>
+                <span className="sm:sr-only">Pobierz PDF</span>
               </Button>
             </>
           ) : (

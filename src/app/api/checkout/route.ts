@@ -421,7 +421,7 @@ export async function POST(request: Request) {
           custom_fields: [
             {
               name: "Format",
-              value: "Plik HTML / PDF — natychmiastowy dostęp",
+              value: "Dostęp online + PDF — natychmiastowy dostęp",
             },
           ],
           rendering_options: env.stripeTaxEnabled

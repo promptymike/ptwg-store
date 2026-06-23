@@ -114,7 +114,7 @@ function inferCategoryId(title: string, categories: CategoryOption[]) {
 
 function inferFormat(source: ProductSourceRecord) {
   const mimeLabel = formatMimeTypeLabel(source.mimeType, source.title);
-  return source.mimeType === "text/html" ? `${mimeLabel} + eksport PDF` : mimeLabel;
+  return source.mimeType === "text/html" ? `${mimeLabel} + PDF` : mimeLabel;
 }
 
 function inferPrice(source: ProductSourceRecord) {

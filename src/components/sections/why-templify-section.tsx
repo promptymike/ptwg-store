@@ -10,7 +10,7 @@ const reasons = [
   {
     title: "Działa na każdym urządzeniu",
     description:
-      "Pliki HTML otwierasz w przeglądarce — na telefonie, tablecie i komputerze. Bez instalacji aplikacji.",
+      "Czytasz od razu na stronie — na telefonie, tablecie i komputerze. Bez instalacji aplikacji, z opcją pobrania PDF.",
   },
   {
     title: "Pobierasz natychmiast",

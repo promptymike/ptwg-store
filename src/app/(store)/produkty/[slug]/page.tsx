@@ -412,7 +412,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                     </span>
                   </div>
                   <p className="max-w-xl text-sm leading-7 text-muted-foreground">
-                    Produkt jest przypisany do Twojej biblioteki. Możesz pobrać plik od razu albo
+                    Produkt jest przypisany do Twojej biblioteki. Możesz pobrać PDF od razu albo
                     wrócić do biblioteki i otworzyć pozostałe zakupy.
                   </p>
                 </div>
@@ -468,7 +468,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               </div>
               <p className="max-w-xs text-sm text-muted-foreground">
                 {hasOwnedAccess
-                  ? "Zakup jest już przypisany do Twojego konta. Pobieranie działa tylko dla zalogowanego właściciela produktu."
+                  ? "Zakup jest już przypisany do Twojego konta. Czytanie online i pobieranie PDF działa tylko dla zalogowanego właściciela produktu."
                   : "Produkt cyfrowy. Po zakupie pliki pojawią się w Twojej bibliotece natychmiast, bez czekania i bez wysyłki."}
               </p>
             </div>
@@ -483,7 +483,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                     render={<Link href={ownedDownloadHref} />}
                   >
                     <Download className="size-4" />
-                    Pobierz teraz
+                    Pobierz PDF
                   </Button>
                 ) : null}
                 <Button size="lg" variant="outline" render={<Link href="/biblioteka" />}>
@@ -620,7 +620,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                   render={<Link href={ownedDownloadHref} />}
                 >
                   <Download className="size-4" />
-                  Pobierz teraz
+                  Pobierz PDF
                 </Button>
               ) : (
                 <Button className="w-full" variant="outline" render={<Link href="/biblioteka" />}>

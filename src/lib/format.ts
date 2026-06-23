@@ -136,7 +136,7 @@ export function formatMimeTypeLabel(
   }
 
   if (mimeType === "text/html") {
-    return "HTML";
+    return "Dostęp online";
   }
 
   if (mimeType === "application/x-rar") {

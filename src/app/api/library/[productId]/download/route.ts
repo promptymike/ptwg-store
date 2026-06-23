@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server";
 
 import { env } from "@/lib/env";
+import { renderEbookHtmlToPdfBuffer } from "@/lib/pdf-download";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import { createProductFileSignedUrl } from "@/lib/supabase/storage";
+import { extractFirstHtmlFromZip } from "@/lib/zip";
 
 type DownloadRouteProps = {
   params: Promise<{
     productId: string;
   }>;
 };
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 function buildAppUrl(request: Request, path: string) {
   return new URL(path, env.appUrl || request.url);
@@ -40,6 +45,16 @@ function getSafeDownloadName(productName: string, storagePath: string) {
   const baseName = normalizedBaseName || "templify-produkt";
 
   return extension ? `${baseName}.${extension}` : baseName;
+}
+
+function getSafePdfDownloadName(productName: string) {
+  const normalizedBaseName = productName
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
+  return `${normalizedBaseName || "templify-ebook"}.pdf`;
 }
 
 export async function GET(request: Request, { params }: DownloadRouteProps) {
@@ -151,11 +166,60 @@ export async function GET(request: Request, { params }: DownloadRouteProps) {
     .eq("id", data.id)
     .eq("user_id", user.id);
 
-  const filename = getSafeDownloadName(product.name, sourcePath);
+  const upstreamType = upstream.headers.get("content-type") ?? "";
+  const lowerSourcePath = sourcePath.toLowerCase();
+  const isPdf =
+    upstreamType.startsWith("application/pdf") || lowerSourcePath.endsWith(".pdf");
+  const isZip = lowerSourcePath.endsWith(".zip");
+  const isReadableHtml =
+    upstreamType.startsWith("text/html") ||
+    lowerSourcePath.endsWith(".html") ||
+    lowerSourcePath.endsWith(".htm");
+
+  if (!isPdf && (isZip || isReadableHtml)) {
+    let html: string | null = null;
+
+    if (isZip) {
+      const buffer = Buffer.from(await upstream.arrayBuffer());
+      const extracted = await extractFirstHtmlFromZip(buffer).catch(() => null);
+      html = extracted?.html ?? null;
+    } else {
+      html = await upstream.text();
+    }
+
+    if (!html) {
+      return redirectWithMessage(
+        request,
+        "/biblioteka",
+        "error",
+        "Nie udało się przygotować PDF. Otwórz produkt w bibliotece i spróbuj ponownie.",
+      );
+    }
+
+    const pdf = await renderEbookHtmlToPdfBuffer(html, product.name);
+    const filename = getSafePdfDownloadName(product.name);
+    const headers = new Headers();
+    headers.set("Content-Type", "application/pdf");
+    headers.set(
+      "Content-Disposition",
+      `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`,
+    );
+    headers.set("Cache-Control", "private, no-store");
+    headers.set("Content-Length", String(pdf.byteLength));
+
+    return new Response(pdf, {
+      status: 200,
+      headers,
+    });
+  }
+
+  const filename = isPdf
+    ? getSafePdfDownloadName(product.name)
+    : getSafeDownloadName(product.name, sourcePath);
   const headers = new Headers();
   headers.set(
     "Content-Type",
-    upstream.headers.get("content-type") ?? "application/octet-stream",
+    isPdf ? "application/pdf" : upstreamType || "application/octet-stream",
   );
   headers.set(
     "Content-Disposition",

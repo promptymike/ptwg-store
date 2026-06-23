@@ -143,7 +143,7 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
                       {item.filePath ? (
                         <Button size="sm" render={<Link href={`/api/library/${item.productId}/download`} />}>
                           <Download className="size-4" />
-                          Pobierz
+                          Pobierz PDF
                         </Button>
                       ) : (
                         <Badge variant="outline" className="border-border/70 bg-background/70 text-muted-foreground">
