@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { env, getMissingStripeCheckoutEnv } from "@/lib/env";
+import { PURCHASES_ENABLED, purchaseUnavailablePayload } from "@/lib/purchase-availability";
 import { getStripeServerClient } from "@/lib/stripe";
 import {
   createSupabaseAdminClient,
@@ -57,6 +58,10 @@ type BundleRow = {
 };
 
 export async function POST(request: Request, { params }: RouteProps) {
+  if (!PURCHASES_ENABLED) {
+    return NextResponse.json(purchaseUnavailablePayload(), { status: 503 });
+  }
+
   const { id: bundleId } = await params;
   const refRaw = new URL(request.url).searchParams.get("ref")?.trim().toUpperCase();
   const refCandidate =

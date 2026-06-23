@@ -4,6 +4,7 @@ import { resolveCouponCode } from "@/lib/coupons";
 import { getMissingStripeCheckoutEnv, env } from "@/lib/env";
 import { lookupGiftCode } from "@/lib/gift-codes";
 import { applyPromoPercent } from "@/lib/promo";
+import { PURCHASES_ENABLED, purchaseUnavailablePayload } from "@/lib/purchase-availability";
 import { getStripeServerClient } from "@/lib/stripe";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { checkoutSchema } from "@/lib/validations/catalog";
@@ -61,6 +62,11 @@ async function getOrderBumpConfig(
 }
 
 export async function POST(request: Request) {
+  if (!PURCHASES_ENABLED) {
+    logCheckout("purchases-disabled");
+    return NextResponse.json(purchaseUnavailablePayload(), { status: 503 });
+  }
+
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {

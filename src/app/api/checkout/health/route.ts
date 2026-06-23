@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { env, getMissingStripeCheckoutEnv } from "@/lib/env";
+import {
+  PURCHASES_ENABLED,
+  PURCHASES_UNAVAILABLE_MESSAGE,
+} from "@/lib/purchase-availability";
 import { isCurrentUserAdmin } from "@/lib/session";
 
 const isDev = process.env.NODE_ENV !== "production";
@@ -13,7 +17,7 @@ const isDev = process.env.NODE_ENV !== "production";
  */
 export async function GET() {
   const missing = getMissingStripeCheckoutEnv();
-  const ready = missing.length === 0;
+  const ready = PURCHASES_ENABLED && missing.length === 0;
   const publishable = env.stripePublishableKey ?? "";
   const testMode = publishable.startsWith("pk_test_");
   const liveMode = publishable.startsWith("pk_live_");
@@ -30,6 +34,8 @@ export async function GET() {
 
   return NextResponse.json({
     ready,
+    purchasesEnabled: PURCHASES_ENABLED,
+    message: PURCHASES_ENABLED ? undefined : PURCHASES_UNAVAILABLE_MESSAGE,
     testMode,
     liveMode,
     siteUrl: env.siteUrl ?? null,

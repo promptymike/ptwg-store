@@ -23,6 +23,11 @@ import { Input } from "@/components/ui/input";
 import { readAffiliateRef } from "@/lib/affiliate";
 import { readAttribution } from "@/lib/attribution";
 import { getClientStripeStatus } from "@/lib/env";
+import {
+  PURCHASES_ENABLED,
+  PURCHASES_UNAVAILABLE_MESSAGE,
+  PURCHASES_UNAVAILABLE_TITLE,
+} from "@/lib/purchase-availability";
 import { formatCurrency } from "@/lib/format";
 import type { PromoRule } from "@/lib/promo";
 
@@ -291,6 +296,11 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
   }, []);
 
   async function handleCheckout() {
+    if (!PURCHASES_ENABLED) {
+      setErrorMessage(PURCHASES_UNAVAILABLE_MESSAGE);
+      return;
+    }
+
     setIsSubmitting(true);
     setErrorMessage(null);
 
@@ -371,6 +381,14 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
           {clientStripeStatus.testMode || (health && !health.ready) ? (
             <CheckoutDevBanner health={health} testMode={clientStripeStatus.testMode} />
           ) : null}
+          {!PURCHASES_ENABLED ? (
+            <div className="rounded-[1.4rem] border border-amber-400/35 bg-amber-500/10 p-4 text-sm leading-6 text-foreground">
+              <p className="font-semibold">{PURCHASES_UNAVAILABLE_TITLE}</p>
+              <p className="mt-1 text-muted-foreground">
+                {PURCHASES_UNAVAILABLE_MESSAGE}
+              </p>
+            </div>
+          ) : null}
         </div>
 
         <label className="space-y-2">
@@ -411,9 +429,18 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
           className="w-full"
           size="lg"
           onClick={handleCheckout}
-          disabled={isSubmitting || lines.length === 0 || !digitalDeliveryConsent}
+          disabled={
+            !PURCHASES_ENABLED ||
+            isSubmitting ||
+            lines.length === 0 ||
+            !digitalDeliveryConsent
+          }
         >
-          {isSubmitting ? "Przekierowanie do płatności..." : "Przejdź do bezpiecznej płatności"}
+          {!PURCHASES_ENABLED
+            ? "Zakupy chwilowo niedostępne"
+            : isSubmitting
+              ? "Przekierowanie do płatności..."
+              : "Przejdź do bezpiecznej płatności"}
         </Button>
 
         <ul className="grid gap-3 sm:grid-cols-3">

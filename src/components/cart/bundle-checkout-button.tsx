@@ -13,6 +13,10 @@ import {
   BUNDLE_CTA_EXPERIMENT,
   pickVariant,
 } from "@/lib/experiments";
+import {
+  PURCHASES_ENABLED,
+  PURCHASES_UNAVAILABLE_MESSAGE,
+} from "@/lib/purchase-availability";
 
 type BundleCheckoutButtonProps = {
   bundleId: string;
@@ -55,6 +59,25 @@ export function BundleCheckoutButton({
         <LibraryBig className="size-4" />
         Masz już wszystkie pozycje
       </Button>
+    );
+  }
+
+  if (!PURCHASES_ENABLED) {
+    return (
+      <div className="space-y-2">
+        <Button
+          className="w-full border-stone-950/10 bg-stone-200 text-stone-500"
+          size="lg"
+          disabled
+          title={PURCHASES_UNAVAILABLE_MESSAGE}
+        >
+          <ShoppingBag className="size-4" />
+          Zakupy chwilowo niedostępne
+        </Button>
+        <p className="text-xs leading-5 text-stone-500">
+          {PURCHASES_UNAVAILABLE_MESSAGE}
+        </p>
+      </div>
     );
   }
 

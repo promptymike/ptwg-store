@@ -13,6 +13,10 @@ import {
 import { useCart } from "@/components/cart/cart-provider";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
+import {
+  PURCHASES_ENABLED,
+  PURCHASES_UNAVAILABLE_MESSAGE,
+} from "@/lib/purchase-availability";
 import { formatCurrency } from "@/lib/format";
 import { getProductHref } from "@/data/interactive-planners";
 
@@ -171,9 +175,20 @@ export function CartView() {
           </p>
         </div>
 
-        <Button className="w-full" size="lg" render={<Link href="/checkout" />}>
-          Przejdź do płatności
-        </Button>
+        {PURCHASES_ENABLED ? (
+          <Button className="w-full" size="lg" render={<Link href="/checkout" />}>
+            Przejdź do płatności
+          </Button>
+        ) : (
+          <div className="space-y-2">
+            <Button className="w-full" size="lg" disabled>
+              Zakupy chwilowo niedostępne
+            </Button>
+            <p className="text-xs leading-5 text-muted-foreground">
+              {PURCHASES_UNAVAILABLE_MESSAGE}
+            </p>
+          </div>
+        )}
 
         <ul className="space-y-2 text-xs text-muted-foreground">
           <li className="flex items-start gap-2">

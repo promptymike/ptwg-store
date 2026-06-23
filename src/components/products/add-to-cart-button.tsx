@@ -9,6 +9,10 @@ import {
   useCart,
 } from "@/components/cart/cart-provider";
 import { Button } from "@/components/ui/button";
+import {
+  PURCHASES_ENABLED,
+  PURCHASES_UNAVAILABLE_MESSAGE,
+} from "@/lib/purchase-availability";
 import { cn } from "@/lib/utils";
 
 type AddToCartButtonProps = {
@@ -25,6 +29,25 @@ export function AddToCartButton({
   const { addItem } = useCart();
   const { track } = useAnalytics();
   const [added, setAdded] = useState(false);
+
+  if (!PURCHASES_ENABLED) {
+    return (
+      <div className={cn("space-y-2", fullWidth ? "w-full" : undefined)}>
+        <Button
+          className={cn(fullWidth ? "w-full" : undefined)}
+          size="lg"
+          disabled
+          title={PURCHASES_UNAVAILABLE_MESSAGE}
+        >
+          <ShoppingBag className="size-4" />
+          Zakupy chwilowo niedostępne
+        </Button>
+        <p className="text-xs leading-5 text-muted-foreground">
+          {PURCHASES_UNAVAILABLE_MESSAGE}
+        </p>
+      </div>
+    );
+  }
 
   function handleAdd() {
     addItem(product, quantity);

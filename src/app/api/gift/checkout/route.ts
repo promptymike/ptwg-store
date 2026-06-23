@@ -6,6 +6,7 @@ import {
   GIFT_CODE_MAX,
   GIFT_CODE_MIN,
 } from "@/lib/gift-constants";
+import { PURCHASES_ENABLED, purchaseUnavailablePayload } from "@/lib/purchase-availability";
 import { getStripeServerClient } from "@/lib/stripe";
 
 const giftCheckoutSchema = z.object({
@@ -43,6 +44,10 @@ const giftCheckoutSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  if (!PURCHASES_ENABLED) {
+    return NextResponse.json(purchaseUnavailablePayload(), { status: 503 });
+  }
+
   const json = await request.json().catch(() => null);
   const parsed = giftCheckoutSchema.safeParse(json);
   if (!parsed.success) {

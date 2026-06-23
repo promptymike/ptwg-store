@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { GIFT_CODE_DENOMINATIONS, GIFT_CODE_MAX, GIFT_CODE_MIN } from "@/lib/gift-constants";
+import {
+  PURCHASES_ENABLED,
+  PURCHASES_UNAVAILABLE_MESSAGE,
+} from "@/lib/purchase-availability";
 
 type Mode = "self" | "recipient";
 
@@ -23,6 +27,11 @@ export function GiftPurchaseForm() {
     effectiveAmount >= GIFT_CODE_MIN && effectiveAmount <= GIFT_CODE_MAX;
 
   async function handleSubmit(formData: FormData) {
+    if (!PURCHASES_ENABLED) {
+      setError(PURCHASES_UNAVAILABLE_MESSAGE);
+      return;
+    }
+
     setError(null);
     setBusy(true);
     try {
@@ -196,11 +205,20 @@ export function GiftPurchaseForm() {
       ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" size="lg" disabled={busy || !submittable}>
+        <Button
+          type="submit"
+          size="lg"
+          disabled={!PURCHASES_ENABLED || busy || !submittable}
+        >
           {busy ? (
             <>
               <Loader2 className="size-4 animate-spin" />
               Przekierowanie do Stripe…
+            </>
+          ) : !PURCHASES_ENABLED ? (
+            <>
+              <ShoppingBag className="size-4" />
+              Zakupy chwilowo niedostępne
             </>
           ) : (
             <>

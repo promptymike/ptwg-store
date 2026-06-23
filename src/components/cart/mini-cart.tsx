@@ -10,6 +10,10 @@ import {
   useCart,
 } from "@/components/cart/cart-provider";
 import { Button } from "@/components/ui/button";
+import {
+  PURCHASES_ENABLED,
+  PURCHASES_UNAVAILABLE_MESSAGE,
+} from "@/lib/purchase-availability";
 import { formatCurrency } from "@/lib/format";
 import { getProductHref } from "@/data/interactive-planners";
 
@@ -265,9 +269,18 @@ export function MiniCart({ open, onClose }: MiniCartProps) {
               e-mail.
             </p>
             <div className="flex flex-col gap-2">
-              <Button render={<Link href="/checkout" onClick={onClose} />}>
-                Przejdź do kasy
-              </Button>
+              {PURCHASES_ENABLED ? (
+                <Button render={<Link href="/checkout" onClick={onClose} />}>
+                  Przejdź do kasy
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <Button disabled>Zakupy chwilowo niedostępne</Button>
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    {PURCHASES_UNAVAILABLE_MESSAGE}
+                  </p>
+                </div>
+              )}
               <Button
                 variant="outline"
                 render={<Link href="/koszyk" onClick={onClose} />}
