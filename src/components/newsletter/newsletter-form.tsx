@@ -81,7 +81,7 @@ export function NewsletterForm({
         ) : (
           <>
             <Mail className="size-4" />
-            Zapisz mnie
+            {isCompact ? "Zapisz mnie" : "Odbierz próbkę i -15%"}
           </>
         )}
       </Button>
