@@ -49,7 +49,7 @@ export function BundleCheckoutButton({
     return (
       <Button
         variant="outline"
-        className="w-full border-white/15 bg-white/10 text-white hover:bg-white/15"
+        className="w-full border-stone-950/10 bg-stone-100 text-stone-950 hover:bg-stone-200"
         render={<Link href="/biblioteka" />}
       >
         <LibraryBig className="size-4" />
@@ -109,7 +109,7 @@ export function BundleCheckoutButton({
   return (
     <div className="space-y-2">
       <Button
-        className="w-full border-amber-300 bg-amber-300 text-stone-950 shadow-[0_18px_40px_-22px_rgba(252,211,77,.8)] hover:bg-amber-200"
+        className="w-full border-stone-950 bg-stone-950 text-[#fff] shadow-[0_18px_45px_-28px_rgba(20,16,10,.8)] hover:bg-stone-800"
         size="lg"
         onClick={handleClick}
         disabled={isLoading}
