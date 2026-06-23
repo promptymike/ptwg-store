@@ -45,6 +45,16 @@ function injectReaderScript(
   return script + html;
 }
 
+function getSafeInlinePdfName(productName: string) {
+  const normalizedBaseName = productName
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
+  return `${normalizedBaseName || "templify-ebook"}.pdf`;
+}
+
 export async function GET(request: Request, { params }: ReadRouteProps) {
   const { productId } = await params;
   const supabase = await createSupabaseServerClient();
@@ -139,7 +149,34 @@ export async function GET(request: Request, { params }: ReadRouteProps) {
   }
 
   const upstreamType = upstream.headers.get("content-type") ?? "";
-  const isZip = sourcePath.toLowerCase().endsWith(".zip");
+  const lowerSourcePath = sourcePath.toLowerCase();
+  const isZip = lowerSourcePath.endsWith(".zip");
+  const isPdf =
+    upstreamType.startsWith("application/pdf") || lowerSourcePath.endsWith(".pdf");
+
+  if (isPdf && upstream.body) {
+    const filename = getSafeInlinePdfName(product.name ?? "Templify ebook");
+    const headers = new Headers();
+    headers.set("Content-Type", "application/pdf");
+    headers.set(
+      "Content-Disposition",
+      `inline; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`,
+    );
+    headers.set("Cache-Control", "private, no-store");
+    headers.set("X-Frame-Options", "SAMEORIGIN");
+    headers.set("Referrer-Policy", "no-referrer");
+
+    const contentLength = upstream.headers.get("content-length");
+    if (contentLength) {
+      headers.set("Content-Length", contentLength);
+    }
+
+    return new Response(upstream.body, {
+      status: 200,
+      headers,
+    });
+  }
+
   let html: string | null = null;
 
   if (isZip) {
@@ -148,7 +185,8 @@ export async function GET(request: Request, { params }: ReadRouteProps) {
     html = extracted?.html ?? null;
   } else if (
     upstreamType.startsWith("text/html") ||
-    sourcePath.toLowerCase().endsWith(".html")
+    lowerSourcePath.endsWith(".html") ||
+    lowerSourcePath.endsWith(".htm")
   ) {
     html = await upstream.text();
   }
