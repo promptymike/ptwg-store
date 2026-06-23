@@ -108,8 +108,8 @@ export function BundlesSection({
   return (
     <section id="bundles" className="shell section-space scroll-mt-36">
       <div className="relative isolate overflow-hidden rounded-[3rem] border border-stone-950/10 bg-[linear-gradient(135deg,#fbf6ed_0%,#f2eadf_48%,#fbf8f1_100%)] px-5 py-10 shadow-[0_36px_100px_-70px_rgba(35,28,18,.65)] sm:px-8 lg:px-10 lg:py-12">
-        <div className="pointer-events-none absolute -left-24 top-12 size-80 rounded-full bg-amber-300/25 blur-[100px]" />
-        <div className="pointer-events-none absolute -right-28 -top-24 size-96 rounded-full bg-violet-300/20 blur-[110px]" />
+        <div className="pointer-events-none absolute -left-24 top-12 size-80 rounded-full bg-amber-200/20 blur-[100px]" />
+        <div className="pointer-events-none absolute -right-28 -top-24 size-96 rounded-full bg-stone-200/45 blur-[110px]" />
         <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent" />
 
         <div className="relative space-y-10">
@@ -170,7 +170,9 @@ export function BundlesSection({
                   }`}
                 >
                   <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white via-white/45 to-transparent" />
-                  <div className={`relative bg-gradient-to-br ${bundle.accent} px-5 pt-5`}>
+                  <div className="relative overflow-hidden bg-[linear-gradient(145deg,#fffaf1_0%,#f4eadc_48%,#ede2d2_100%)] px-5 pt-5">
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,.9),transparent_34%),radial-gradient(circle_at_80%_0%,rgba(120,98,70,.12),transparent_38%)]" />
+                    <div className="pointer-events-none absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-stone-950/10 to-transparent" />
                     <div className="absolute left-5 top-5 z-30 flex flex-wrap gap-2">
                       <span className="rounded-full border border-white/60 bg-white/80 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-stone-800 shadow-sm backdrop-blur">
                         {isRecommended ? "Najczęściej wybierany" : "Gotowy zestaw"}
