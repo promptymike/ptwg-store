@@ -46,7 +46,36 @@ function injectReaderScript(
 }
 
 function getSafeInlinePdfName(productName: string) {
-  const normalizedBaseName = productName
+  const polishSafeName = productName
+    .replace(/[ąćęłńóśźż]/g, (char) => {
+      const replacements: Record<string, string> = {
+        ą: "a",
+        ć: "c",
+        ę: "e",
+        ł: "l",
+        ń: "n",
+        ó: "o",
+        ś: "s",
+        ź: "z",
+        ż: "z",
+      };
+      return replacements[char] ?? char;
+    })
+    .replace(/[ĄĆĘŁŃÓŚŹŻ]/g, (char) => {
+      const replacements: Record<string, string> = {
+        Ą: "A",
+        Ć: "C",
+        Ę: "E",
+        Ł: "L",
+        Ń: "N",
+        Ó: "O",
+        Ś: "S",
+        Ź: "Z",
+        Ż: "Z",
+      };
+      return replacements[char] ?? char;
+    });
+  const normalizedBaseName = polishSafeName
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-zA-Z0-9]+/g, "-")
@@ -128,6 +157,9 @@ export async function GET(request: Request, { params }: ReadRouteProps) {
   // purchase or a copy that failed at fulfillment time) we still serve the
   // master file so the customer never gets locked out of what they bought.
   const sourcePath = libraryItem.instance_path ?? product.file_path;
+  const lowerSourcePath = sourcePath.toLowerCase();
+  const isZip = lowerSourcePath.endsWith(".zip");
+  const requestRange = request.headers.get("range");
   const signedUrl = await createProductFileSignedUrl(sourcePath, 120);
   if (!signedUrl) {
     return redirectWithMessage(
@@ -138,7 +170,18 @@ export async function GET(request: Request, { params }: ReadRouteProps) {
     );
   }
 
-  const upstream = await fetch(signedUrl, { cache: "no-store" });
+  let upstream = await fetch(signedUrl, {
+    cache: "no-store",
+    headers:
+      requestRange && lowerSourcePath.endsWith(".pdf")
+        ? { Range: requestRange }
+        : undefined,
+  });
+
+  if (!upstream.ok && requestRange && lowerSourcePath.endsWith(".pdf")) {
+    upstream = await fetch(signedUrl, { cache: "no-store" });
+  }
+
   if (!upstream.ok) {
     return redirectWithMessage(
       request,
@@ -149,8 +192,6 @@ export async function GET(request: Request, { params }: ReadRouteProps) {
   }
 
   const upstreamType = upstream.headers.get("content-type") ?? "";
-  const lowerSourcePath = sourcePath.toLowerCase();
-  const isZip = lowerSourcePath.endsWith(".zip");
   const isPdf =
     upstreamType.startsWith("application/pdf") || lowerSourcePath.endsWith(".pdf");
 
@@ -165,14 +206,18 @@ export async function GET(request: Request, { params }: ReadRouteProps) {
     headers.set("Cache-Control", "private, no-store");
     headers.set("X-Frame-Options", "SAMEORIGIN");
     headers.set("Referrer-Policy", "no-referrer");
+    headers.set("Accept-Ranges", upstream.headers.get("accept-ranges") ?? "bytes");
+    headers.set("X-Content-Type-Options", "nosniff");
 
-    const contentLength = upstream.headers.get("content-length");
-    if (contentLength) {
-      headers.set("Content-Length", contentLength);
+    for (const headerName of ["content-length", "content-range"] as const) {
+      const value = upstream.headers.get(headerName);
+      if (value) {
+        headers.set(headerName, value);
+      }
     }
 
     return new Response(upstream.body, {
-      status: 200,
+      status: upstream.status === 206 ? 206 : 200,
       headers,
     });
   }

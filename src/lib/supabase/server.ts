@@ -22,8 +22,16 @@ export async function createSupabaseServerClient() {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll() {
-          return;
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
+          } catch {
+            // Server Components cannot always write cookies. In those cases
+            // the middleware keeps the session fresh; Route Handlers can set
+            // refreshed auth cookies here.
+          }
         },
       },
     },
