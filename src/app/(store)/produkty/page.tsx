@@ -70,13 +70,11 @@ export default async function ProductsPage({
 
   return (
     <div className="shell section-space space-y-8">
-      {/* Visible heading is h2 so that the page-h1 belongs to the
-          product page after navigation — keeps end-to-end tests stable
-          and avoids two h1s in the document on the way to a product. */}
       <SectionHeading
         badge="Katalog"
         title="Praktyczne e-booki dla każdego obszaru życia"
         description="W tej sekcji znajdziesz wyłącznie e-booki. Interaktywne narzędzia z automatycznym zapisem czekają w osobnej kolekcji Planery."
+        as="h1"
       />
 
       <div className="surface-panel space-y-5 p-6">

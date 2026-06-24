@@ -5,7 +5,7 @@ import { ArrowUpRight, BookOpen, NotebookText, SearchX } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SectionHeading } from "@/components/shared/section-heading";
 import { formatCurrency } from "@/lib/format";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { findSearchResults } from "@/lib/search";
 
 export const metadata: Metadata = {
   title: "Wyniki wyszukiwania",
@@ -14,15 +14,6 @@ export const metadata: Metadata = {
 
 type SearchPageProps = {
   searchParams: Promise<{ q?: string }>;
-};
-
-type ProductRow = {
-  id: string;
-  slug: string;
-  name: string;
-  short_description: string | null;
-  price: number;
-  categories: { name: string } | { name: string }[] | null;
 };
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
@@ -43,53 +34,29 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     );
   }
 
-  const supabase = await createSupabaseServerClient();
-  const safe = query.replace(/[%_]/g, "\\$&");
-  const pattern = `%${safe}%`;
-
-  const [productsRes, blogRes] = supabase
-    ? await Promise.all([
-        supabase
-          .from("products")
-          .select(
-            "id, slug, name, short_description, price, categories(name)",
-          )
-          .eq("status", "published")
-          .or(
-            `name.ilike.${pattern},short_description.ilike.${pattern},description.ilike.${pattern}`,
-          )
-          .limit(40),
-        supabase
-          .from("blog_posts")
-          .select("id, slug, title, excerpt, published_at, reading_minutes")
-          .eq("status", "published")
-          .or(
-            `title.ilike.${pattern},excerpt.ilike.${pattern},body.ilike.${pattern}`,
-          )
-          .limit(20),
-      ])
-    : [{ data: [] }, { data: [] }];
-
-  const products = (productsRes.data as ProductRow[] | null) ?? [];
-  const posts = blogRes.data ?? [];
+  const { products, blog: posts } = await findSearchResults(query, {
+    productLimit: 40,
+    blogLimit: 20,
+  });
   const total = products.length + posts.length;
 
   return (
     <div className="shell section-space space-y-8">
       <SectionHeading
         badge="Wyniki wyszukiwania"
-        title={`„${query}" — ${total} ${total === 1 ? "wynik" : "wyników"}`}
-        description="Szukamy w nazwach i opisach produktów oraz w treści wpisów na blogu."
+        title={`„${query}” — ${total} ${total === 1 ? "wynik" : "wyników"}`}
+        description="Szukamy w nazwach, opisach, kategoriach, tagach i typach produktów oraz w treści wpisów na blogu."
+        as="h1"
       />
 
       {total === 0 ? (
         <EmptyState
           icon={SearchX}
           badge="Brak wyników"
-          title={`Nic dla „${query}"`}
+          title={`Nic dla „${query}”`}
           description="Spróbuj krótszej frazy albo przeglądnij katalog ręcznie."
           action={{ href: "/produkty", label: "Otwórz katalog" }}
-          secondaryAction={{ href: "/blog", label: "Otwórz blog" }}
+          secondaryAction={{ href: "/test", label: "Zrób test dopasowania" }}
         />
       ) : (
         <div className="space-y-10">
@@ -99,45 +66,40 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 Produkty ({products.length})
               </h2>
               <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {products.map((product) => {
-                  const cat = Array.isArray(product.categories)
-                    ? product.categories[0]
-                    : product.categories;
-                  return (
-                    <li key={product.id}>
-                      <Link
-                        href={`/produkty/${product.slug}`}
-                        className="surface-panel group flex h-full flex-col gap-3 p-5 transition hover:-translate-y-0.5 hover:border-primary/40"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="inline-flex size-9 items-center justify-center rounded-full bg-primary/10 text-primary">
-                            <BookOpen className="size-4" />
-                          </span>
-                          <span className="text-[11px] uppercase tracking-[0.18em] text-primary/75">
-                            {cat?.name ?? "Produkt"}
-                          </span>
-                        </div>
-                        <p className="text-lg font-semibold text-foreground">
-                          {product.name}
+                {products.map((product) => (
+                  <li key={product.id}>
+                    <Link
+                      href={product.href}
+                      className="surface-panel group flex h-full flex-col gap-3 p-5 transition hover:-translate-y-0.5 hover:border-primary/40"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="inline-flex size-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+                          <BookOpen className="size-4" />
+                        </span>
+                        <span className="text-[11px] uppercase tracking-[0.18em] text-primary/75">
+                          {product.category ?? "Produkt"}
+                        </span>
+                      </div>
+                      <p className="text-lg font-semibold text-foreground">
+                        {product.title}
+                      </p>
+                      {product.excerpt ? (
+                        <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
+                          {product.excerpt}
                         </p>
-                        {product.short_description ? (
-                          <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
-                            {product.short_description}
-                          </p>
-                        ) : null}
-                        <div className="mt-auto flex items-center justify-between text-sm">
-                          <span className="font-semibold text-foreground">
-                            {formatCurrency(product.price)}
-                          </span>
-                          <span className="inline-flex items-center gap-1 text-primary transition group-hover:gap-1.5">
-                            Otwórz
-                            <ArrowUpRight className="size-3.5" />
-                          </span>
-                        </div>
-                      </Link>
-                    </li>
-                  );
-                })}
+                      ) : null}
+                      <div className="mt-auto flex items-center justify-between text-sm">
+                        <span className="font-semibold text-foreground">
+                          {formatCurrency(product.price)}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-primary transition group-hover:gap-1.5">
+                          Otwórz
+                          <ArrowUpRight className="size-3.5" />
+                        </span>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </section>
           ) : null}
@@ -151,7 +113,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 {posts.map((post) => (
                   <li key={post.id}>
                     <Link
-                      href={`/blog/${post.slug}`}
+                      href={post.href}
                       className="surface-panel group flex h-full flex-col gap-3 p-5 transition hover:-translate-y-0.5 hover:border-primary/40"
                     >
                       <div className="flex items-center gap-3">
@@ -159,7 +121,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                           <NotebookText className="size-4" />
                         </span>
                         <span className="text-[11px] uppercase tracking-[0.18em] text-primary/75">
-                          Wpis · {post.reading_minutes} min
+                          Wpis
                         </span>
                       </div>
                       <p className="text-lg font-semibold text-foreground">

@@ -91,8 +91,17 @@ export function PlannerWorkspace({ planner, demo = false }: { planner: Interacti
     <div className="flex h-dvh flex-col bg-[#11100d] text-white">
       <header className="flex min-h-16 items-center justify-between gap-4 border-b border-white/10 px-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
-          <Link href={demo ? `/planery/${planner.slug}` : "/biblioteka"} className="flex size-9 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 hover:bg-white/10"><ArrowLeft className="size-4" /></Link>
-          <div className="min-w-0"><p className="truncate font-semibold">{planner.name}</p><p className="text-[10px] uppercase tracking-[.18em] text-white/45">Templify interactive</p></div>
+          <Link
+            href={demo ? `/planery/${planner.slug}` : "/biblioteka"}
+            aria-label={demo ? "Wróć do strony planera" : "Wróć do biblioteki"}
+            className="flex size-9 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 hover:bg-white/10"
+          >
+            <ArrowLeft className="size-4" />
+          </Link>
+          <div className="min-w-0">
+            <h1 className="truncate font-semibold">{planner.name}</h1>
+            <p className="text-[10px] uppercase tracking-[.18em] text-white/45">Templify interactive</p>
+          </div>
         </div>
         <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/65"><StatusIcon className={`size-3.5 ${saveState === "saving" || saveState === "loading" ? "animate-spin" : ""}`} />{status[1]}</div>
       </header>
