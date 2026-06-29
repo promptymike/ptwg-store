@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Heart,
@@ -17,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { LogoutButton } from "@/components/auth/logout-button";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { useCart } from "@/components/cart/cart-provider";
 import { MiniCart } from "@/components/cart/mini-cart";
 import { SearchDialog } from "@/components/search/search-dialog";
@@ -116,13 +116,10 @@ export function SiteHeader({ profile, hasBlogPosts = false }: SiteHeaderProps) {
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background">
       <div className="shell flex items-center justify-between gap-4 py-3 xl:py-4">
         <Link href="/" className="flex min-h-[40px] shrink-0 items-center" aria-label="Templify.pl — strona główna">
-          <Image
-            src="/brand/templify-wordmark-header.png"
-            alt="Templify.pl"
-            width={720}
-            height={164}
-            className="h-auto w-[142px] max-w-none sm:w-[158px] 2xl:w-[174px]"
-            preload
+          <BrandLogo
+            priority
+            iconClassName="size-9 rounded-[0.75rem] sm:size-10"
+            textClassName="text-[1.35rem] sm:text-[1.52rem] 2xl:text-[1.65rem]"
           />
         </Link>
 

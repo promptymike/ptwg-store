@@ -233,7 +233,7 @@ async function auditPage(page, url, name) {
             path: `audit/${label}-auth-${name}.png`,
             fullPage: true,
           });
-        } catch (e) {}
+        } catch {}
       }
       await authedCtx.close();
     } else {

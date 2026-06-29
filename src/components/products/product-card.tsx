@@ -144,7 +144,7 @@ export function ProductCard({
       </Link>
 
       <div className="flex min-w-0 flex-1 flex-col gap-5 p-6">
-        <Link href={productHref} className="block space-y-3">
+        <Link href={productHref} className="block min-h-10 space-y-3">
           <p className="line-clamp-3 break-words text-sm leading-7 text-muted-foreground transition group-hover:text-foreground/80">
             {product.shortDescription}
           </p>

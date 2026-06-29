@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { getSiteSettingsSnapshot } from "@/lib/supabase/store";
 
 type FooterLink = { href: string; label: string; requiresBlog?: boolean };
@@ -61,7 +61,10 @@ export async function SiteFooter({ hasBlogPosts = false }: SiteFooterProps) {
       <div className="shell section-space grid gap-10 xl:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
         <div className="space-y-5">
           <Link href="/" className="inline-flex">
-            <Image src="/brand/templify-wordmark-header.png" alt="Templify.pl" width={720} height={164} className="h-auto w-[190px] max-w-none" />
+            <BrandLogo
+              iconClassName="size-11 rounded-[0.95rem]"
+              textClassName="text-[1.9rem] sm:text-[2.1rem]"
+            />
           </Link>
           <div className="space-y-3">
             <h2 className="max-w-md text-3xl text-foreground sm:text-4xl">

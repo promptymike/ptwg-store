@@ -8,7 +8,7 @@ const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
 self.addEventListener("install", (event) => {
   // Skip waiting so a redeploy activates the new SW on the next reload.
-  self.skipWaiting();
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener("activate", (event) => {

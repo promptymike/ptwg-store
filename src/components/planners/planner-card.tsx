@@ -93,7 +93,7 @@ export function PlannerCard({ planner }: { planner: InteractivePlanner }) {
           <span className="text-sm font-semibold text-foreground">{formatCurrency(planner.price)}</span>
         </div>
         <div>
-          <Link href={`/planery/${planner.slug}`} className="inline-flex items-center gap-2 text-2xl font-semibold tracking-[-0.03em] text-foreground hover:text-primary">
+          <Link href={`/planery/${planner.slug}`} className="inline-flex min-h-10 items-center gap-2 text-2xl font-semibold tracking-[-0.03em] text-foreground hover:text-primary">
             {planner.name}<ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </Link>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">{planner.tagline}</p>
