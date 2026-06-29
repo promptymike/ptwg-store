@@ -5,23 +5,28 @@ import { NewsletterForm } from "@/components/newsletter/newsletter-form";
 export function NewsletterSection() {
   return (
     <section className="shell section-space">
-      <div className="relative overflow-hidden rounded-[2.8rem] border border-stone-950/10 bg-[linear-gradient(135deg,#181510_0%,#262016_48%,#f3eadb_48%,#fbf7ef_100%)] p-6 shadow-[0_32px_90px_-62px_rgba(22,18,12,.75)] sm:p-10">
+      <div className="relative overflow-hidden rounded-[2.8rem] border border-border/70 bg-[radial-gradient(circle_at_85%_0%,rgba(226,188,114,0.26),transparent_34%),linear-gradient(135deg,#fbf7ef,#eee6d8)] p-3 shadow-[0_32px_90px_-62px_rgba(22,18,12,.75)] sm:p-4 lg:p-5">
         <div
           aria-hidden
-          className="absolute -right-24 -top-24 size-72 rounded-full bg-gradient-to-br from-amber-300/35 to-transparent blur-3xl"
+          className="absolute -right-24 -top-24 size-72 rounded-full bg-gradient-to-br from-amber-300/30 to-transparent blur-3xl"
         />
         <div
           aria-hidden
-          className="absolute -left-20 bottom-0 size-64 rounded-full bg-white/10 blur-3xl"
+          className="absolute -left-20 bottom-0 size-64 rounded-full bg-stone-950/10 blur-3xl"
         />
 
-        <div className="relative grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
-          <div className="space-y-4">
+        <div className="relative grid gap-3 lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,0.92fr)] lg:items-stretch">
+          <div className="relative overflow-hidden rounded-[2.25rem] bg-[radial-gradient(circle_at_15%_10%,rgba(255,255,255,0.16),transparent_26%),linear-gradient(135deg,#17130f,#292116)] p-6 text-white sm:p-8 lg:p-10">
+            <div
+              aria-hidden
+              className="absolute -bottom-24 -right-20 size-72 rounded-full bg-amber-200/10 blur-3xl"
+            />
+            <div className="relative space-y-4">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.24em] text-amber-100 backdrop-blur">
               <Sparkles className="size-3.5" />
               Newsletter Templify
             </span>
-            <h2 className="max-w-2xl text-3xl text-[#fff] sm:text-5xl">
+            <h2 className="max-w-2xl text-3xl !text-white sm:text-5xl">
               Bezpłatna próbka e-booka i -15% na pierwszy zakup.
             </h2>
             <p className="max-w-xl text-sm leading-7 text-white/70 sm:text-base">
@@ -42,9 +47,10 @@ export function NewsletterSection() {
                 -15% na pierwszy zakup
               </li>
             </ul>
+            </div>
           </div>
 
-          <div className="rounded-[2rem] border border-stone-950/10 bg-white/[0.88] p-5 shadow-[0_24px_70px_-45px_rgba(20,16,10,.7)] backdrop-blur sm:p-6">
+          <div className="self-center rounded-[2rem] border border-stone-950/10 bg-white/[0.9] p-5 shadow-[0_24px_70px_-45px_rgba(20,16,10,.7)] backdrop-blur sm:p-6 lg:mx-4">
             <div className="mb-4 flex items-start gap-3">
               <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl bg-stone-950 text-white">
                 <Gift className="size-5" />
