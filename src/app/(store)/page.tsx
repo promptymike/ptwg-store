@@ -10,7 +10,7 @@ import { NewArrivalsSection } from "@/components/sections/new-arrivals-section";
 import { NewsletterSection } from "@/components/sections/newsletter-section";
 import { categoryHighlights } from "@/data/mock-store";
 import { interactivePlanners } from "@/data/interactive-planners";
-import { buildCanonicalMetadata, getCanonicalUrl } from "@/lib/seo";
+import { buildCanonicalMetadata, getCanonicalUrl, safeJsonLd } from "@/lib/seo";
 import { getCurrentUser } from "@/lib/session";
 import {
   getOwnedProductIds,
@@ -109,20 +109,20 @@ export default async function HomePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(organizationStructuredData),
+          __html: safeJsonLd(organizationStructuredData),
         }}
       />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(websiteStructuredData),
+          __html: safeJsonLd(websiteStructuredData),
         }}
       />
       {faqStructuredData ? (
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(faqStructuredData),
+            __html: safeJsonLd(faqStructuredData),
           }}
         />
       ) : null}

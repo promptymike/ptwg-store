@@ -9,6 +9,28 @@ type AiMessage = { role: "system" | "user" | "assistant"; content: string };
 const MAX_MESSAGES = 30;
 const MAX_TOTAL_CHARACTERS = 50_000;
 
+// Per-user rate limit. Access is already gated to library owners, but without
+// this a single account could spin the upstream AI (and our OpenRouter bill).
+// In-memory + per-instance is enough for a niche store; Vercel cold-starts
+// reset the bucket, which only ever makes the limit more lenient.
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_PER_WINDOW = 20;
+const aiBuckets = new Map<string, number[]>();
+
+function isAiRateLimited(userId: string) {
+  const now = Date.now();
+  const recent = (aiBuckets.get(userId) ?? []).filter(
+    (ts) => now - ts < RATE_LIMIT_WINDOW_MS,
+  );
+  if (recent.length >= RATE_LIMIT_PER_WINDOW) {
+    aiBuckets.set(userId, recent);
+    return true;
+  }
+  recent.push(now);
+  aiBuckets.set(userId, recent);
+  return false;
+}
+
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const planner = getInteractivePlanner(slug);
@@ -25,6 +47,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     .eq("product_id", planner.id)
     .maybeSingle();
   if (!access) return NextResponse.json({ error: { message: "Brak dostępu do tego planera." } }, { status: 403 });
+  if (isAiRateLimited(auth.user.id)) return NextResponse.json({ error: { message: "Za dużo zapytań do asystenta. Odczekaj chwilę i spróbuj ponownie." } }, { status: 429 });
   if (!env.openRouterApiKey) return NextResponse.json({ error: { message: "Asystent AI jest chwilowo niedostępny." } }, { status: 503 });
 
   const payload = (await request.json().catch(() => null)) as { messages?: unknown; max_tokens?: unknown } | null;

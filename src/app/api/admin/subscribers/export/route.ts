@@ -8,7 +8,12 @@ import {
 
 function csvEscape(value: string | null | undefined) {
   if (!value) return "";
-  const stringified = String(value);
+  let stringified = String(value);
+  // Neutralize spreadsheet formula injection: a leading = + - @ (or control
+  // char) can make Excel/Sheets execute the cell. Prefix with ' to force text.
+  if (/^[=+\-@\t\r]/.test(stringified)) {
+    stringified = `'${stringified}`;
+  }
   if (/[",\n\r]/.test(stringified)) {
     return `"${stringified.replace(/"/g, '""')}"`;
   }

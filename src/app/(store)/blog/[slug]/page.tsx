@@ -7,7 +7,7 @@ import remarkGfm from "remark-gfm";
 
 import { ProductCard } from "@/components/products/product-card";
 import { formatAdminDate } from "@/lib/format";
-import { buildCanonicalMetadata, getCanonicalUrl } from "@/lib/seo";
+import { buildCanonicalMetadata, getCanonicalUrl, safeJsonLd } from "@/lib/seo";
 import { getCurrentUser } from "@/lib/session";
 import {
   getAllBlogSlugs,
@@ -83,7 +83,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(articleStructuredData),
+          __html: safeJsonLd(articleStructuredData),
         }}
       />
 
