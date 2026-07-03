@@ -89,6 +89,53 @@ export function AuthCard({
   );
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  async function handleGoogleSignIn() {
+    setFeedback(null);
+
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) {
+      console.warn("Auth missing env:", getMissingSupabaseEnv().join(", "));
+      setFeedback({
+        message:
+          "Logowanie jest chwilowo niedostępne. Spróbuj ponownie za chwilę lub napisz na kontakt@templify.store.",
+        tone: "error",
+      });
+      return;
+    }
+
+    setIsGoogleLoading(true);
+    try {
+      // Pełny redirect na Google → Supabase odsyła na /auth/callback z kodem
+      // PKCE, który wymieniamy na sesję (ten sam route co linki z maili).
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: getAuthCallbackUrl(nextPath),
+        },
+      });
+
+      if (error) {
+        setFeedback({
+          message: categorizeAuthError(error).message,
+          tone: "error",
+        });
+        setIsGoogleLoading(false);
+      }
+      // Przy sukcesie przeglądarka opuszcza stronę — nie zdejmujemy spinnera,
+      // żeby przycisk nie "mrugnął" tuż przed redirectem.
+    } catch (error) {
+      setFeedback({
+        message:
+          error instanceof Error
+            ? categorizeAuthError(error).message
+            : "Nie udało się rozpocząć logowania przez Google.",
+        tone: "error",
+      });
+      setIsGoogleLoading(false);
+    }
+  }
 
   async function handleResendConfirmation() {
     if (!email) {
@@ -265,6 +312,49 @@ export function AuthCard({
               ? "Zaloguj się, aby zobaczyć swoje zamówienia i pobrać pliki z biblioteki."
               : "Konto pozwala pobierać pliki, śledzić zamówienia i wracać do zakupów w dowolnym momencie."}
           </p>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="w-full"
+          onClick={handleGoogleSignIn}
+          disabled={isGoogleLoading || isLoading}
+        >
+          {isGoogleLoading ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <svg className="size-4" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="#4285F4"
+                d="M23.52 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.46a5.52 5.52 0 0 1-2.4 3.62v3h3.88c2.27-2.09 3.58-5.17 3.58-8.81Z"
+              />
+              <path
+                fill="#34A853"
+                d="M12 24c3.24 0 5.96-1.07 7.94-2.91l-3.88-3.01c-1.07.72-2.45 1.15-4.06 1.15-3.13 0-5.78-2.11-6.72-4.95H1.27v3.11A12 12 0 0 0 12 24Z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M5.28 14.28a7.21 7.21 0 0 1 0-4.56V6.61H1.27a12.01 12.01 0 0 0 0 10.78l4.01-3.11Z"
+              />
+              <path
+                fill="#EA4335"
+                d="M12 4.77c1.76 0 3.34.61 4.59 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.27 6.61l4.01 3.11C6.22 6.88 8.87 4.77 12 4.77Z"
+              />
+            </svg>
+          )}
+          {mode === "login" ? "Zaloguj się przez Google" : "Zarejestruj się przez Google"}
+        </Button>
+
+        <div className="flex items-center gap-3 py-1" aria-hidden>
+          <span className="h-px flex-1 bg-border/70" />
+          <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+            albo e-mailem
+          </span>
+          <span className="h-px flex-1 bg-border/70" />
         </div>
       </div>
 

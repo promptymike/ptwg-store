@@ -1,5 +1,14 @@
 export type PlannerAudience = "Życie i dom" | "Firma i zespół";
 
+export type PlannerPreviewStat = {
+  /** Small uppercase label in the mock dashboard tile, e.g. "Budżet". */
+  label: string;
+  /** Big value in the tile, e.g. "82%" or "4/6". Keep it short. */
+  value: string;
+  /** Progress bar fill 0-100. */
+  progress: number;
+};
+
 export type InteractivePlanner = {
   id: string;
   slug: string;
@@ -14,6 +23,9 @@ export type InteractivePlanner = {
   features: string[];
   accent: string;
   glow: string;
+  /** Domain-flavoured numbers for the mock preview tile, so the grid of
+      cards doesn't repeat the same "84%" placeholder nine times. */
+  previewStat: PlannerPreviewStat;
   driveFileId: string;
   sourceFile: string;
 };
@@ -33,6 +45,7 @@ export const interactivePlanners: InteractivePlanner[] = [
     features: ["Budżet miesięczny", "Kategorie wydatków", "Cele oszczędnościowe", "Raporty i podsumowania"],
     accent: "from-emerald-400 via-teal-500 to-slate-950",
     glow: "bg-emerald-400",
+    previewStat: { label: "Budżet", value: "82%", progress: 82 },
     driveFileId: "1c5cg9tTD3Ggt8soDHGKPjAb_-7HFEGiJ",
     sourceFile: "planer-finansow.html",
   },
@@ -50,6 +63,7 @@ export const interactivePlanners: InteractivePlanner[] = [
     features: ["Planowanie energią", "Focus timer", "Brain dump", "Łagodne priorytety"],
     accent: "from-violet-400 via-fuchsia-500 to-indigo-950",
     glow: "bg-violet-400",
+    previewStat: { label: "Fokus dziś", value: "3/5", progress: 60 },
     driveFileId: "1YuhDtpya6JJr5nvqay6FVE9rwiT0FnOU",
     sourceFile: "adhd-flow.html",
   },
@@ -67,6 +81,7 @@ export const interactivePlanners: InteractivePlanner[] = [
     features: ["Kalendarz rodzinny", "Plan lekcji", "Obowiązki", "Ważne kontakty"],
     accent: "from-sky-300 via-blue-500 to-indigo-950",
     glow: "bg-sky-400",
+    previewStat: { label: "Tydzień", value: "9/12", progress: 75 },
     driveFileId: "1I3n4JexZCBpDAt78bE9C94EFcXWr6ofZ",
     sourceFile: "planer-rodzinny.html",
   },
@@ -84,6 +99,7 @@ export const interactivePlanners: InteractivePlanner[] = [
     features: ["Menu tygodniowe", "Lista zakupów", "Spiżarnia", "Pomysły na posiłki"],
     accent: "from-lime-300 via-emerald-500 to-green-950",
     glow: "bg-lime-400",
+    previewStat: { label: "Menu", value: "6/7", progress: 86 },
     driveFileId: "1MRpaRtFvQ4SpVnLHCJCh0HhTNopAqy8d",
     sourceFile: "mealmind.html",
   },
@@ -101,6 +117,7 @@ export const interactivePlanners: InteractivePlanner[] = [
     features: ["Plan trasy", "Budżet wyjazdu", "Rezerwacje", "Lista pakowania"],
     accent: "from-cyan-300 via-sky-500 to-blue-950",
     glow: "bg-cyan-400",
+    previewStat: { label: "Plan wyjazdu", value: "71%", progress: 71 },
     driveFileId: "1lBRHe4NuuekggLT55_pYB6PWfT90bJLh",
     sourceFile: "planer-podrozy.html",
   },
@@ -118,6 +135,7 @@ export const interactivePlanners: InteractivePlanner[] = [
     features: ["Lista gości", "Budżet", "Dostawcy", "Harmonogram wydarzenia"],
     accent: "from-rose-300 via-pink-500 to-rose-950",
     glow: "bg-rose-400",
+    previewStat: { label: "Goście", value: "48/60", progress: 80 },
     driveFileId: "1_zuUVdKLutfkeO4nU6B-ftewR8oW-7Z_",
     sourceFile: "planer-uroczystosci.html",
   },
@@ -135,6 +153,7 @@ export const interactivePlanners: InteractivePlanner[] = [
     features: ["Grafik zmianowy", "Dostępność zespołu", "Kontrola obsady", "Archiwum grafików"],
     accent: "from-amber-300 via-orange-500 to-slate-950",
     glow: "bg-amber-400",
+    previewStat: { label: "Obsada", value: "96%", progress: 96 },
     driveFileId: "1GXBvQKzcaSIUO6V_7xzEop1Uz_YUlLHB",
     sourceFile: "grafik-pracy.html",
   },
@@ -152,6 +171,7 @@ export const interactivePlanners: InteractivePlanner[] = [
     features: ["Kalendarz wizyt", "Baza klientek", "Usługi i zespół", "Magazyn produktów"],
     accent: "from-pink-300 via-rose-500 to-fuchsia-950",
     glow: "bg-pink-400",
+    previewStat: { label: "Wizyty dziś", value: "8", progress: 66 },
     driveFileId: "1tV9CpLMJO_jkO5fuzLb5hiBvXDTjmJ1L",
     sourceFile: "beauty-pro.html",
   },
@@ -169,6 +189,7 @@ export const interactivePlanners: InteractivePlanner[] = [
     features: ["Etapy inwestycji", "Budżet budowy", "Wykonawcy", "Dokumenty i terminy"],
     accent: "from-yellow-300 via-amber-500 to-zinc-950",
     glow: "bg-yellow-400",
+    previewStat: { label: "Etapy", value: "4/6", progress: 67 },
     driveFileId: "1ZRagl9lzpWfknIUJ68-sqctrozz6NTtk",
     sourceFile: "planer-budowy.html",
   },

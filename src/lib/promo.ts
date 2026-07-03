@@ -5,7 +5,7 @@ export type PromoRule = {
 };
 
 const PROMO_RULES: PromoRule[] = [
-  { code: "TEMPLIFY15", label: "Wiosenny rabat −15%", percentOff: 15 },
+  { code: "TEMPLIFY15", label: "Rabat −15%", percentOff: 15 },
   { code: "WELCOME10", label: "Powitalne −10%", percentOff: 10 },
   // Unlocked client-side after a 7-day reading streak — see
   // ReadingStreakBadge / StreakRewardCard.

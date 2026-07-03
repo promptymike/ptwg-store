@@ -587,7 +587,7 @@ export function AdminProductEditorFields({
                 onChange={(event) => handleInputChange("price", event)}
                 min="1"
               />
-              <HelperText>Finalna cena sprzedaży widoczna na karcie produktu i checkoutcie.</HelperText>
+              <HelperText>Finalna cena sprzedaży widoczna na karcie produktu i w checkoucie.</HelperText>
             </label>
 
             <label className="space-y-2">

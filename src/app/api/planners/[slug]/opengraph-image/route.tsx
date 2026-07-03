@@ -53,8 +53,8 @@ export async function GET(
                 ))}
               </div>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", borderRadius: 20, background: "#181511", color: "#fff", padding: 20 }}>
-                <div style={{ display: "flex", fontSize: 14, color: "rgba(255,255,255,.55)" }}>DZISIAJ</div>
-                <div style={{ display: "flex", fontSize: 50, fontWeight: 800 }}>84%</div>
+                <div style={{ display: "flex", fontSize: 14, color: "rgba(255,255,255,.55)", textTransform: "uppercase" }}>{planner.previewStat.label}</div>
+                <div style={{ display: "flex", fontSize: 50, fontWeight: 800 }}>{planner.previewStat.value}</div>
                 <div style={{ height: 10, borderRadius: 99, background: "#e8c477", display: "flex" }} />
               </div>
             </div>

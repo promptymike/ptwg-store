@@ -38,9 +38,9 @@ export function PlannerVisual({
             </div>
           </div>
           <div className="rounded-xl bg-stone-950 p-2.5 text-white">
-            <div className="text-[7px] uppercase tracking-[.18em] text-white/50">Dzisiaj</div>
-            <div className="mt-2 text-lg font-bold">84%</div>
-            <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/15"><div className={`h-full w-4/5 rounded-full ${planner.glow}`} /></div>
+            <div className="text-[7px] uppercase tracking-[.18em] text-white/50">{planner.previewStat.label}</div>
+            <div className="mt-2 text-lg font-bold">{planner.previewStat.value}</div>
+            <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/15"><div className={`h-full rounded-full ${planner.glow}`} style={{ width: `${planner.previewStat.progress}%` }} /></div>
             <div className="mt-3 h-1.5 w-3/4 rounded-full bg-white/20" />
             <div className="mt-1.5 h-1.5 w-1/2 rounded-full bg-white/10" />
           </div>

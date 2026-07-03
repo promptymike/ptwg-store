@@ -9,6 +9,7 @@ import {
   useCart,
 } from "@/components/cart/cart-provider";
 import { Button } from "@/components/ui/button";
+import { requestMiniCartOpen } from "@/lib/cart-ui";
 import {
   PURCHASES_ENABLED,
   PURCHASES_UNAVAILABLE_MESSAGE,
@@ -65,6 +66,9 @@ export function AddToCartButton({
     });
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1500);
+    // Open the mini-cart right away so the buyer sees the item landed and
+    // gets a one-tap path to checkout instead of hunting for the cart icon.
+    requestMiniCartOpen();
   }
 
   return (

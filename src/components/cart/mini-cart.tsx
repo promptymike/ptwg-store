@@ -271,7 +271,7 @@ export function MiniCart({ open, onClose }: MiniCartProps) {
             <div className="flex flex-col gap-2">
               {PURCHASES_ENABLED ? (
                 <Button render={<Link href="/checkout" onClick={onClose} />}>
-                  Przejdź do kasy
+                  Do płatności
                 </Button>
               ) : (
                 <div className="space-y-2">

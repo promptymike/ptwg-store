@@ -43,7 +43,7 @@ export function PromoStrip() {
       <div className="shell flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 py-2 text-center text-[13px]">
         <span className="inline-flex items-center gap-1.5 font-medium">
           <Sparkles className="size-3.5 text-primary" />
-          Wiosenny rabat −15% na cały katalog
+          Rabat −15% na cały katalog
         </span>
         <span className="text-muted-foreground">—</span>
         <button
@@ -55,7 +55,7 @@ export function PromoStrip() {
           {PROMO_CODE}
           {isCopied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
         </button>
-        <span className="text-muted-foreground">wklej w koszyku</span>
+        <span className="text-muted-foreground">wklej przy płatności</span>
       </div>
       <button
         type="button"

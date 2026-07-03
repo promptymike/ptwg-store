@@ -8,7 +8,22 @@
       "WebFetch(domain:godly.website)",
       "WebSearch",
       "WebFetch(domain:www.hugoandmarie.com)",
-      "WebFetch(domain:www.studioandmarie.com)"
+      "WebFetch(domain:www.studioandmarie.com)",
+      "mcp__a5385a9d-7a44-472c-a186-915bdfe8b692__get_advisors",
+      "Bash(node -e ' *)",
+      "mcp__a5385a9d-7a44-472c-a186-915bdfe8b692__execute_sql",
+      "mcp__a5385a9d-7a44-472c-a186-915bdfe8b692__apply_migration",
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(gh pr create --base main --head security-privacy-hardening --title 'Harden security, privacy and DB performance' --body ' *)",
+      "Bash(gh pr *)",
+      "Bash(git pull *)",
+      "mcp__0f313671-d656-4841-b005-368dcf33dc1d__list_deployments",
+      "Bash(curl -sI https://templify.pl)",
+      "PowerShell(npm run typecheck)",
+      "PowerShell(npm run lint)"
     ]
   }
 }

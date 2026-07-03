@@ -21,12 +21,18 @@ test("desktop header keeps the logo readable and mini-cart fully opaque", async 
   test.skip((page.viewportSize()?.width ?? 0) < 1280, "Desktop-only layout regression");
 
   await page.goto("/produkty");
-  const logo = page.getByRole("link", { name: /Templify.pl/i }).first().locator("img");
-  await expect(logo).toBeVisible();
-  expect((await logo.boundingBox())?.width ?? 0).toBeGreaterThanOrEqual(140);
+  // Current brand lockup: small app icon (~36-40px) + "templify.pl" wordmark
+  // rendered as text. Assert both halves are visible instead of the legacy
+  // 140px-wide image logo.
+  const brandLink = page.getByRole("link", { name: /Templify.pl/i }).first();
+  await expect(brandLink).toBeVisible();
+  const icon = brandLink.locator("img");
+  await expect(icon).toBeVisible();
+  expect((await icon.boundingBox())?.width ?? 0).toBeGreaterThanOrEqual(32);
+  await expect(brandLink.getByText("templify")).toBeVisible();
 
+  // Adding to cart auto-opens the mini-cart drawer — no header click needed.
   await page.getByRole("button", { name: /Dodaj do koszyka/i }).first().click();
-  await page.getByRole("button", { name: "Otwórz koszyk" }).first().click();
 
   const cart = page.getByRole("dialog", { name: "Mini koszyk" });
   await expect(cart).toBeVisible();

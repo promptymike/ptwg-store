@@ -21,6 +21,10 @@ export function PwaBootstrap() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!("serviceWorker" in navigator)) return;
+    // Dev chunks under /_next/static/ are not content-hashed, so the SW's
+    // cache-first strategy would keep serving stale JS after every edit.
+    // Production chunk URLs are hashed, so caching is safe there.
+    if (process.env.NODE_ENV !== "production") return;
 
     const register = () => {
       navigator.serviceWorker

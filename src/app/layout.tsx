@@ -59,6 +59,9 @@ export default async function RootLayout({
     <html
       lang="pl"
       suppressHydrationWarning
+      // globals.css sets scroll-behavior: smooth; this attribute tells the
+      // router about it so route/view transitions can scroll instantly.
+      data-scroll-behavior="smooth"
       className={`${geistMono.variable} ${hanken.variable} h-full`}
     >
       <body className="min-h-full overflow-x-clip bg-background text-foreground">

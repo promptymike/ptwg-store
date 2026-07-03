@@ -30,6 +30,11 @@ import {
 } from "@/lib/purchase-availability";
 import { formatCurrency } from "@/lib/format";
 import type { PromoRule } from "@/lib/promo";
+import {
+  clearStoredPromoCode,
+  getStoredPromoCode,
+  setStoredPromoCode,
+} from "@/lib/promo-code-storage";
 
 type CheckoutResponse = {
   url?: string;
@@ -118,9 +123,10 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
   const giftApplied = Math.min(giftAmountPln, totalAfterPromo);
   const totalAfterGift = Math.max(totalAfterPromo - giftApplied, 0);
 
-  async function handleApplyPromo() {
+  async function handleApplyPromo(codeArg?: string) {
+    const code = (codeArg ?? promoInput).trim();
     setPromoMessage(null);
-    if (!promoInput.trim()) {
+    if (!code) {
       setPromoRule(null);
       return;
     }
@@ -130,7 +136,7 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
       const response = await fetch("/api/coupons/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: promoInput, subtotal: checkoutSubtotal }),
+        body: JSON.stringify({ code, subtotal: checkoutSubtotal }),
       });
       const data = (await response.json().catch(() => null)) as
         | CouponValidationResponse
@@ -138,6 +144,7 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
 
       if (!response.ok || !data?.ok || !data.code || !data.percentOff) {
         setPromoRule(null);
+        clearStoredPromoCode();
         setPromoMessage(data?.message ?? "Ten kod nie dziala lub wygasl.");
         return;
       }
@@ -147,6 +154,7 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
         label: data.label ?? `Kod ${data.code}`,
         percentOff: data.percentOff,
       });
+      setStoredPromoCode(data.code);
       setPromoMessage(`Zastosowano: ${data.label ?? data.code}`);
     } catch {
       setPromoRule(null);
@@ -160,6 +168,7 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
     setPromoRule(null);
     setPromoInput("");
     setPromoMessage(null);
+    clearStoredPromoCode();
   }
 
   async function handleApplyGift() {
@@ -294,6 +303,21 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
       cancelled = true;
     };
   }, []);
+
+  // Re-apply the promo code the buyer entered in the cart (or that survived
+  // the login redirect) so the discount is visible without re-typing.
+  const restoredStoredPromoRef = useRef(false);
+  useEffect(() => {
+    if (!isReady || restoredStoredPromoRef.current || promoRule) return;
+    restoredStoredPromoRef.current = true;
+    const stored = getStoredPromoCode();
+    if (stored && items.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe post-mount read of localStorage
+      setPromoInput(stored);
+      void handleApplyPromo(stored);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot restore after hydration
+  }, [isReady]);
 
   async function handleCheckout() {
     if (!PURCHASES_ENABLED) {
@@ -556,7 +580,7 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleApplyPromo}
+                onClick={() => void handleApplyPromo()}
                 disabled={promoBusy}
               >
                 Użyj

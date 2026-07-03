@@ -7,6 +7,7 @@ import { CheckCircle2, Mail, Sparkles } from "lucide-react";
 import { useAnalytics } from "@/components/analytics/analytics-provider";
 import { useCart } from "@/components/cart/cart-provider";
 import { Button } from "@/components/ui/button";
+import { clearStoredPromoCode } from "@/lib/promo-code-storage";
 
 type CheckoutSuccessClientProps = {
   orderId: string;
@@ -43,6 +44,9 @@ export function CheckoutSuccessClient({
     }
 
     clearCart();
+    // The promo code was consumed by this purchase — don't silently re-apply
+    // it to the next order.
+    clearStoredPromoCode();
     clearedRef.current = true;
   }, [clearCart]);
 

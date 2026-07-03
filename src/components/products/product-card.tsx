@@ -5,6 +5,7 @@ import { AddToCartButton } from "@/components/products/add-to-cart-button";
 import { WishlistButton } from "@/components/products/wishlist-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ViewTransition } from "@/components/ui/view-transition";
 import { formatCurrency } from "@/lib/format";
 import { getCoverImageOverlayOpacity } from "@/lib/product";
 import { getInteractivePlanner, getProductHref } from "@/data/interactive-planners";
@@ -52,6 +53,9 @@ export function ProductCard({
   return (
     <article className="surface-panel group flex h-full flex-col overflow-hidden transition duration-300 ease-out hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_24px_70px_-30px_rgba(0,0,0,0.5)]">
       <Link href={productHref} className="block" aria-label={`Zobacz produkt: ${product.name}`}>
+        {/* Shared-element morph: the card cover flies into the product-page
+            hero (same name in produkty/[slug]/page.tsx). */}
+        <ViewTransition name={`product-cover-${product.id}`} share="morph" default="none">
         <div
           className={`relative min-h-64 overflow-hidden border-b border-border/70 ${
             isUploadedCover
@@ -141,6 +145,7 @@ export function ProductCard({
             )}
           </div>
         </div>
+        </ViewTransition>
       </Link>
 
       <div className="flex min-w-0 flex-1 flex-col gap-5 p-6">

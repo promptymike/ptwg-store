@@ -590,6 +590,51 @@ a {
   }
 }
 
+/* View transitions: the product-card cover morphs into the product-page hero
+   (React <ViewTransition share="morph">). A touch of mid-flight blur hides
+   interpolation artifacts; unsupported browsers just navigate normally. */
+::view-transition-group(.morph) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-image-pair(.morph) {
+  animation-name: view-transition-morph-blur;
+}
+
+@keyframes view-transition-morph-blur {
+  30% {
+    filter: blur(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
+/* Cart badge bump: the counter pops when the quantity changes (the badge is
+   re-keyed on totalItems, so the animation replays on every add). */
+.cart-badge-bump {
+  animation: cart-badge-bump 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes cart-badge-bump {
+  0% { transform: scale(0.6); }
+  60% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cart-badge-bump {
+    animation: none;
+  }
+}
+
 /* Hero parallax: text moves slower than the scroll, creating depth.
    Browser-native via scroll-driven animations; falls back to no
    movement on Safari and older Chromium. */

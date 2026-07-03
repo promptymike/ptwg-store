@@ -156,6 +156,10 @@ async function firstProductCard(page: Page) {
 async function openFirstProduct(page: Page) {
   const card = await firstProductCard(page);
   await card.getByRole("link", { name: /Zobacz produkt:/i }).click();
+  // Client-side navigation keeps the listing's h1 mounted for a beat —
+  // wait for the product URL before reading the heading, or we capture
+  // the wrong page's title.
+  await page.waitForURL(/\/produkty\/[^/?#]+/);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expectNoHorizontalScroll(page);
 
@@ -169,9 +173,12 @@ async function addFirstProductToCart(page: Page) {
     .first()
     .click();
 
-  await expect(
-    page.getByRole("button", { name: /Dodano do koszyka/i }).first(),
-  ).toBeVisible();
+  // The "Dodano do koszyka" confirmation reverts after ~1.5s, which is too
+  // flaky to assert against on a busy dev server. Poll the persisted cart
+  // state instead — that's the durable signal the add actually landed.
+  await expect
+    .poll(async () => (await readCart(page)).length, { timeout: 10_000 })
+    .toBeGreaterThan(0);
 
   return productName?.trim() ?? "";
 }
@@ -347,6 +354,7 @@ test.describe("Templify storefront QA", () => {
 
     const health = (await healthResponse.json()) as {
       ready: boolean;
+      purchasesEnabled?: boolean;
       testMode: boolean;
       liveMode: boolean;
       missing?: string[];
@@ -362,6 +370,10 @@ test.describe("Templify storefront QA", () => {
 
     if (health.ready) {
       expect(health.testMode, "Configured checkout must use Stripe test mode").toBe(true);
+    } else if (health.purchasesEnabled === false) {
+      // Pre-launch kill-switch (NEXT_PUBLIC_PURCHASES_ENABLED=false) blocks
+      // checkout even with a complete Stripe env — nothing to assert about
+      // missing vars in that state.
     } else {
       expect(
         Array.isArray(health.missing) && health.missing.length > 0,

@@ -68,11 +68,11 @@ export async function SiteFooter({ hasBlogPosts = false }: SiteFooterProps) {
           </Link>
           <div className="space-y-3">
             <h2 className="max-w-md text-3xl text-foreground sm:text-4xl">
-              Interaktywne planery dla osób, które chcą ogarniać życie, a nie kolejne tabelki.
+              Planery i e-booki dla osób, które chcą ogarniać życie, a nie kolejne tabelki.
             </h2>
             <p className="max-w-md text-sm leading-7 text-muted-foreground sm:text-base">
-              Gotowe narzędzia z automatycznym zapisem, dostępne z telefonu i komputera.
-              Do życia, domu i prowadzenia firmy.
+              Interaktywne planery z automatycznym zapisem i praktyczne e-booki —
+              dostępne z telefonu i komputera, do życia, domu i prowadzenia firmy.
             </p>
           </div>
 

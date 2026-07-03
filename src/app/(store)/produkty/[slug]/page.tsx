@@ -8,9 +8,9 @@ import { AddToCartButton } from "@/components/products/add-to-cart-button";
 import { ProductCard } from "@/components/products/product-card";
 import { ProductPreviewGallery } from "@/components/products/product-preview-gallery";
 import { ProductReviews } from "@/components/products/product-reviews";
-import { ProductTestimonials } from "@/components/products/product-testimonials";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ViewTransition } from "@/components/ui/view-transition";
 import { formatCurrency } from "@/lib/format";
 import { getCurrentUser } from "@/lib/session";
 import { getCoverImageOverlayOpacity } from "@/lib/product";
@@ -27,7 +27,6 @@ import {
   getOwnedProductIds,
   getRelatedStoreProducts,
   getStoreProductBySlug,
-  getTestimonialsSnapshot,
 } from "@/lib/supabase/store";
 
 type ProductPageProps = {
@@ -120,7 +119,6 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   const [
     relatedProducts,
     faqs,
-    testimonials,
     ownedAccess,
     ownedProductIds,
     productReviews,
@@ -128,7 +126,6 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   ] = await Promise.all([
     getRelatedStoreProducts(product),
     getFaqSnapshot(),
-    getTestimonialsSnapshot(),
     user
       ? getCustomerOwnedProductAccess(user.id, product.id)
       : Promise.resolve(null),
@@ -145,26 +142,15 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       : null;
 
   const productUrl = getCanonicalUrl(`/produkty/${product.slug}`);
-  // Real moderated reviews override curated testimonials in JSON-LD as
-  // soon as one exists — Google prefers verified ratings and rejects
-  // suspiciously perfect averages.
+  // Only real moderated reviews feed the rating — no curated-testimonial
+  // fallback, so search results never show stars this product hasn't earned.
   const aggregateRating =
     reviewSummary.count > 0
       ? {
           ratingValue: reviewSummary.average.toFixed(1),
           reviewCount: reviewSummary.count,
         }
-      : testimonials.length > 0
-        ? {
-            ratingValue: (
-              testimonials.reduce(
-                (sum, item) => sum + (Number.parseFloat(item.score ?? "5") || 5),
-                0,
-              ) / testimonials.length
-            ).toFixed(1),
-            reviewCount: testimonials.length,
-          }
-        : null;
+      : null;
 
   const productStructuredData = {
     "@context": "https://schema.org",
@@ -299,6 +285,11 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           const heroOpacity = getCoverImageOverlayOpacity(product);
 
           return (
+            <ViewTransition
+              name={`product-cover-${product.id}`}
+              share="morph"
+              default="none"
+            >
             <div
               className={`surface-panel relative min-h-[340px] overflow-hidden ${
                 isUploadedCover
@@ -372,6 +363,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 )}
               </div>
             </div>
+            </ViewTransition>
           );
         })()}
 
@@ -553,7 +545,9 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         </section>
       ) : null}
 
-      {productReviews.length > 0 ? (
+      {/* Only verified purchase reviews render here. No curated-testimonial
+          fallback — until real reviews exist, owners just see the form. */}
+      {productReviews.length > 0 || canReview ? (
         <ProductReviews
           productId={product.id}
           productName={product.name}
@@ -562,26 +556,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           canReview={canReview}
           existingReview={customerReview}
         />
-      ) : (
-        <>
-          {/* No real reviews yet — show curated testimonials, plus the
-              review form so owners can be the first. */}
-          <ProductTestimonials
-            testimonials={testimonials}
-            productName={product.name}
-          />
-          {canReview ? (
-            <ProductReviews
-              productId={product.id}
-              productName={product.name}
-              reviews={productReviews}
-              summary={reviewSummary}
-              canReview={canReview}
-              existingReview={customerReview}
-            />
-          ) : null}
-        </>
-      )}
+      ) : null}
 
       {relatedProducts.length > 0 ? (
         <section className="space-y-6">

@@ -99,7 +99,7 @@ export function CheckoutAuthGate() {
           </article>
           <article className="rounded-[1.4rem] border border-border/70 bg-background/70 p-4 text-sm text-muted-foreground">
             <ShieldCheck className="mb-3 size-5 text-primary" />
-            Zajmuje to chwilę i nie zmienia nic w samym koszyku ani checkoutcie.
+            Zajmuje to chwilę i nie zmienia nic w samym koszyku ani w płatności.
           </article>
         </div>
 

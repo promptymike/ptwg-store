@@ -22,6 +22,7 @@ import { MiniCart } from "@/components/cart/mini-cart";
 import { SearchDialog } from "@/components/search/search-dialog";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { OPEN_MINI_CART_EVENT } from "@/lib/cart-ui";
 import { cn } from "@/lib/utils";
 
 type PrimaryLink = { href: string; label: string; requiresBlog?: boolean };
@@ -82,6 +83,16 @@ export function SiteHeader({ profile, hasBlogPosts = false }: SiteHeaderProps) {
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
+  }, []);
+
+  // Add-to-cart buttons request the mini-cart drawer via a window event so
+  // the buyer immediately sees the "Przejdź do kasy" CTA after adding.
+  useEffect(() => {
+    function handleOpenCart() {
+      setIsCartOpen(true);
+    }
+    window.addEventListener(OPEN_MINI_CART_EVENT, handleOpenCart);
+    return () => window.removeEventListener(OPEN_MINI_CART_EVENT, handleOpenCart);
   }, []);
 
   useEffect(() => {
@@ -267,7 +278,10 @@ export function SiteHeader({ profile, hasBlogPosts = false }: SiteHeaderProps) {
             <ShoppingBag className="size-4" />
             Koszyk
             {totalItems > 0 ? (
-              <span className="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-primary-foreground/20 px-1.5 text-[11px] font-bold text-primary-foreground">
+              <span
+                key={totalItems}
+                className="cart-badge-bump ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-primary-foreground/20 px-1.5 text-[11px] font-bold text-primary-foreground"
+              >
                 {totalItems}
               </span>
             ) : null}
@@ -294,7 +308,10 @@ export function SiteHeader({ profile, hasBlogPosts = false }: SiteHeaderProps) {
           >
             <ShoppingBag className="size-4" />
             {totalItems > 0 ? (
-              <span className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
+              <span
+                key={totalItems}
+                className="cart-badge-bump absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground"
+              >
                 {totalItems}
               </span>
             ) : null}
