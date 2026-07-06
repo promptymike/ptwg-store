@@ -67,7 +67,7 @@ function wrap(title: string, body: string) {
             <tr>
               <td style="padding:24px 32px;border-top:1px solid ${BORDER};color:${MUTED};font-size:12px;">
                 Templify — praktyczne ebooki i planery dla codziennego życia.<br/>
-                Masz pytania? Napisz na <a href="mailto:kontakt@templify.store" style="color:${ACCENT};text-decoration:none;">kontakt@templify.store</a>.<br/>
+                Masz pytania? Napisz na <a href="mailto:ptwgadmin@gmail.com" style="color:${ACCENT};text-decoration:none;">ptwgadmin@gmail.com</a>.<br/>
                 <span style="color:#9a8e7c;">Ten e-mail dotyczy Twojego zamówienia w sklepie templify.pl.</span>
               </td>
             </tr>
@@ -183,7 +183,7 @@ ${input.invoiceUrl ? `\nFaktura VAT: ${input.invoiceUrl}` : ""}${input.receiptUr
 Masz 14 dni na zwrot — odpowiedz na tego maila.
 
 Templify
-kontakt@templify.store
+ptwgadmin@gmail.com
 `;
 
   return { html, text, subject: `Zamówienie ${input.orderNumber} — potwierdzone` };
@@ -236,7 +236,7 @@ ${input.items.map((item) => `- ${item.productName}\n  Czytaj: ${item.readUrl}`).
 Otwórz bibliotekę: ${input.libraryUrl}
 
 Templify
-kontakt@templify.store
+ptwgadmin@gmail.com
 `;
 
   return { html, text, subject: "Twoje ebooki są gotowe do czytania" };

@@ -504,7 +504,7 @@ export const faqItems: FaqItem[] = [
     id: "faq-07",
     question: "Jak wygląda zwrot zakupu?",
     answer:
-      "Masz 14 dni na zwrot bez podania przyczyny. Napisz do nas na kontakt@templify.store, a zwrócimy pełną kwotę i dezaktywujemy dostęp w bibliotece.",
+      "Masz 14 dni na zwrot bez podania przyczyny. Napisz do nas na ptwgadmin@gmail.com, a zwrócimy pełną kwotę i dezaktywujemy dostęp w bibliotece.",
   },
   {
     id: "faq-08",
@@ -541,7 +541,7 @@ export const legalPages: ContentPage[] = [
     title: "Kontakt",
     description: "Skontaktuj się z zespołem Templify.",
     body:
-      "Masz pytania dotyczące zamówień, dostępu do biblioteki albo współpracy? Napisz do nas na adres kontakt@templify.store — odpisujemy w ciągu jednego dnia roboczego.",
+      "Masz pytania dotyczące zamówień, dostępu do biblioteki albo współpracy? Napisz do nas na adres ptwgadmin@gmail.com — odpisujemy w ciągu jednego dnia roboczego.",
   },
 ];
 

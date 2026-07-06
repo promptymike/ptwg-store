@@ -175,7 +175,7 @@ export default async function AdminSettingsPage({
               name="supportEmail"
               type="email"
               defaultValue={settings.supportEmail}
-              placeholder="kontakt@templify.store"
+              placeholder="ptwgadmin@gmail.com"
             />
           </label>
 

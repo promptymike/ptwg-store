@@ -131,7 +131,7 @@ export function CheckoutSuccessClient({
             Potwierdzenie zakupu wysłaliśmy na adres{" "}
             <span className="font-medium text-foreground">{email}</span>. Jeśli e-mail nie dotrze
             w ciągu kilku minut, sprawdź folder „Oferty” lub napisz do nas na{" "}
-            <span className="text-foreground">kontakt@templify.store</span>.
+            <span className="text-foreground">ptwgadmin@gmail.com</span>.
           </p>
         </div>
       </div>

@@ -20,7 +20,7 @@ export function CtaSection() {
             </p>
             <p className="flex items-center gap-2 text-sm text-muted-foreground">
               <Mail className="size-4 text-primary" />
-              Pytanie przed zakupem? Napisz na <span className="text-foreground">kontakt@templify.store</span>
+              Pytanie przed zakupem? Napisz na <span className="text-foreground">ptwgadmin@gmail.com</span>
             </p>
           </div>
 

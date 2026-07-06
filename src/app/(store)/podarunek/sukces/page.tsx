@@ -33,9 +33,9 @@ export default function GiftSuccessPage() {
             Sprawdź folder spam / oferty. Jeśli dalej brak — napisz na{" "}
             <a
               className="text-primary underline-offset-4 hover:underline"
-              href="mailto:kontakt@templify.store"
+              href="mailto:ptwgadmin@gmail.com"
             >
-              kontakt@templify.store
+              ptwgadmin@gmail.com
             </a>
             , odsyłamy kod ręcznie.
           </p>

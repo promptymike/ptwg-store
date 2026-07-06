@@ -99,7 +99,7 @@ export function AuthCard({
       console.warn("Auth missing env:", getMissingSupabaseEnv().join(", "));
       setFeedback({
         message:
-          "Logowanie jest chwilowo niedostępne. Spróbuj ponownie za chwilę lub napisz na kontakt@templify.store.",
+          "Logowanie jest chwilowo niedostępne. Spróbuj ponownie za chwilę lub napisz na ptwgadmin@gmail.com.",
         tone: "error",
       });
       return;
@@ -194,7 +194,7 @@ export function AuthCard({
       console.warn("Auth missing env:", getMissingSupabaseEnv().join(", "));
       setFeedback({
         message:
-          "Logowanie jest chwilowo niedostępne. Spróbuj ponownie za chwilę lub napisz na kontakt@templify.store.",
+          "Logowanie jest chwilowo niedostępne. Spróbuj ponownie za chwilę lub napisz na ptwgadmin@gmail.com.",
         tone: "error",
       });
       return;

@@ -241,6 +241,18 @@ otp_expiry = 3600
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"
 
+# Branded Polish auth emails. Applied to the hosted project either by pasting
+# the HTML in Dashboard → Authentication → Emails → Templates, or by running
+# `npx supabase config push` (review the diff first — it syncs the whole
+# [auth] section, so make sure site_url matches production before pushing).
+[auth.email.template.confirmation]
+subject = "Potwierdź swoje konto w Templify ✨"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Reset hasła do konta Templify"
+content_path = "./supabase/templates/recovery.html"
+
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
 # enabled = true

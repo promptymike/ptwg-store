@@ -8,11 +8,13 @@ import { FaqSection } from "@/components/sections/faq-section";
 import { InteractivePlannerHero } from "@/components/sections/interactive-planner-hero";
 import { NewArrivalsSection } from "@/components/sections/new-arrivals-section";
 import { NewsletterSection } from "@/components/sections/newsletter-section";
+import { OwnedProductsSection } from "@/components/sections/owned-products-section";
 import { categoryHighlights } from "@/data/mock-store";
 import { interactivePlanners } from "@/data/interactive-planners";
 import { buildCanonicalMetadata, getCanonicalUrl, safeJsonLd } from "@/lib/seo";
 import { getCurrentUser } from "@/lib/session";
 import {
+  getCustomerLibrarySnapshot,
   getOwnedProductIds,
   getStorefrontSnapshot,
 } from "@/lib/supabase/store";
@@ -46,6 +48,12 @@ export default async function HomePage() {
 
   const user = await getCurrentUser();
   const ownedProductIds = await getOwnedProductIds(user?.id ?? null);
+  // Owners get a "jump back in" strip under the hero — the fastest path from
+  // the homepage into an already-purchased planner or ebook.
+  const librarySnapshot =
+    user && ownedProductIds.size > 0
+      ? await getCustomerLibrarySnapshot(user.id)
+      : null;
 
   // Drop kategorie tiles whose DB count is 0 so we never link visitors into
   // an empty filter page (e.g. "Podróże i lifestyle" before any product
@@ -66,7 +74,7 @@ export default async function HomePage() {
       {
         "@type": "ContactPoint",
         contactType: "customer support",
-        email: "kontakt@templify.store",
+        email: "ptwgadmin@gmail.com",
         availableLanguage: ["Polish"],
       },
     ],
@@ -127,6 +135,9 @@ export default async function HomePage() {
         />
       ) : null}
       <InteractivePlannerHero />
+      {librarySnapshot ? (
+        <OwnedProductsSection items={librarySnapshot.items} />
+      ) : null}
       <BestsellersSection
         content={getSectionOrFallback(sections, "featured")}
         products={bestsellerProducts.length > 0 ? bestsellerProducts : featuredProducts}

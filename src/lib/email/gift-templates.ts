@@ -33,7 +33,7 @@ function footer(audience: "purchaser" | "recipient") {
       : "Dostajesz tę wiadomość, bo ktoś podarował Ci voucher Templify.";
   return `<tr><td style="padding:24px 32px;border-top:1px solid ${BORDER};color:${MUTED};font-size:12px;">
 ${reason}<br/>
-W razie pytań — odpisz na tego maila albo napisz na kontakt@templify.store.
+W razie pytań — odpisz na tego maila albo napisz na ptwgadmin@gmail.com.
 </td></tr>`;
 }
 
@@ -95,7 +95,7 @@ Ważny do: ${formatDate(input.expiresAt)}
 ${input.recipientEmail ? `Drugi mail z kodem trafił też do ${input.recipientEmail}.\n\n` : ""}Wykorzystaj w sklepie: ${input.cartUrl}
 
 Templify
-kontakt@templify.store`;
+ptwgadmin@gmail.com`;
 
   return { subject, html, text };
 }
@@ -147,7 +147,7 @@ Ważny do: ${formatDate(input.expiresAt)}
 Otwórz sklep: ${input.cartUrl}
 
 Templify
-kontakt@templify.store`;
+ptwgadmin@gmail.com`;
 
   return { subject, html, text };
 }

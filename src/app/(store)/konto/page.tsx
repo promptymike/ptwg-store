@@ -56,7 +56,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           icon={CircleAlert}
           badge="Konto użytkownika"
           title="Nie udało się pobrać profilu"
-          description="Nie udało się wczytać Twojego profilu. Odśwież stronę lub zaloguj się ponownie. Jeśli problem wróci, napisz do nas na kontakt@templify.store."
+          description="Nie udało się wczytać Twojego profilu. Odśwież stronę lub zaloguj się ponownie. Jeśli problem wróci, napisz do nas na ptwgadmin@gmail.com."
           action={{ href: "/produkty", label: "Wróć do sklepu" }}
           secondaryAction={{ href: "/kontakt", label: "Napisz do nas" }}
         />
@@ -109,7 +109,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         {resolvedSearchParams.denied ? (
           <div className="rounded-[1.4rem] border border-primary/20 bg-primary/10 p-4 text-sm text-muted-foreground">
             To konto nie ma uprawnień administracyjnych. Jeśli uważasz, że to pomyłka, napisz do
-            nas na kontakt@templify.store.
+            nas na ptwgadmin@gmail.com.
           </div>
         ) : null}
 

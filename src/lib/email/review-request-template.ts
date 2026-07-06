@@ -59,7 +59,7 @@ ${input.reviewUrl}
 Produkt: ${input.productUrl}
 
 Templify
-kontakt@templify.store`;
+ptwgadmin@gmail.com`;
 
   return { subject, html, text };
 }

@@ -69,7 +69,7 @@ export function renderDripTipEmail(input: DripTipInput = {}) {
 Pełny system w "Budżet Domowy dla Początkujących" — krótkie, działa w 1-2 wieczory.
 
 ${input.sampleUrl ? `Bezpłatna próbka: ${input.sampleUrl}\n\n` : ""}Templify
-kontakt@templify.store`;
+ptwgadmin@gmail.com`;
 
   return {
     subject: "1 prosta zasada budżetu, która zmienia wszystko",
@@ -111,7 +111,7 @@ export function renderDripOfferEmail(input: DripOfferInput) {
 Otwórz katalog: ${input.productsUrl}
 
 Templify
-kontakt@templify.store`;
+ptwgadmin@gmail.com`;
 
   return {
     subject: `Tylko dla Ciebie: -${input.percentOff}% na pierwszy ebook`,

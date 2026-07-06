@@ -2090,7 +2090,7 @@ export async function updateSiteSettingsAction(formData: FormData) {
       businessTaxId: parseNullableString(formData.get("businessTaxId")) ?? "",
       businessAddress: parseNullableString(formData.get("businessAddress")) ?? "",
       supportEmail:
-        parseNullableString(formData.get("supportEmail")) ?? "kontakt@templify.store",
+        parseNullableString(formData.get("supportEmail")) ?? "ptwgadmin@gmail.com",
     });
 
     if (!parsed.success) {

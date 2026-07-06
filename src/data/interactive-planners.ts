@@ -26,6 +26,9 @@ export type InteractivePlanner = {
   /** Domain-flavoured numbers for the mock preview tile, so the grid of
       cards doesn't repeat the same "84%" placeholder nine times. */
   previewStat: PlannerPreviewStat;
+  /** Real screenshot of the template (public path) used as card thumbnail.
+      Regenerate with: node scripts/screenshot-planner-thumbs.mjs */
+  thumbnail?: string;
   driveFileId: string;
   sourceFile: string;
 };
@@ -46,6 +49,7 @@ export const interactivePlanners: InteractivePlanner[] = [
     accent: "from-emerald-400 via-teal-500 to-slate-950",
     glow: "bg-emerald-400",
     previewStat: { label: "Budżet", value: "82%", progress: 82 },
+    thumbnail: "/planery-thumbs/planer-finansow.jpg",
     driveFileId: "1c5cg9tTD3Ggt8soDHGKPjAb_-7HFEGiJ",
     sourceFile: "planer-finansow.html",
   },
@@ -64,6 +68,7 @@ export const interactivePlanners: InteractivePlanner[] = [
     accent: "from-violet-400 via-fuchsia-500 to-indigo-950",
     glow: "bg-violet-400",
     previewStat: { label: "Fokus dziś", value: "3/5", progress: 60 },
+    thumbnail: "/planery-thumbs/adhd-flow.jpg",
     driveFileId: "1YuhDtpya6JJr5nvqay6FVE9rwiT0FnOU",
     sourceFile: "adhd-flow.html",
   },
@@ -82,6 +87,7 @@ export const interactivePlanners: InteractivePlanner[] = [
     accent: "from-sky-300 via-blue-500 to-indigo-950",
     glow: "bg-sky-400",
     previewStat: { label: "Tydzień", value: "9/12", progress: 75 },
+    thumbnail: "/planery-thumbs/planer-rodzinny.jpg",
     driveFileId: "1I3n4JexZCBpDAt78bE9C94EFcXWr6ofZ",
     sourceFile: "planer-rodzinny.html",
   },
@@ -100,6 +106,7 @@ export const interactivePlanners: InteractivePlanner[] = [
     accent: "from-lime-300 via-emerald-500 to-green-950",
     glow: "bg-lime-400",
     previewStat: { label: "Menu", value: "6/7", progress: 86 },
+    thumbnail: "/planery-thumbs/mealmind.jpg",
     driveFileId: "1MRpaRtFvQ4SpVnLHCJCh0HhTNopAqy8d",
     sourceFile: "mealmind.html",
   },
@@ -118,6 +125,7 @@ export const interactivePlanners: InteractivePlanner[] = [
     accent: "from-cyan-300 via-sky-500 to-blue-950",
     glow: "bg-cyan-400",
     previewStat: { label: "Plan wyjazdu", value: "71%", progress: 71 },
+    thumbnail: "/planery-thumbs/planer-podrozy.jpg",
     driveFileId: "1lBRHe4NuuekggLT55_pYB6PWfT90bJLh",
     sourceFile: "planer-podrozy.html",
   },
@@ -136,6 +144,7 @@ export const interactivePlanners: InteractivePlanner[] = [
     accent: "from-rose-300 via-pink-500 to-rose-950",
     glow: "bg-rose-400",
     previewStat: { label: "Goście", value: "48/60", progress: 80 },
+    thumbnail: "/planery-thumbs/planer-uroczystosci.jpg",
     driveFileId: "1_zuUVdKLutfkeO4nU6B-ftewR8oW-7Z_",
     sourceFile: "planer-uroczystosci.html",
   },
@@ -154,6 +163,7 @@ export const interactivePlanners: InteractivePlanner[] = [
     accent: "from-amber-300 via-orange-500 to-slate-950",
     glow: "bg-amber-400",
     previewStat: { label: "Obsada", value: "96%", progress: 96 },
+    thumbnail: "/planery-thumbs/grafik-pracy.jpg",
     driveFileId: "1GXBvQKzcaSIUO6V_7xzEop1Uz_YUlLHB",
     sourceFile: "grafik-pracy.html",
   },
@@ -172,6 +182,7 @@ export const interactivePlanners: InteractivePlanner[] = [
     accent: "from-pink-300 via-rose-500 to-fuchsia-950",
     glow: "bg-pink-400",
     previewStat: { label: "Wizyty dziś", value: "8", progress: 66 },
+    thumbnail: "/planery-thumbs/beauty-pro.jpg",
     driveFileId: "1tV9CpLMJO_jkO5fuzLb5hiBvXDTjmJ1L",
     sourceFile: "beauty-pro.html",
   },
@@ -190,6 +201,7 @@ export const interactivePlanners: InteractivePlanner[] = [
     accent: "from-yellow-300 via-amber-500 to-zinc-950",
     glow: "bg-yellow-400",
     previewStat: { label: "Etapy", value: "4/6", progress: 67 },
+    thumbnail: "/planery-thumbs/planer-budowy.jpg",
     driveFileId: "1ZRagl9lzpWfknIUJ68-sqctrozz6NTtk",
     sourceFile: "planer-budowy.html",
   },

@@ -92,7 +92,7 @@ Co znajdziesz w newsletterze:
 - Zero spamu
 
 ${input.sampleUrl ? `Bezpłatna próbka: ${input.sampleUrl}\n\n` : ""}Templify
-kontakt@templify.store
+ptwgadmin@gmail.com
 `;
 
   return {

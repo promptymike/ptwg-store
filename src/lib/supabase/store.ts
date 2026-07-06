@@ -1744,7 +1744,7 @@ export async function getFaqSnapshot() {
       ? {
           ...faq,
           answer:
-            "Po zakupie wysyłamy potwierdzenie zamówienia na e-mail. Jeśli potrzebujesz danych do dokumentu zakupu, napisz do nas po zakupie na kontakt@templify.store.",
+            "Po zakupie wysyłamy potwierdzenie zamówienia na e-mail. Jeśli potrzebujesz danych do dokumentu zakupu, napisz do nas po zakupie na ptwgadmin@gmail.com.",
         }
       : faq,
   );
@@ -3084,7 +3084,7 @@ export async function getSiteSettingsSnapshot() {
     businessName: "",
     businessTaxId: "",
     businessAddress: "",
-    supportEmail: "kontakt@templify.store",
+    supportEmail: "ptwgadmin@gmail.com",
   };
 
   if (!hasSupabaseEnv()) {

@@ -65,7 +65,7 @@ Jeśli to nie ma sensu — odpowiedz „STOP", a wyłączymy te przypomnienia dl
 ${input.promoCode ? `Kod ${input.promoCode} — −${input.percentOff}% przy finalizacji, ważny 48h.\n\n` : ""}Wróć do koszyka: ${input.cartUrl}
 
 Templify
-kontakt@templify.store`;
+ptwgadmin@gmail.com`;
 
   return { subject, html, text };
 }

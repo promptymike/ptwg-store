@@ -6,6 +6,8 @@ import { PlannerCard, PlannerVisual } from "@/components/planners/planner-card";
 import { Button } from "@/components/ui/button";
 import { interactivePlanners } from "@/data/interactive-planners";
 import { buildCanonicalMetadata } from "@/lib/seo";
+import { getCurrentUser } from "@/lib/session";
+import { getOwnedProductIds } from "@/lib/supabase/store";
 
 export const metadata: Metadata = buildCanonicalMetadata({
   title: "Interaktywne planery online — skończ z Excelem",
@@ -13,7 +15,9 @@ export const metadata: Metadata = buildCanonicalMetadata({
   path: "/planery",
 });
 
-export default function PlannersPage() {
+export default async function PlannersPage() {
+  const user = await getCurrentUser();
+  const ownedProductIds = await getOwnedProductIds(user?.id ?? null);
   const home = interactivePlanners.filter((planner) => planner.audience === "Życie i dom");
   const business = interactivePlanners.filter((planner) => planner.audience === "Firma i zespół");
   const lead = interactivePlanners[0];
@@ -69,11 +73,11 @@ export default function PlannersPage() {
 
       <section id="dla-ciebie" className="shell section-space">
         <div className="max-w-3xl"><span className="eyebrow">Dla Ciebie i domu</span><h2 className="mt-5 text-4xl text-foreground sm:text-6xl">Codzienność pod kontrolą, bez życia w tabelkach.</h2><p className="mt-4 text-muted-foreground">Finanse, rodzina, posiłki, podróże i większe wydarzenia — każde w osobnym, dopracowanym systemie.</p></div>
-        <div className="mt-10 grid gap-6 lg:grid-cols-2 xl:grid-cols-3">{home.map((planner) => <PlannerCard key={planner.slug} planner={planner} />)}</div>
+        <div className="mt-10 grid gap-6 lg:grid-cols-2 xl:grid-cols-3">{home.map((planner) => <PlannerCard key={planner.slug} planner={planner} isOwned={ownedProductIds.has(planner.id)} />)}</div>
       </section>
 
       <section className="border-y border-border/60 bg-foreground py-16 text-background sm:py-20">
-        <div className="shell"><div className="max-w-3xl"><span className="text-xs font-bold uppercase tracking-[.22em] text-amber-300">Dla firmy i zespołu</span><h2 className="mt-5 text-4xl sm:text-6xl">Mniej administracji. Więcej prowadzenia biznesu.</h2><p className="mt-5 text-background/65">Specjalistyczne systemy dla zespołów, salonów beauty oraz budowy i remontu.</p></div><div className="mt-10 grid gap-6 lg:grid-cols-3">{business.map((planner) => <PlannerCard key={planner.slug} planner={planner} />)}</div></div>
+        <div className="shell"><div className="max-w-3xl"><span className="text-xs font-bold uppercase tracking-[.22em] text-amber-300">Dla firmy i zespołu</span><h2 className="mt-5 text-4xl sm:text-6xl">Mniej administracji. Więcej prowadzenia biznesu.</h2><p className="mt-5 text-background/65">Specjalistyczne systemy dla zespołów, salonów beauty oraz budowy i remontu.</p></div><div className="mt-10 grid gap-6 lg:grid-cols-3">{business.map((planner) => <PlannerCard key={planner.slug} planner={planner} isOwned={ownedProductIds.has(planner.id)} />)}</div></div>
       </section>
     </main>
   );

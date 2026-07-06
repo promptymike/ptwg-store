@@ -995,9 +995,53 @@
         .modal-header .modal-title { margin-bottom: 0; }
         .modal-close { width: 30px; height: 30px; border: none; background: var(--bg-input); border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
         .modal-close:hover { background: var(--accent-ruby-light); }
+
+        /* ===== MOBILE DRAWER ===== */
+        .tpl-menu-btn {
+            display: none;
+            position: fixed;
+            top: 12px; left: 12px;
+            z-index: 960;
+            width: 42px; height: 42px;
+            align-items: center; justify-content: center;
+            border: none;
+            border-radius: 12px;
+            background: var(--bg-sidebar);
+            color: #fff;
+            font-size: 19px;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+        }
+        .tpl-sidebar-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            z-index: 940;
+            background: rgba(0,0,0,0.45);
+        }
+        @media (max-width: 768px) {
+            .tpl-menu-btn { display: flex; }
+            .sidebar {
+                width: min(82vw, 300px);
+                z-index: 950;
+                transform: translateX(-105%);
+                transition: transform 0.28s ease;
+            }
+            body.tpl-nav-open .sidebar { transform: translateX(0); box-shadow: 12px 0 40px rgba(0,0,0,0.35); }
+            body.tpl-nav-open .tpl-sidebar-overlay { display: block; }
+            .main { margin-left: 0; padding: 68px 14px 90px; }
+            .page-header { flex-wrap: wrap; gap: 12px; }
+            .charts-grid, .charts-grid.three { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
+
+<button class="tpl-menu-btn" id="tpl-menu-btn" aria-label="Pokaż menu" aria-expanded="false" aria-controls="sidebar">☰</button>
+<div class="tpl-sidebar-overlay" id="tpl-sidebar-overlay"></div>
 
 <!-- ===== SIDEBAR ===== -->
 <nav class="sidebar">
@@ -3682,6 +3726,28 @@ async function aiQuickAction(type) {
 }
 
 updateAIStatusBar();
+</script>
+
+<script>
+/* ===== MOBILE DRAWER ===== */
+(function () {
+    var body = document.body;
+    var menuButton = document.getElementById('tpl-menu-btn');
+    var overlay = document.getElementById('tpl-sidebar-overlay');
+    if (!menuButton || !overlay) return;
+    function setOpen(open) {
+        body.classList.toggle('tpl-nav-open', open);
+        menuButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+        menuButton.textContent = open ? '✕' : '☰';
+    }
+    menuButton.addEventListener('click', function () {
+        setOpen(!body.classList.contains('tpl-nav-open'));
+    });
+    overlay.addEventListener('click', function () { setOpen(false); });
+    document.querySelectorAll('.sidebar .nav-btn').forEach(function (navButton) {
+        navButton.addEventListener('click', function () { setOpen(false); });
+    });
+})();
 </script>
 
 </body>

@@ -35,7 +35,7 @@ export const env = {
   resendApiKey: process.env.RESEND_API_KEY,
   resendFromAddress:
     process.env.RESEND_FROM_ADDRESS ?? "Templify <noreply@templify.pl>",
-  resendReplyTo: process.env.RESEND_REPLY_TO ?? "kontakt@templify.store",
+  resendReplyTo: process.env.RESEND_REPLY_TO ?? "ptwgadmin@gmail.com",
   // Optional Resend Audience id for newsletter contacts. When set, every
   // subscription syncs to that audience so admins can fire broadcasts
   // straight from resend.com/audiences.
@@ -54,7 +54,7 @@ export const env = {
   // the server. Subject is a mailto: URL Apple/Mozilla require for routing.
   vapidPublicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
   vapidPrivateKey: process.env.VAPID_PRIVATE_KEY,
-  vapidSubject: process.env.VAPID_SUBJECT ?? "mailto:kontakt@templify.pl",
+  vapidSubject: process.env.VAPID_SUBJECT ?? "mailto:ptwgadmin@gmail.com",
 };
 
 export function hasSupabaseEnv() {

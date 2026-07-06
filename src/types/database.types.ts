@@ -7,8 +7,35 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -119,38 +146,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      newsletter_sends: {
-        Row: {
-          campaign: string
-          id: number
-          resend_message_id: string | null
-          sent_at: string
-          subscriber_id: string
-        }
-        Insert: {
-          campaign: string
-          id?: number
-          resend_message_id?: string | null
-          sent_at?: string
-          subscriber_id: string
-        }
-        Update: {
-          campaign?: string
-          id?: number
-          resend_message_id?: string | null
-          sent_at?: string
-          subscriber_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "newsletter_sends_subscriber_id_fkey"
-            columns: ["subscriber_id"]
-            isOneToOne: false
-            referencedRelation: "newsletter_subscribers"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       analytics_events: {
         Row: {
@@ -624,7 +619,15 @@ export type Database = {
           stripe_payment_intent_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "gift_codes_redeemed_order_id_fkey"
+            columns: ["redeemed_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       library_items: {
         Row: {
@@ -677,6 +680,38 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newsletter_sends: {
+        Row: {
+          campaign: string
+          id: number
+          resend_message_id: string | null
+          sent_at: string
+          subscriber_id: string
+        }
+        Insert: {
+          campaign: string
+          id?: number
+          resend_message_id?: string | null
+          sent_at?: string
+          subscriber_id: string
+        }
+        Update: {
+          campaign?: string
+          id?: number
+          resend_message_id?: string | null
+          sent_at?: string
+          subscriber_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_sends_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_subscribers"
             referencedColumns: ["id"]
           },
         ]
@@ -781,10 +816,10 @@ export type Database = {
           landing_page: string | null
           order_bump_discount_amount: number
           order_bump_product_id: string | null
+          referrer: string | null
           refund_amount: number | null
           refund_reason: string | null
           refunded_at: string | null
-          referrer: string | null
           status: Database["public"]["Enums"]["order_status"]
           stripe_checkout_session_id: string | null
           stripe_customer_id: string | null
@@ -810,10 +845,10 @@ export type Database = {
           landing_page?: string | null
           order_bump_discount_amount?: number
           order_bump_product_id?: string | null
+          referrer?: string | null
           refund_amount?: number | null
           refund_reason?: string | null
           refunded_at?: string | null
-          referrer?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           stripe_checkout_session_id?: string | null
           stripe_customer_id?: string | null
@@ -839,10 +874,10 @@ export type Database = {
           landing_page?: string | null
           order_bump_discount_amount?: number
           order_bump_product_id?: string | null
+          referrer?: string | null
           refund_amount?: number | null
           refund_reason?: string | null
           refunded_at?: string | null
-          referrer?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           stripe_checkout_session_id?: string | null
           stripe_customer_id?: string | null
@@ -868,6 +903,51 @@ export type Database = {
           },
           {
             foreignKeyName: "orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planner_instances: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          product_id: string
+          updated_at: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          id?: string
+          product_id: string
+          updated_at?: string
+          user_id: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          product_id?: string
+          updated_at?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planner_instances_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planner_instances_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -1017,51 +1097,6 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      planner_instances: {
-        Row: {
-          created_at: string
-          data: Json
-          id: string
-          product_id: string
-          updated_at: string
-          user_id: string
-          version: number
-        }
-        Insert: {
-          created_at?: string
-          data?: Json
-          id?: string
-          product_id: string
-          updated_at?: string
-          user_id: string
-          version?: number
-        }
-        Update: {
-          created_at?: string
-          data?: Json
-          id?: string
-          product_id?: string
-          updated_at?: string
-          user_id?: string
-          version?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "planner_instances_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "planner_instances_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1267,7 +1302,15 @@ export type Database = {
           sent_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "review_request_sends_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_sections: {
         Row: {
@@ -1350,6 +1393,45 @@ export type Database = {
           created_at?: string
           event_type?: string
           id?: string
+        }
+        Relationships: []
+      }
+      support_requests: {
+        Row: {
+          created_at: string
+          email: string
+          handled_at: string | null
+          id: string
+          message: string
+          name: string
+          order_ref: string | null
+          status: string
+          topic: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          handled_at?: string | null
+          id?: string
+          message: string
+          name?: string
+          order_ref?: string | null
+          status?: string
+          topic?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          handled_at?: string | null
+          id?: string
+          message?: string
+          name?: string
+          order_ref?: string | null
+          status?: string
+          topic?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1478,10 +1560,10 @@ export type Database = {
       record_coupon_redemption: {
         Args: {
           p_code: string
-          p_order_id: string
-          p_user_id: string
-          p_session_id: string
           p_discount_amount: number
+          p_order_id: string
+          p_session_id: string
+          p_user_id: string
         }
         Returns: Json
       }
@@ -1624,6 +1706,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       blog_post_status: ["draft", "published", "archived"],
