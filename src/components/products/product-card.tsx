@@ -3,6 +3,7 @@ import { ArrowUpRight, BookOpen, CheckCircle2, Sparkles } from "lucide-react";
 
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
 import { WishlistButton } from "@/components/products/wishlist-button";
+import { PlannerVisual } from "@/components/planners/planner-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ViewTransition } from "@/components/ui/view-transition";
@@ -56,6 +57,32 @@ export function ProductCard({
         {/* Shared-element morph: the card cover flies into the product-page
             hero (same name in produkty/[slug]/page.tsx). */}
         <ViewTransition name={`product-cover-${product.id}`} share="morph" default="none">
+        {interactivePlanner?.thumbnail ? (
+          /* Interactive planners show the real template screenshot (same
+             visual as the /planery cards) instead of generic cover art. */
+          <div className="relative overflow-hidden border-b border-border/70">
+            <PlannerVisual planner={interactivePlanner} compact />
+            <div className="absolute left-3 top-3 z-10 flex items-center gap-2">
+              <Badge className="border-0 bg-stone-950/85 text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-50 backdrop-blur-sm">
+                {product.category}
+              </Badge>
+              {isOwned ? (
+                <Badge
+                  variant="outline"
+                  className="border-emerald-700/30 bg-emerald-50/95 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-900"
+                >
+                  <CheckCircle2 className="mr-1 size-3" />
+                  W bibliotece
+                </Badge>
+              ) : null}
+            </div>
+            {!isOwned ? (
+              <div className="absolute right-3 top-3 z-10">
+                <WishlistButton productId={product.id} productName={product.name} />
+              </div>
+            ) : null}
+          </div>
+        ) : (
         <div
           className={`relative min-h-64 overflow-hidden border-b border-border/70 ${
             isUploadedCover
@@ -145,11 +172,17 @@ export function ProductCard({
             )}
           </div>
         </div>
+        )}
         </ViewTransition>
       </Link>
 
       <div className="flex min-w-0 flex-1 flex-col gap-5 p-6">
         <Link href={productHref} className="block min-h-10 space-y-3">
+          {interactivePlanner?.thumbnail ? (
+            <h3 className="break-words font-heading text-2xl font-semibold text-foreground transition group-hover:text-primary">
+              {product.name}
+            </h3>
+          ) : null}
           <p className="line-clamp-3 break-words text-sm leading-7 text-muted-foreground transition group-hover:text-foreground/80">
             {product.shortDescription}
           </p>
