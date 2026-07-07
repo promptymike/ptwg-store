@@ -8,7 +8,7 @@ export default function NotFound() {
       <div className="surface-panel gold-frame flex flex-col items-start gap-5 p-8 sm:p-12">
         <span className="eyebrow">404 • Nie znaleziono strony</span>
         <div className="space-y-3">
-          <h1 className="text-4xl text-white sm:text-5xl">
+          <h1 className="text-4xl text-foreground sm:text-5xl">
             Ta ścieżka nie prowadzi do produktu.
           </h1>
           <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">

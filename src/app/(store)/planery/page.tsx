@@ -76,8 +76,10 @@ export default async function PlannersPage() {
         <div className="mt-10 grid gap-6 lg:grid-cols-2 xl:grid-cols-3">{home.map((planner) => <PlannerCard key={planner.slug} planner={planner} isOwned={ownedProductIds.has(planner.id)} />)}</div>
       </section>
 
-      <section className="border-y border-border/60 bg-foreground py-16 text-background sm:py-20">
-        <div className="shell"><div className="max-w-3xl"><span className="text-xs font-bold uppercase tracking-[.22em] text-amber-300">Dla firmy i zespołu</span><h2 className="mt-5 text-4xl sm:text-6xl">Mniej administracji. Więcej prowadzenia biznesu.</h2><p className="mt-5 text-background/65">Specjalistyczne systemy dla zespołów, salonów beauty oraz budowy i remontu.</p></div><div className="mt-10 grid gap-6 lg:grid-cols-3">{business.map((planner) => <PlannerCard key={planner.slug} planner={planner} isOwned={ownedProductIds.has(planner.id)} />)}</div></div>
+      {/* Fixed dark plate (not bg-foreground): the token would flip light in
+          dark mode and drown the amber eyebrow + planner cards. */}
+      <section className="border-y border-border/60 bg-[#14110c] py-16 text-stone-50 sm:py-20">
+        <div className="shell"><div className="max-w-3xl"><span className="text-xs font-bold uppercase tracking-[.22em] text-amber-300">Dla firmy i zespołu</span><h2 className="mt-5 text-4xl sm:text-6xl">Mniej administracji. Więcej prowadzenia biznesu.</h2><p className="mt-5 text-white/65">Specjalistyczne systemy dla zespołów, salonów beauty oraz budowy i remontu.</p></div><div className="mt-10 grid gap-6 lg:grid-cols-3">{business.map((planner) => <PlannerCard key={planner.slug} planner={planner} isOwned={ownedProductIds.has(planner.id)} />)}</div></div>
       </section>
     </main>
   );

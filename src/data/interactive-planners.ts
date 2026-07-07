@@ -214,3 +214,10 @@ export function getInteractivePlanner(slug: string) {
 export function getProductHref(slug: string) {
   return getInteractivePlanner(slug) ? `/planery/${slug}` : `/produkty/${slug}`;
 }
+
+/** Small thumbnail for cart rows / compact lists: the planner screenshot when
+    the product is an interactive planner, the cover endpoint otherwise. */
+export function getProductThumbnailUrl(slug: string) {
+  const planner = getInteractivePlanner(slug);
+  return planner?.thumbnail ?? `/api/produkty/${slug}/cover`;
+}

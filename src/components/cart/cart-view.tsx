@@ -28,7 +28,7 @@ import {
   getStoredPromoCode,
   setStoredPromoCode,
 } from "@/lib/promo-code-storage";
-import { getProductHref } from "@/data/interactive-planners";
+import { getProductHref, getProductThumbnailUrl } from "@/data/interactive-planners";
 
 type AppliedPromo = {
   code: string;
@@ -181,8 +181,16 @@ export function CartView() {
             >
               <div className="flex min-w-0 flex-1 items-start gap-4">
                 <div
-                  className={`h-28 w-24 shrink-0 rounded-[1.4rem] border border-border/70 bg-gradient-to-br ${product.coverGradient}`}
-                />
+                  className={`relative h-28 w-24 shrink-0 overflow-hidden rounded-[1.4rem] border border-border/70 bg-gradient-to-br ${product.coverGradient}`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={getProductThumbnailUrl(product.slug)}
+                    alt=""
+                    loading="lazy"
+                    className="absolute inset-0 size-full object-cover object-top"
+                  />
+                </div>
                 <div className="min-w-0 flex-1 space-y-2">
                   <p className="text-xs uppercase tracking-[0.22em] text-primary/75">
                     {product.category}

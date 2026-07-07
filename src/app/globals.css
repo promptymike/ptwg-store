@@ -398,12 +398,6 @@ a {
     box-shadow 260ms ease;
 }
 
-.light .text-white,
-.light .text-white\/90,
-.light .text-white\/92 {
-  color: var(--foreground) !important;
-}
-
 .light .border-primary\/25,
 .light .border-primary\/30,
 .light .border-primary\/35 {

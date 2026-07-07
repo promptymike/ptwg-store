@@ -15,7 +15,7 @@ import {
   PURCHASES_UNAVAILABLE_MESSAGE,
 } from "@/lib/purchase-availability";
 import { formatCurrency } from "@/lib/format";
-import { getProductHref } from "@/data/interactive-planners";
+import { getProductHref, getProductThumbnailUrl } from "@/data/interactive-planners";
 
 type MiniCartProps = {
   open: boolean;
@@ -149,6 +149,13 @@ export function MiniCart({ open, onClose }: MiniCartProps) {
                       aria-label={product.name}
                       className={`relative size-16 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br ${product.coverGradient}`}
                     >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={getProductThumbnailUrl(product.slug)}
+                        alt=""
+                        loading="lazy"
+                        className="absolute inset-0 size-full object-cover object-top"
+                      />
                       <div
                         aria-hidden
                         className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-stone-950/40 to-transparent"
@@ -229,7 +236,15 @@ export function MiniCart({ open, onClose }: MiniCartProps) {
                     onClick={onClose}
                     aria-label={product.name}
                     className={`relative size-12 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br ${product.coverGradient}`}
-                  />
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={getProductThumbnailUrl(product.slug)}
+                      alt=""
+                      loading="lazy"
+                      className="absolute inset-0 size-full object-cover object-top"
+                    />
+                  </Link>
                   <div className="min-w-0 flex-1">
                     <Link
                       href={getProductHref(product.slug)}
