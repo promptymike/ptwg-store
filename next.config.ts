@@ -87,9 +87,13 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "10mb",
     },
-    // React <ViewTransition> — shared-element morph between the product-card
-    // cover and the product-page hero. See src/components/ui/view-transition.tsx.
-    viewTransition: true,
+    // React <ViewTransition> (cover morph) is intentionally OFF: with the
+    // flag on, document.startViewTransition freezes rendering AND input for
+    // the whole duration of every client-side navigation. On slower routes
+    // (/biblioteka: auth middleware + dynamic SSR) the site felt hung for
+    // seconds — "strona się zacina, nie da się nic kliknąć". The
+    // <ViewTransition> wrapper degrades to a plain passthrough without it.
+    // viewTransition: true,
   },
   async headers() {
     return [
