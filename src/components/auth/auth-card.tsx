@@ -315,6 +315,11 @@ export function AuthCard({
         </div>
       </div>
 
+      {/* Hidden until the Google provider is actually configured in Supabase
+          (Google Cloud OAuth client + provider enabled). With the provider
+          off, the button dead-ends with a 400 — worse than no button. Flip
+          NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true once credentials are in. */}
+      {process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true" ? (
       <div className="space-y-3">
         <Button
           type="button"
@@ -357,6 +362,7 @@ export function AuthCard({
           <span className="h-px flex-1 bg-border/70" />
         </div>
       </div>
+      ) : null}
 
       <div className="space-y-4">
         {mode === "register" ? (
