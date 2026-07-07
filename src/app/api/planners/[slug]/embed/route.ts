@@ -3,6 +3,7 @@ import path from "node:path";
 import { NextResponse } from "next/server";
 
 import { getInteractivePlanner } from "@/data/interactive-planners";
+import { localizePlannerAssets } from "@/lib/planners/assets";
 import { renderPlannerBridge } from "@/lib/planners/bridge";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -25,7 +26,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   if (!source) return new NextResponse("Brakuje pliku planera.", { status: 404 });
 
   const bridge = renderPlannerBridge(planner.slug, mode);
-  const html = source.replace(/<head(\s[^>]*)?>/i, (match) => `${match}${bridge}`);
+  const html = localizePlannerAssets(source).replace(/<head(\s[^>]*)?>/i, (match) => `${match}${bridge}`);
   return new NextResponse(html, {
     headers: {
       "Content-Type": "text/html; charset=utf-8",

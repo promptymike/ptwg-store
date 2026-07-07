@@ -28,14 +28,19 @@ const previewConnect = isVercelPreview
   ? " https://vercel.live https://*.pusher.com wss://*.pusher.com"
   : "";
 const previewFrame = isVercelPreview ? " https://vercel.live" : "";
+const plannerFontStyles = " https://fonts.googleapis.com";
+const plannerFontFiles = " https://fonts.gstatic.com";
+const plannerMapTiles = " https://*.basemaps.cartocdn.com";
+const plannerWeatherConnect =
+  " https://geocoding-api.open-meteo.com https://api.open-meteo.com";
 
 const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline' https://js.stripe.com https://plausible.io${previewScript}`,
-  "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: ${supabaseOrigin}`,
-  "font-src 'self' data:",
-  `connect-src 'self' ${supabaseOrigin} ${supabaseWss} https://plausible.io https://api.stripe.com${previewConnect}`,
+  `style-src 'self' 'unsafe-inline'${plannerFontStyles}`,
+  `img-src 'self' data: blob: ${supabaseOrigin}${plannerMapTiles}`,
+  `font-src 'self' data:${plannerFontFiles}`,
+  `connect-src 'self' ${supabaseOrigin} ${supabaseWss} https://plausible.io https://api.stripe.com${plannerWeatherConnect}${previewConnect}`,
   `frame-src 'self' https://js.stripe.com https://hooks.stripe.com${previewFrame}`,
   "frame-ancestors 'self'",
   "base-uri 'self'",

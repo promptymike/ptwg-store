@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { normalizeAuthRedirectPath } from "@/lib/auth-url";
 import { env } from "@/lib/env";
 import type { Database } from "@/types/database.types";
 
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
   const nextParam = url.searchParams.get("next") ?? "/konto";
   const errorDescription = url.searchParams.get("error_description");
 
-  const safeNext = nextParam.startsWith("/") ? nextParam : "/konto";
+  const safeNext = normalizeAuthRedirectPath(nextParam);
 
   if (errorDescription) {
     const failure = new URL("/logowanie", url.origin);

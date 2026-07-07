@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import type { AuthError } from "@supabase/supabase-js";
 import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getAuthCallbackUrl } from "@/lib/auth-url";
+import { getAuthCallbackUrl, normalizeAuthRedirectPath } from "@/lib/auth-url";
 import { getMissingSupabaseEnv } from "@/lib/env";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { loginSchema, registerSchema } from "@/lib/validations/auth";
@@ -75,12 +74,15 @@ function categorizeAuthError(error: AuthError | Error): {
   };
 }
 
+function redirectAfterAuth(nextPath: string) {
+  window.location.assign(normalizeAuthRedirectPath(nextPath));
+}
+
 export function AuthCard({
   mode,
   nextPath = "/konto",
   initialFeedback = null,
 }: AuthCardProps) {
-  const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -229,8 +231,7 @@ export function AuthCard({
           return;
         }
 
-        router.push(nextPath);
-        router.refresh();
+        redirectAfterAuth(nextPath);
         return;
       }
 
@@ -262,8 +263,7 @@ export function AuthCard({
       }
 
       if (data.session) {
-        router.push(nextPath);
-        router.refresh();
+        redirectAfterAuth(nextPath);
         return;
       }
 

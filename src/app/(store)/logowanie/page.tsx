@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { AuthCard } from "@/components/auth/auth-card";
+import { normalizeAuthRedirectPath } from "@/lib/auth-url";
 import { getCurrentProfile } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -22,9 +23,10 @@ type LoginPageProps = {
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const resolvedSearchParams = await searchParams;
   const profile = await getCurrentProfile();
+  const nextPath = normalizeAuthRedirectPath(resolvedSearchParams.next ?? "/konto");
 
   if (profile) {
-    redirect(resolvedSearchParams.next ?? "/konto");
+    redirect(nextPath);
   }
 
   const rawAuthError = resolvedSearchParams.auth_error?.trim();
@@ -36,7 +38,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <div className="shell section-space">
       <AuthCard
         mode="login"
-        nextPath={resolvedSearchParams.next ?? "/konto"}
+        nextPath={nextPath}
         initialFeedback={initialFeedback}
       />
     </div>

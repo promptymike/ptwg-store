@@ -40,10 +40,31 @@ export function getAppOrigin(): string {
  */
 export function getAuthCallbackUrl(nextPath = "/konto"): string {
   const origin = getAppOrigin();
-  const normalizedNext = nextPath.startsWith("/") ? nextPath : `/${nextPath}`;
+  const normalizedNext = normalizeAuthRedirectPath(nextPath);
   const callback = new URL("/auth/callback", origin);
   callback.searchParams.set("next", normalizedNext);
   return callback.toString();
+}
+
+export function normalizeAuthRedirectPath(nextPath = "/konto"): string {
+  const trimmed = nextPath.trim();
+
+  if (!trimmed || trimmed.startsWith("//")) {
+    return "/konto";
+  }
+
+  const base = "https://templify.local";
+
+  try {
+    const url = new URL(trimmed, base);
+    if (url.origin !== base) {
+      return "/konto";
+    }
+
+    return `${url.pathname}${url.search}${url.hash}` || "/konto";
+  } catch {
+    return "/konto";
+  }
 }
 
 function stripTrailingSlash(value: string): string {
