@@ -11,9 +11,15 @@ function copyCookies(from: NextResponse, to: NextResponse) {
 }
 
 function hasSupabaseAuthCookie(request: NextRequest) {
+  // Large sessions (e.g. Google OAuth with provider tokens) get chunked by
+  // @supabase/ssr into `sb-…-auth-token.0`, `.1`, … — an endsWith check
+  // misses those, which bounced logged-in users into a /biblioteka ⇄
+  // /logowanie redirect loop. `includes` also matches the PKCE
+  // code-verifier cookie, which is fine: this is only a fast-path gate and
+  // getUser() below still decides for real.
   return request.cookies
     .getAll()
-    .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.endsWith("-auth-token"));
+    .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"));
 }
 
 function buildLoginRedirect(request: NextRequest, response: NextResponse) {
