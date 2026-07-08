@@ -3,8 +3,20 @@
 // Reader content is private (signed URLs) so we deliberately do NOT
 // cache /api/library/*, only the shell.
 
-const CACHE_VERSION = "templify-v2";
+const CACHE_VERSION = "templify-v3";
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
+
+// Personalised / session-gated pages must never be served from cache:
+// a logged-out (or different) user on the same browser could see someone
+// else's library, and stale carts/checkouts confuse buyers.
+const PRIVATE_PAGE_PREFIXES = [
+  "/biblioteka",
+  "/konto",
+  "/koszyk",
+  "/checkout",
+  "/admin",
+  "/narzedzia",
+];
 
 self.addEventListener("install", (event) => {
   // Skip waiting so a redeploy activates the new SW on the next reload.
@@ -57,8 +69,14 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Documents / pages: network-first, fall back to cache.
+  // Documents / pages: network-first, fall back to cache. Private pages
+  // skip the SW entirely — straight to network, never cached.
   if (request.headers.get("accept")?.includes("text/html")) {
+    if (
+      PRIVATE_PAGE_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))
+    ) {
+      return;
+    }
     event.respondWith(networkFirst(request));
   }
 });

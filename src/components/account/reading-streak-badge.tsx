@@ -26,14 +26,16 @@ export function ReadingStreakBadge() {
     function handler() {
       setState(readStreak());
     }
+    function handleVisibility() {
+      if (document.visibilityState === "visible") handler();
+    }
     window.addEventListener(STREAK_EVENT, handler);
     window.addEventListener("storage", handler);
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") handler();
-    });
+    document.addEventListener("visibilitychange", handleVisibility);
     return () => {
       window.removeEventListener(STREAK_EVENT, handler);
       window.removeEventListener("storage", handler);
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, []);
 
