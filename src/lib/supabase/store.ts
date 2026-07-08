@@ -1880,14 +1880,18 @@ export async function getLibrarySnapshot(userId: string): Promise<LibrarySnapsho
         format: formatCustomerFacingProductFormat(item.products.format),
         category: normalizeCategory(item.products.categories?.name),
         filePath: item.products.file_path,
-        coverImageUrl: `/api/produkty/${item.products.slug}/cover?v=${new Date(item.products.updated_at).getTime()}`,
+        // Interactive planners get their real template screenshot at full
+        // strength; ebooks keep the cover endpoint (versioned for cache-bust).
+        coverImageUrl:
+          getInteractivePlanner(item.products.slug)?.thumbnail ??
+          `/api/produkty/${item.products.slug}/cover?v=${new Date(item.products.updated_at).getTime()}`,
         coverGradient: normalizeText(
           item.products.cover_gradient,
           "from-[#fbf5ea] via-[#f4ead9] to-[#e4c58d]",
         ),
-        coverImageOpacity: normalizeCoverImageOpacity(
-          item.products.cover_image_opacity,
-        ),
+        coverImageOpacity: getInteractivePlanner(item.products.slug)
+          ? 100
+          : normalizeCoverImageOpacity(item.products.cover_image_opacity),
         updateLabel: getLibraryActivityBadge(
           item.created_at,
           item.products.updated_at,
@@ -2048,14 +2052,18 @@ export async function getCustomerLibrarySnapshot(
             ),
             category: normalizeCategory(category?.name),
             filePath: normalizeNullableText(product.file_path),
-            coverImageUrl: `/api/produkty/${normalizeText(product.slug, product.id)}/cover?v=${new Date(product.updated_at).getTime()}`,
+            // Interactive planners get their real template screenshot at
+            // full strength; ebooks keep the versioned cover endpoint.
+            coverImageUrl:
+              getInteractivePlanner(product.slug)?.thumbnail ??
+              `/api/produkty/${normalizeText(product.slug, product.id)}/cover?v=${new Date(product.updated_at).getTime()}`,
             coverGradient: normalizeText(
               product.cover_gradient,
               "from-[#fbf5ea] via-[#f4ead9] to-[#e4c58d]",
             ),
-            coverImageOpacity: normalizeCoverImageOpacity(
-              product.cover_image_opacity,
-            ),
+            coverImageOpacity: getInteractivePlanner(product.slug)
+              ? 100
+              : normalizeCoverImageOpacity(product.cover_image_opacity),
             updateLabel: getLibraryActivityBadge(item.created_at, product.updated_at),
           };
         }),
