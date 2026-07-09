@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { usePathname } from "next/navigation";
+import { track as vercelTrack } from "@vercel/analytics";
 
 import {
   CONSENT_UPDATED_EVENT,
@@ -254,6 +255,27 @@ function pushAnalyticsEvent(payload: AnalyticsPayload) {
       detail: payload,
     }),
   );
+
+  // Mirror to Vercel Web Analytics (dashboard → Analytics → Events).
+  // Pageviews are tracked automatically by <Analytics />, so only ship the
+  // funnel events; Vercel accepts flat primitive properties only.
+  if (payload.name !== "page_view") {
+    try {
+      const flat: Record<string, string | number | boolean> = {};
+      for (const [key, value] of Object.entries(payload.properties)) {
+        if (
+          typeof value === "string" ||
+          typeof value === "number" ||
+          typeof value === "boolean"
+        ) {
+          flat[key] = typeof value === "string" ? value.slice(0, 120) : value;
+        }
+      }
+      vercelTrack(payload.name, flat);
+    } catch {
+      // analytics must never break the storefront
+    }
+  }
 
   shipEventToServer(payload);
 }

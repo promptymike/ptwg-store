@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { RotateCcw } from "lucide-react";
 
+import { reportClientError } from "@/components/analytics/error-reporter";
 import { Button } from "@/components/ui/button";
 
 type StoreErrorProps = {
@@ -14,6 +16,14 @@ type StoreErrorProps = {
 // visitor on a dead page with nothing to click — the worst possible state
 // for a shop. Always offer a one-tap recovery.
 export default function StoreError({ error, reset }: StoreErrorProps) {
+  useEffect(() => {
+    reportClientError({
+      message: error.message || "render crash",
+      stack: error.stack,
+      digest: error.digest,
+    });
+  }, [error]);
+
   return (
     <div className="shell section-space">
       <div className="surface-panel mx-auto flex max-w-2xl flex-col items-start gap-5 p-8 sm:p-12">

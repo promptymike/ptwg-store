@@ -3,7 +3,9 @@ import { Geist_Mono, Hanken_Grotesk } from "next/font/google";
 import { cookies } from "next/headers";
 
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
+import { ErrorReporter } from "@/components/analytics/error-reporter";
 import { PlausibleAnalytics } from "@/components/analytics/plausible-analytics";
+import { VercelAnalytics } from "@/components/analytics/vercel-analytics";
 import { CookieConsentBanner } from "@/components/compliance/cookie-consent";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { PwaBootstrap } from "@/components/pwa/pwa-bootstrap";
@@ -75,6 +77,8 @@ export default async function RootLayout({
               <PwaBootstrap />
             </CartProvider>
             <PlausibleAnalytics />
+            <VercelAnalytics />
+            <ErrorReporter />
           </AnalyticsProvider>
         </ThemeProvider>
       </body>
