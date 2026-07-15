@@ -45,6 +45,24 @@ Pass criteria: each page loads with no 500/blank state, and the visible
 labels are in proper Polish (no `Przychod`/`Zamowienia`/`Wyczysc` mojibake-free
 labels).
 
+## Test 1a — Interactive planners serve their vendor assets
+
+The planner embeds load Chart.js/dayjs/leaflet from `/api/planner-assets/*`,
+which reads the files out of `node_modules` at runtime. Those files only end
+up inside the serverless bundle because of
+`outputFileTracingIncludes["/api/planner-assets/*"]` in `next.config.ts` —
+when that list and `src/lib/planners/assets.ts` drift apart, production
+serves 404s while local dev keeps working (this exact failure blanked the
+Analityka tab and most planner data in July 2026).
+
+1. Open `https://templify.pl/api/planner-assets/chart.umd.js`. Expected:
+   HTTP 200 with JavaScript, **not** "Planner asset file is missing."
+2. Open the finance planner demo and switch to the "Analityka" tab.
+
+Pass criteria:
+- No 404s on `/api/planner-assets/*` in the network tab.
+- The Analityka tab renders KPI cards and charts, dashboard shows widgets.
+
 ## Test 2 — Checkout, no coupon, no order bump
 
 1. Sign in as a regular (non-admin) user.

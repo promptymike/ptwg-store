@@ -350,6 +350,18 @@
         .chart-container { position: relative; height: 280px; }
         .chart-container.tall { height: 360px; }
 
+        /* Fallback, gdy biblioteka wykresów nie mogła się załadować */
+        body.no-chartjs .chart-container { display: flex; align-items: center; justify-content: center; }
+        body.no-chartjs .chart-container canvas { display: none !important; }
+        body.no-chartjs .chart-container::after {
+            content: '📉 Nie udało się załadować biblioteki wykresów. Sprawdź połączenie z internetem i odśwież stronę.';
+            font-size: 13px;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 0 24px;
+            max-width: 360px;
+        }
+
         /* ===== SECTION ===== */
         .section {
             background: var(--bg-card);
@@ -1946,6 +1958,12 @@ function getMonthsArray(n) {
     return months;
 }
 
+// Chart.js przychodzi z zewnętrznego <script>; gdy się nie załaduje (offline,
+// blokada sieci), pojedynczy wyjątek nie może wyłożyć całego widoku.
+function safeRender(step) {
+    try { step(); } catch (err) { console.error('Nie udało się odświeżyć fragmentu widoku:', err); }
+}
+
 // ============================================================
 // DARK MODE
 // ============================================================
@@ -2201,8 +2219,8 @@ function renderNetWorth() {
     }
 
     // Charts
-    renderNWChart('nw-assets-chart', 'nw_assets', assets.map(a=>a.name), assets.map(a=>a.value), 'assets');
-    renderNWChart('nw-liabilities-chart', 'nw_liab', liabilities.map(l=>l.name), liabilities.map(l=>l.balance), 'liabilities');
+    safeRender(() => renderNWChart('nw-assets-chart', 'nw_assets', assets.map(a=>a.name), assets.map(a=>a.value), 'assets'));
+    safeRender(() => renderNWChart('nw-liabilities-chart', 'nw_liab', liabilities.map(l=>l.name), liabilities.map(l=>l.balance), 'liabilities'));
 }
 
 function renderNWChart(canvasId, chartKey, labels, data, type) {
@@ -2236,6 +2254,8 @@ function renderNWChart(canvasId, chartKey, labels, data, type) {
 // INIT
 // ============================================================
 function initApp() {
+    if (typeof Chart === 'undefined') document.body.classList.add('no-chartjs');
+
     transactions = storage.get('transactions') || [];
     budgets = storage.get('budgets') || [];
     goals = storage.get('goals') || [];
@@ -2717,14 +2737,15 @@ function updateDashboard() {
     document.getElementById('expense-change').textContent = 'vs poprzedni miesiąc';
     document.getElementById('savings-rate').textContent = `${stats.savingsRate.toFixed(0)}% dochodów`;
 
-    updateIncomeExpenseChart();
-    updateCategoryChart();
-    updateBalanceTrendChart();
-    updateMonthlyBreakdownChart();
-    renderDashGoalsWidget();
-    renderDashRecurringWidget();
-    updateSidebarBalance(stats.balance);
-    renderSpendingForecast(stats);
+    // Najpierw treść bez wykresów — awaria Chart.js nie może zabrać całego widoku
+    safeRender(renderDashGoalsWidget);
+    safeRender(renderDashRecurringWidget);
+    safeRender(() => updateSidebarBalance(stats.balance));
+    safeRender(() => renderSpendingForecast(stats));
+    safeRender(updateIncomeExpenseChart);
+    safeRender(updateCategoryChart);
+    safeRender(updateBalanceTrendChart);
+    safeRender(updateMonthlyBreakdownChart);
 }
 
 function calculateStats() {
@@ -2943,14 +2964,15 @@ function updateMonthlyBreakdownChart() {
 // ANALYTICS
 // ============================================================
 function updateAnalytics() {
-    updateDetailedAnalysisChart();
-    updateTopCategoriesChart();
-    updateSavingsRateChartAnalytics();
-    updateIncomeStructureChart();
-    updateWeekdayChart();
-    updateAnalyticsKPIs();
-    renderAnalyticsGoalsWidget();
-    renderMonthlyTable();
+    // KPI, cele i tabela najpierw — zakładka ma treść nawet bez Chart.js
+    safeRender(updateAnalyticsKPIs);
+    safeRender(renderAnalyticsGoalsWidget);
+    safeRender(renderMonthlyTable);
+    safeRender(updateDetailedAnalysisChart);
+    safeRender(updateTopCategoriesChart);
+    safeRender(updateSavingsRateChartAnalytics);
+    safeRender(updateIncomeStructureChart);
+    safeRender(updateWeekdayChart);
 }
 
 function getAnalyticsTxns() {

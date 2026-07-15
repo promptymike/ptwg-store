@@ -26,6 +26,10 @@ type PlannerAssetDefinition = {
   wrapper?: "lucide-cjs";
 };
 
+// These files are read from node_modules at RUNTIME (dynamic path), so Next's
+// static tracing cannot see them. Every entry here must also be listed in
+// outputFileTracingIncludes["/api/planner-assets/*"] in next.config.ts —
+// otherwise it 404s on Vercel while working fine in local dev.
 const PLANNER_ASSETS: Record<string, PlannerAssetDefinition> = {
   "chart.umd.js": {
     relativePath: "chart.js/dist/chart.umd.js",

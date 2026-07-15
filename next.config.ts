@@ -82,6 +82,21 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/api/planners/*": ["./templates/interactive-planners/**/*.html"],
+    // The planner-assets route readFile()s these from node_modules at runtime
+    // (dynamic path — invisible to static tracing), so without this list the
+    // files are missing from the serverless bundle and every planner loses
+    // Chart.js/dayjs/etc. in production (404 → blank analytics).
+    "/api/planner-assets/*": [
+      "./node_modules/chart.js/dist/chart.umd.js",
+      "./node_modules/sortablejs/Sortable.min.js",
+      "./node_modules/dayjs/dayjs.min.js",
+      "./node_modules/dayjs/locale/pl.js",
+      "./node_modules/dayjs/plugin/weekOfYear.js",
+      "./node_modules/dayjs/plugin/customParseFormat.js",
+      "./node_modules/dayjs/plugin/isBetween.js",
+      "./node_modules/lucide/dist/cjs/lucide.js",
+      "./node_modules/leaflet/dist/**/*",
+    ],
   },
   experimental: {
     serverActions: {
