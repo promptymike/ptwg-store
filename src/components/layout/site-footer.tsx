@@ -49,7 +49,7 @@ export async function SiteFooter({ hasBlogPosts = false }: SiteFooterProps) {
   const currentYear = new Date().getFullYear();
   const settings = await getSiteSettingsSnapshot();
   const hasBusinessDetails = Boolean(
-    settings.businessName || settings.businessTaxId || settings.businessAddress,
+    settings.businessName || settings.businessAddress,
   );
 
   const footerGroups = baseFooterGroups.map((group) => ({
@@ -88,9 +88,9 @@ export async function SiteFooter({ hasBlogPosts = false }: SiteFooterProps) {
                 {settings.businessName ? (
                   <p className="font-medium text-foreground">{settings.businessName}</p>
                 ) : null}
-                {settings.businessTaxId ? <p>NIP: {settings.businessTaxId}</p> : null}
                 {settings.businessAddress ? <p>{settings.businessAddress}</p> : null}
                 <p>{settings.supportEmail}</p>
+                {settings.businessPhone ? <p>{settings.businessPhone}</p> : null}
               </div>
             </div>
           ) : null}

@@ -2087,8 +2087,8 @@ export async function updateSiteSettingsAction(formData: FormData) {
       orderBumpProductId: getOptionalString(formData, "orderBumpProductId"),
       orderBumpPercentOff: formData.get("orderBumpPercentOff") ?? "20",
       businessName: parseNullableString(formData.get("businessName")) ?? "",
-      businessTaxId: parseNullableString(formData.get("businessTaxId")) ?? "",
       businessAddress: parseNullableString(formData.get("businessAddress")) ?? "",
+      businessPhone: parseNullableString(formData.get("businessPhone")) ?? "",
       supportEmail:
         parseNullableString(formData.get("supportEmail")) ?? "ptwgadmin@gmail.com",
     });
@@ -2124,12 +2124,12 @@ export async function updateSiteSettingsAction(formData: FormData) {
           value: parsed.data.businessName ?? "",
         },
         {
-          key: "business_tax_id",
-          value: parsed.data.businessTaxId ?? "",
-        },
-        {
           key: "business_address",
           value: parsed.data.businessAddress ?? "",
+        },
+        {
+          key: "business_phone",
+          value: parsed.data.businessPhone,
         },
         {
           key: "support_email",
@@ -2146,7 +2146,11 @@ export async function updateSiteSettingsAction(formData: FormData) {
     }
 
     revalidatePath("/admin/ustawienia");
-    revalidatePath("/");
+    revalidatePath("/", "layout");
+    revalidatePath("/regulamin");
+    revalidatePath("/polityka-prywatnosci");
+    revalidatePath("/kontakt");
+    revalidatePath("/pomoc");
   } catch (error) {
     redirectType = "error";
     redirectMessage =

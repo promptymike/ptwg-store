@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
@@ -10,6 +11,7 @@ import {
   SUPPORT_TOPICS,
 } from "@/lib/email/support-templates";
 import { getCurrentUser } from "@/lib/session";
+import { consumeRateLimit, getClientAddress } from "@/lib/rate-limit";
 import { buildSupportTrackingUrl } from "@/lib/support/tracking";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { getSiteSettingsSnapshot } from "@/lib/supabase/store";
@@ -44,6 +46,19 @@ export async function submitSupportRequestAction(
   _prev: SupportRequestState,
   formData: FormData,
 ): Promise<SupportRequestState> {
+  const requestHeaders = await headers();
+  const rateLimit = consumeRateLimit(
+    "support-submit",
+    getClientAddress(requestHeaders),
+    { limit: 5, windowMs: 10 * 60_000 },
+  );
+  if (!rateLimit.allowed) {
+    return {
+      status: "error",
+      message: "Wysłano zbyt wiele zgłoszeń. Odczekaj kilka minut i spróbuj ponownie.",
+    };
+  }
+
   const parsed = supportSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
@@ -158,6 +173,19 @@ export async function lookupSupportRequestAction(
   _prev: SupportLookupState,
   formData: FormData,
 ): Promise<SupportLookupState> {
+  const requestHeaders = await headers();
+  const rateLimit = consumeRateLimit(
+    "support-lookup",
+    getClientAddress(requestHeaders),
+    { limit: 10, windowMs: 10 * 60_000 },
+  );
+  if (!rateLimit.allowed) {
+    return {
+      status: "error",
+      message: "Za dużo prób sprawdzenia statusu. Odczekaj kilka minut i spróbuj ponownie.",
+    };
+  }
+
   const parsed = lookupSchema.safeParse({
     ticketNumber: formData.get("ticketNumber"),
     email: formData.get("email"),
@@ -178,12 +206,21 @@ export async function lookupSupportRequestAction(
     };
   }
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("support_requests")
     .select("public_token")
     .eq("ticket_number", parsed.data.ticketNumber)
     .eq("email", parsed.data.email)
     .maybeSingle();
+
+  if (error) {
+    console.error("[support] lookup failed", { message: error.message });
+    return {
+      status: "error",
+      message:
+        "Sprawdzanie statusu jest chwilowo niedostępne. Spróbuj ponownie albo napisz na ptwgadmin@gmail.com.",
+    };
+  }
 
   if (!data) {
     return {

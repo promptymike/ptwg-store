@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { PolitykaPrywatnosciContent } from "@/components/legal/polityka-prywatnosci-content";
 import { buildCanonicalMetadata } from "@/lib/seo";
+import { getSiteSettingsSnapshot } from "@/lib/supabase/store";
 
 // The privacy policy is code-owned (final legal text audited by the payment
 // operator) — it intentionally does NOT read from content_pages anymore.
@@ -14,6 +15,7 @@ export function generateMetadata(): Metadata {
   });
 }
 
-export default function PrivacyPolicyPage() {
-  return <PolitykaPrywatnosciContent />;
+export default async function PrivacyPolicyPage() {
+  const identity = await getSiteSettingsSnapshot();
+  return <PolitykaPrywatnosciContent identity={identity} />;
 }

@@ -6,8 +6,11 @@ import {
   GIFT_CODE_MAX,
   GIFT_CODE_MIN,
 } from "@/lib/gift-constants";
+import { hasCompleteSellerIdentity } from "@/lib/legal-readiness";
 import { PURCHASES_ENABLED, purchaseUnavailablePayload } from "@/lib/purchase-availability";
+import { consumeRateLimit, getClientAddress } from "@/lib/rate-limit";
 import { getStripeServerClient } from "@/lib/stripe";
+import { getSiteSettingsSnapshot } from "@/lib/supabase/store";
 
 const giftCheckoutSchema = z.object({
   amountPln: z
@@ -41,11 +44,29 @@ const giftCheckoutSchema = z.object({
     .or(z.literal(""))
     .nullable()
     .transform((value) => (value ? value : null)),
+  digitalDeliveryConsent: z.literal(true, {
+    message: "Zaakceptuj regulamin i warunki natychmiastowej dostawy cyfrowej.",
+  }),
 });
 
 export async function POST(request: Request) {
   if (!PURCHASES_ENABLED) {
     return NextResponse.json(purchaseUnavailablePayload(), { status: 503 });
+  }
+
+  const rateLimit = consumeRateLimit(
+    "gift-checkout",
+    getClientAddress(request.headers),
+    { limit: 5, windowMs: 10 * 60_000 },
+  );
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { message: "Za dużo prób rozpoczęcia płatności.", code: "rate_limited" },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rateLimit.retryAfterSeconds) },
+      },
+    );
   }
 
   const json = await request.json().catch(() => null);
@@ -57,6 +78,14 @@ export async function POST(request: Request) {
         code: "validation_error",
       },
       { status: 400 },
+    );
+  }
+
+  const siteSettings = await getSiteSettingsSnapshot();
+  if (!hasCompleteSellerIdentity(siteSettings)) {
+    return NextResponse.json(
+      { message: "Płatności są chwilowo niedostępne.", code: "seller_identity_missing" },
+      { status: 503 },
     );
   }
 
@@ -84,7 +113,6 @@ export async function POST(request: Request) {
       cancel_url: `${env.siteUrl}/podarunek/anulowano`,
       customer_email: parsed.data.purchaserEmail,
       locale: "pl",
-      billing_address_collection: "required",
       metadata: {
         kind: "gift_voucher",
         amount_pln: String(parsed.data.amountPln),
@@ -92,6 +120,8 @@ export async function POST(request: Request) {
         recipient_email: parsed.data.recipientEmail ?? "",
         recipient_name: parsed.data.recipientName ?? "",
         gift_message: parsed.data.message ?? "",
+        digital_delivery_consent: "true",
+        digital_delivery_consent_at: new Date().toISOString(),
       },
       line_items: [
         {

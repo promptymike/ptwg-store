@@ -15,6 +15,7 @@ const inflateRaw = promisify(inflateRawCb);
 
 const LOCAL_FILE_HEADER_SIG = 0x04034b50;
 const HTML_EXTENSIONS = [".html", ".htm"];
+const MAX_HTML_BYTES = 20 * 1024 * 1024;
 
 export type ExtractedHtml = {
   filename: string;
@@ -35,34 +36,45 @@ export async function extractFirstHtmlFromZip(
 
     const compressionMethod = zip.readUInt16LE(offset + 8);
     const compressedSize = zip.readUInt32LE(offset + 18);
+    const uncompressedSize = zip.readUInt32LE(offset + 22);
     const filenameLength = zip.readUInt16LE(offset + 26);
     const extraFieldLength = zip.readUInt16LE(offset + 28);
 
     const filenameStart = offset + 30;
+    const filenameEnd = filenameStart + filenameLength;
+    if (filenameEnd > zip.length) return null;
     const filename = zip
-      .subarray(filenameStart, filenameStart + filenameLength)
+      .subarray(filenameStart, filenameEnd)
       .toString("utf8");
 
-    const dataStart = filenameStart + filenameLength + extraFieldLength;
+    const dataStart = filenameEnd + extraFieldLength;
     const dataEnd = dataStart + compressedSize;
+    if (dataStart > zip.length || dataEnd > zip.length || dataEnd < dataStart) {
+      return null;
+    }
 
     const isHtml = HTML_EXTENSIONS.some((ext) =>
       filename.toLowerCase().endsWith(ext),
     );
 
     if (isHtml) {
+      if (uncompressedSize > MAX_HTML_BYTES) return null;
       const compressed = zip.subarray(dataStart, dataEnd);
       let decompressed: Buffer;
       if (compressionMethod === 0) {
+        if (compressed.byteLength > MAX_HTML_BYTES) return null;
         decompressed = compressed;
       } else if (compressionMethod === 8) {
-        decompressed = await inflateRaw(compressed);
+        decompressed = await inflateRaw(compressed, {
+          maxOutputLength: MAX_HTML_BYTES,
+        });
       } else {
         // Compression method we do not handle (bzip2, lzma, …). Skip
         // the entry rather than crash — admin can re-export the ZIP.
         offset = dataEnd;
         continue;
       }
+      if (decompressed.byteLength > MAX_HTML_BYTES) return null;
       return {
         filename,
         html: decompressed.toString("utf8"),

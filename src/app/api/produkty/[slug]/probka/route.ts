@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { sanitizeEbookHtml } from "@/lib/html-sanitization";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { createProductFileSignedUrl } from "@/lib/supabase/storage";
 import { extractFirstHtmlFromZip } from "@/lib/zip";
@@ -205,7 +206,7 @@ export async function GET(_request: Request, { params }: SampleRouteProps) {
   <body>
     <div class="wrap">
       <h1>Próbka chwilowo niedostępna</h1>
-      <p>Ten produkt jest w formacie, dla którego nie udostępniamy automatycznej próbki kilku pierwszych stron. Pełna wersja trafia do Twojej biblioteki natychmiast po zakupie i możesz ją zwrócić w 14 dni.</p>
+      <p>Ten produkt jest w formacie, dla którego nie udostępniamy automatycznej próbki kilku pierwszych stron. Pełna wersja trafia do Twojej biblioteki natychmiast po zakupie, skąd możesz ją czytać lub pobrać.</p>
       <div class="actions">
         <a class="primary" href="/produkty/${escapeHtml(product.slug)}">Wróć do produktu</a>
         <a class="secondary" href="/produkty">Przeglądaj wszystkie ebooki</a>
@@ -228,8 +229,7 @@ export async function GET(_request: Request, { params }: SampleRouteProps) {
   // and replace it with our reader chrome instead. We also drop any inline
   // <script> tags that the original ebook may include — sample is read-only.
   const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body\s*>/i);
-  let body = bodyMatch ? bodyMatch[1] : html;
-  body = body.replace(/<script[\s\S]*?<\/script>/gi, "");
+  const body = sanitizeEbookHtml(bodyMatch ? bodyMatch[1] : html);
 
   const sampleHtml = buildSampleResponse({
     productName: product.name,
@@ -245,6 +245,17 @@ export async function GET(_request: Request, { params }: SampleRouteProps) {
       "X-Robots-Tag": "noindex, nofollow",
       "X-Frame-Options": "SAMEORIGIN",
       "Referrer-Policy": "no-referrer",
+      "Content-Security-Policy": [
+        "default-src 'none'",
+        "script-src 'none'",
+        "style-src 'unsafe-inline'",
+        "img-src 'self' data: https:",
+        "font-src 'self' data: https:",
+        "object-src 'none'",
+        "base-uri 'none'",
+        "form-action 'none'",
+        "frame-ancestors 'self'",
+      ].join("; "),
     },
   });
 }

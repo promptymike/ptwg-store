@@ -2,12 +2,15 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { env, getMissingStripeCheckoutEnv } from "@/lib/env";
+import { hasCompleteSellerIdentity } from "@/lib/legal-readiness";
 import { PURCHASES_ENABLED, purchaseUnavailablePayload } from "@/lib/purchase-availability";
+import { consumeRateLimit } from "@/lib/rate-limit";
 import { getStripeServerClient } from "@/lib/stripe";
 import {
   createSupabaseAdminClient,
   createSupabaseServerClient,
 } from "@/lib/supabase/server";
+import { getSiteSettingsSnapshot } from "@/lib/supabase/store";
 
 const isDev = process.env.NODE_ENV !== "production";
 
@@ -25,8 +28,11 @@ const attributionSchema = z.object({
 const checkoutBodySchema = z
   .object({
     attribution: attributionSchema.optional(),
+    digitalDeliveryConsent: z.literal(true, {
+      message: "Zaakceptuj regulamin i warunki natychmiastowej dostawy cyfrowej.",
+    }),
   })
-  .optional();
+  .strict();
 
 function trimMetadata(value: string | null | undefined, max = 300) {
   return value?.trim().slice(0, max) ?? "";
@@ -68,7 +74,16 @@ export async function POST(request: Request, { params }: RouteProps) {
     refRaw && /^[A-Z0-9_-]{3,40}$/.test(refRaw) ? refRaw : null;
   const body = await request.json().catch(() => null);
   const parsedBody = checkoutBodySchema.safeParse(body);
-  const attribution = parsedBody.success ? parsedBody.data?.attribution : undefined;
+  if (!parsedBody.success) {
+    return NextResponse.json(
+      {
+        message: parsedBody.error.issues[0]?.message ?? "Niepoprawne dane checkoutu.",
+        code: "validation_error",
+      },
+      { status: 400 },
+    );
+  }
+  const attribution = parsedBody.data.attribution;
 
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
@@ -89,6 +104,28 @@ export async function POST(request: Request, { params }: RouteProps) {
         code: "unauthenticated",
       },
       { status: 401 },
+    );
+  }
+
+  const rateLimit = consumeRateLimit("bundle-checkout", user.id, {
+    limit: 10,
+    windowMs: 10 * 60_000,
+  });
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { message: "Za dużo prób rozpoczęcia płatności.", code: "rate_limited" },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rateLimit.retryAfterSeconds) },
+      },
+    );
+  }
+
+  const siteSettings = await getSiteSettingsSnapshot();
+  if (!hasCompleteSellerIdentity(siteSettings)) {
+    return NextResponse.json(
+      { message: "Płatności są chwilowo niedostępne.", code: "seller_identity_missing" },
+      { status: 503 },
     );
   }
 
@@ -191,31 +228,6 @@ export async function POST(request: Request, { params }: RouteProps) {
       customer_email: user.email ?? undefined,
       client_reference_id: user.id,
       locale: "pl",
-      ...(env.stripeTaxEnabled
-        ? {
-            automatic_tax: { enabled: true },
-            tax_id_collection: { enabled: true },
-          }
-        : {}),
-      billing_address_collection: "required",
-      customer_creation: "always",
-      invoice_creation: {
-        enabled: true,
-        invoice_data: {
-          description: `Templify — ${bundle.name}`,
-          metadata: {
-            user_id: user.id,
-            bundle_id: bundle.id,
-            bundle_slug: bundle.slug,
-            utm_source: trimMetadata(attribution?.utm_source, 120),
-            utm_medium: trimMetadata(attribution?.utm_medium, 120),
-            utm_campaign: trimMetadata(attribution?.utm_campaign, 160),
-          },
-          rendering_options: env.stripeTaxEnabled
-            ? { amount_tax_display: "include_inclusive_tax" }
-            : undefined,
-        },
-      },
       metadata: {
         user_id: user.id,
         user_email: user.email ?? "",
@@ -229,6 +241,8 @@ export async function POST(request: Request, { params }: RouteProps) {
         utm_term: trimMetadata(attribution?.utm_term, 160),
         referrer: trimMetadata(attribution?.referrer, 300),
         landing_page: trimMetadata(attribution?.landing_page, 300),
+        digital_delivery_consent: "true",
+        digital_delivery_consent_at: new Date().toISOString(),
         // Comma-separated list — stays under Stripe's 500-char metadata
         // value limit even with 10+ products since UUIDs are 36 chars.
         bundle_product_ids: products.map((p) => p.id).join(","),
@@ -239,17 +253,11 @@ export async function POST(request: Request, { params }: RouteProps) {
           price_data: {
             currency: "pln",
             unit_amount: bundle.price * 100,
-            ...(env.stripeTaxEnabled
-              ? { tax_behavior: "inclusive" as const }
-              : {}),
             product_data: {
               name: bundle.name,
               description:
                 bundle.description ||
                 `Pakiet zawiera: ${products.map((p) => p.name).join(", ")}`,
-              ...(env.stripeTaxEnabled
-                ? { tax_code: "txcd_35010000" }
-                : {}),
               metadata: {
                 bundle_id: bundle.id,
                 bundle_slug: bundle.slug,

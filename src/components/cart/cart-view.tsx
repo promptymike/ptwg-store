@@ -329,12 +329,20 @@ export function CartView() {
               <span>−{formatCurrency(promoDiscount)}</span>
             </div>
           ) : null}
+          <div className="mt-2 flex items-center justify-between text-sm text-muted-foreground">
+            <span>Dostawa cyfrowa</span>
+            <span>0,00 zł</span>
+          </div>
+          <div className="mt-2 flex items-center justify-between gap-4 text-sm text-muted-foreground">
+            <span>Podatek VAT</span>
+            <span className="text-right">Nie doliczono (zwolnienie)</span>
+          </div>
           <div className="mt-3 flex items-center justify-between border-t border-border/50 pt-3 text-base font-semibold text-foreground">
             <span>Łącznie</span>
             <span>{formatCurrency(totalAfterPromo)}</span>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            Cena zawiera podatek. Fakturę VAT wystawiamy automatycznie po zakupie.
+            Cena końcowa w PLN, bez kosztów dostawy i innych opłat. Potwierdzenie płatności otrzymasz na e-mail.
           </p>
         </div>
 
@@ -356,7 +364,7 @@ export function CartView() {
         <ul className="space-y-2 text-xs text-muted-foreground">
           <li className="flex items-start gap-2">
             <ShieldCheck className="mt-0.5 size-4 text-primary" />
-            Bezpieczne płatności kartą obsługiwane przez Stripe.
+            Płatności elektroniczne obsługiwane przez HotPay.
           </li>
           <li className="flex items-start gap-2">
             <Zap className="mt-0.5 size-4 text-primary" />

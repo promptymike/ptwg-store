@@ -23,6 +23,9 @@ try {
 // Vercel preview deployments inject the vercel.live toolbar (+ Pusher
 // websockets), so those origins are appended only for VERCEL_ENV=preview.
 const isVercelPreview = process.env.VERCEL_ENV === "preview";
+const devScript = process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'";
+const devAnalyticsScript =
+  process.env.NODE_ENV === "production" ? "" : " https://va.vercel-scripts.com";
 const previewScript = isVercelPreview ? " https://vercel.live" : "";
 const previewConnect = isVercelPreview
   ? " https://vercel.live https://*.pusher.com wss://*.pusher.com"
@@ -36,7 +39,7 @@ const plannerWeatherConnect =
 
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' https://js.stripe.com https://plausible.io${previewScript}`,
+  `script-src 'self' 'unsafe-inline'${devScript}${devAnalyticsScript} https://js.stripe.com https://plausible.io${previewScript}`,
   `style-src 'self' 'unsafe-inline'${plannerFontStyles}`,
   `img-src 'self' data: blob: ${supabaseOrigin}${plannerMapTiles}`,
   `font-src 'self' data:${plannerFontFiles}`,
@@ -100,7 +103,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: "10mb",
+      bodySizeLimit: "2mb",
     },
     // React <ViewTransition> (cover morph) is intentionally OFF: with the
     // flag on, document.startViewTransition freezes rendering AND input for

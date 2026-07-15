@@ -3,8 +3,10 @@ import { NextResponse } from "next/server";
 import { resolveCouponCode } from "@/lib/coupons";
 import { getMissingStripeCheckoutEnv, env } from "@/lib/env";
 import { lookupGiftCode } from "@/lib/gift-codes";
+import { hasCompleteSellerIdentity } from "@/lib/legal-readiness";
 import { applyPromoPercent } from "@/lib/promo";
 import { PURCHASES_ENABLED, purchaseUnavailablePayload } from "@/lib/purchase-availability";
+import { consumeRateLimit } from "@/lib/rate-limit";
 import { getStripeServerClient } from "@/lib/stripe";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { checkoutSchema } from "@/lib/validations/catalog";
@@ -50,6 +52,9 @@ async function getOrderBumpConfig(
       "order_bump_enabled",
       "order_bump_product_id",
       "order_bump_percent_off",
+      "business_name",
+      "business_address",
+      "business_phone",
     ]);
 
   const settings = new Map((data ?? []).map((entry) => [entry.key, entry.value]));
@@ -58,6 +63,11 @@ async function getOrderBumpConfig(
     enabled: settings.get("order_bump_enabled") !== "false",
     productId: trimMetadata(settings.get("order_bump_product_id"), 80),
     percentOff: parsePercent(settings.get("order_bump_percent_off"), 20),
+    sellerIdentityConfigured: hasCompleteSellerIdentity({
+      businessName: settings.get("business_name"),
+      businessAddress: settings.get("business_address"),
+      businessPhone: settings.get("business_phone"),
+    }),
   };
 }
 
@@ -95,6 +105,20 @@ export async function POST(request: Request) {
     );
   }
 
+  const rateLimit = consumeRateLimit("checkout", user.id, {
+    limit: 10,
+    windowMs: 10 * 60_000,
+  });
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { message: "Za dużo prób rozpoczęcia płatności.", code: "rate_limited" },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rateLimit.retryAfterSeconds) },
+      },
+    );
+  }
+
   const payload = await request.json().catch(() => null);
 
   if (!payload) {
@@ -118,6 +142,17 @@ export async function POST(request: Request) {
         code: "validation_error",
       },
       { status: 400 },
+    );
+  }
+
+  const orderBumpConfig = await getOrderBumpConfig(supabase);
+  if (!orderBumpConfig.sellerIdentityConfigured) {
+    return NextResponse.json(
+      {
+        message: "Płatności są chwilowo niedostępne.",
+        code: "seller_identity_missing",
+      },
+      { status: 503 },
     );
   }
 
@@ -162,7 +197,6 @@ export async function POST(request: Request) {
   );
 
   const productIds = aggregatedItems.map(([productId]) => productId);
-  const orderBumpConfig = await getOrderBumpConfig(supabase);
   const requestedOrderBumpProductId = parsed.data.orderBumpProductId?.trim() || null;
   const orderBumpAlreadyInCart =
     requestedOrderBumpProductId && productIds.includes(requestedOrderBumpProductId);
@@ -394,47 +428,6 @@ export async function POST(request: Request) {
       customer_email: user.email ?? parsed.data.email,
       client_reference_id: user.id,
       locale: "pl",
-      // Tax wiring is gated behind STRIPE_TAX_ENABLED — without an active
-      // tax registration in the Stripe dashboard, automatic_tax errors
-      // out with "Stripe Tax is not active on this account". When the
-      // merchant flips the flag, Stripe Tax automatically computes Polish
-      // VAT and applies EU reverse-charge for verified VAT IDs.
-      ...(env.stripeTaxEnabled
-        ? {
-            automatic_tax: { enabled: true },
-            tax_id_collection: { enabled: true },
-          }
-        : {}),
-      billing_address_collection: "required",
-      // Persist the resulting customer object so the buyer's address /
-      // VAT ID can be reused across orders (and surfaced in invoices).
-      customer_creation: "always",
-      invoice_creation: {
-        enabled: true,
-        invoice_data: {
-          description: "Templify — produkty cyfrowe",
-          metadata: {
-            user_id: user.id,
-            coupon_code: promoRule?.code ?? "",
-            promo_code: promoRule?.code ?? "",
-            order_bump_product_id: orderBumpProduct?.id ?? "",
-            digital_delivery_consent: String(parsed.data.digitalDeliveryConsent),
-            digital_delivery_consent_at: new Date().toISOString(),
-            utm_source: trimMetadata(attribution?.utm_source),
-            utm_medium: trimMetadata(attribution?.utm_medium),
-            utm_campaign: trimMetadata(attribution?.utm_campaign),
-          },
-          custom_fields: [
-            {
-              name: "Format",
-              value: "Dostęp online + PDF — natychmiastowy dostęp",
-            },
-          ],
-          rendering_options: env.stripeTaxEnabled
-            ? { amount_tax_display: "include_inclusive_tax" }
-            : undefined,
-        },
-      },
       metadata: {
         user_id: user.id,
         user_email: user.email ?? parsed.data.email,
@@ -465,10 +458,6 @@ export async function POST(request: Request) {
           price_data: {
             currency: "pln",
             unit_amount: line.unitAmount,
-            // tax_behavior + tax_code are only meaningful when Stripe Tax
-            // is active on the account; sending them otherwise is a no-op
-            // but keeps the code path consistent for when Tax is enabled.
-            ...(env.stripeTaxEnabled ? { tax_behavior: "inclusive" as const } : {}),
             product_data: {
               name: [
                 line.product.name,
@@ -478,9 +467,6 @@ export async function POST(request: Request) {
                 .filter(Boolean)
                 .join(" - "),
               description: line.product.short_description,
-              ...(env.stripeTaxEnabled
-                ? { tax_code: "txcd_35010000" }
-                : {}),
               metadata: {
                 product_id: line.product.id,
                 product_slug: line.product.slug,

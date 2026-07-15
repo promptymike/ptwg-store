@@ -1,7 +1,9 @@
 "use server";
 
+import { headers } from "next/headers";
 import { z } from "zod";
 
+import { consumeRateLimit, getClientAddress } from "@/lib/rate-limit";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 const lookupSchema = z.object({
@@ -45,6 +47,19 @@ export async function lookupPartnerStatsAction(
   _prev: PartnerLookupState,
   formData: FormData,
 ): Promise<PartnerLookupState> {
+  const requestHeaders = await headers();
+  const rateLimit = consumeRateLimit(
+    "partner-stats",
+    getClientAddress(requestHeaders),
+    { limit: 10, windowMs: 10 * 60_000 },
+  );
+  if (!rateLimit.allowed) {
+    return {
+      status: "error",
+      message: "Za dużo prób logowania. Odczekaj kilka minut i spróbuj ponownie.",
+    };
+  }
+
   const parsed = lookupSchema.safeParse({
     code: formData.get("code") ?? "",
     email: formData.get("email") ?? "",

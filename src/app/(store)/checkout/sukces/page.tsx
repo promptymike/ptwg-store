@@ -46,7 +46,7 @@ export default async function CheckoutSuccessPage({
         <EmptyState
           badge="Checkout"
           title="Brakuje identyfikatora sesji"
-          description="Stripe nie przekazał identyfikatora Checkout Session w adresie sukcesu. Wróć do koszyka i spróbuj ponownie."
+          description="Operator płatności nie przekazał identyfikatora transakcji. Wróć do koszyka i spróbuj ponownie."
           action={{ href: "/koszyk", label: "Wróć do koszyka" }}
         />
       </div>
@@ -68,7 +68,7 @@ export default async function CheckoutSuccessPage({
     errorMessage =
       error instanceof Error
         ? error.message
-        : "Webhook Stripe powinien nadal zapisać zamówienie i bibliotekę. Odśwież konto lub bibliotekę za chwilę.";
+        : "Powiadomienie operatora płatności powinno nadal zapisać zamówienie i bibliotekę. Odśwież konto lub bibliotekę za chwilę.";
   }
 
   if (!result) {

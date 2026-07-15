@@ -248,23 +248,7 @@ async function getCustomerName(
 async function sendOrderConfirmationEmail(
   result: CheckoutFulfillmentResult,
   customerName: string | null,
-  session: Stripe.Checkout.Session | null,
 ) {
-  // The fulfillment table holds the canonical numbers — Stripe is the
-  // source for the live invoice / receipt URLs since they are generated
-  // asynchronously after the session completes. Both are nullable: the
-  // template gracefully omits them if Stripe Tax / invoice creation is
-  // not yet configured on the account.
-  const invoice = session?.invoice;
-  const invoiceUrl =
-    typeof invoice === "object" && invoice && "hosted_invoice_url" in invoice
-      ? invoice.hosted_invoice_url ?? null
-      : null;
-  // Stripe SDK 22 dropped PaymentIntent.charges in favour of `latest_charge`.
-  // The hosted invoice URL covers the receipt for tax-enabled flows; we
-  // skip the bare-receipt link rather than chase another retrieve() call.
-  const receiptUrl: string | null = null;
-
   const orderNumber = formatOrderNumber(result.orderId, new Date().toISOString());
   const message = renderOrderConfirmationEmail({
     customerName,
@@ -275,10 +259,7 @@ async function sendOrderConfirmationEmail(
       quantity: item.quantity,
       unitPrice: item.unitPrice,
     })),
-    subtotal: result.subtotal,
     total: result.total,
-    invoiceUrl,
-    receiptUrl,
     libraryUrl: getCanonicalUrl("/biblioteka"),
   });
 
@@ -602,20 +583,9 @@ export async function fulfillCheckoutSession(
     ),
   });
 
-  // Best-effort post-purchase email. We re-fetch the session with invoice
-  // + payment_intent expanded so the template can include the hosted
-  // invoice URL and the Stripe receipt link without storing them in our
-  // own database.
+  // Best-effort post-purchase confirmation email.
   const customerName = await getCustomerName(supabase, userId);
-  let expandedSession: Stripe.Checkout.Session | null = null;
-  try {
-    expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
-      expand: ["invoice", "payment_intent"],
-    });
-  } catch (error) {
-    console.warn("[fulfillment] could not expand session for email", error);
-  }
-  await sendOrderConfirmationEmail(result, customerName, expandedSession);
+  await sendOrderConfirmationEmail(result, customerName);
 
   // Mark a redeemed voucher: if the buyer applied one, the checkout API
   // attached its id to the session metadata. Done before affiliate logic

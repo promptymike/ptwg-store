@@ -27,11 +27,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
   const bridge = renderPlannerBridge(planner.slug, mode);
   const html = localizePlannerAssets(source).replace(/<head(\s[^>]*)?>/i, (match) => `${match}${bridge}`);
+  const appOrigin = new URL(request.url).origin;
   return new NextResponse(html, {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "private, no-store",
-      "Content-Security-Policy": "frame-ancestors 'self'",
+      "Content-Security-Policy": [
+        "default-src 'none'",
+        `script-src 'unsafe-inline' ${appOrigin}`,
+        `style-src 'unsafe-inline' ${appOrigin} https://fonts.googleapis.com`,
+        "font-src https://fonts.gstatic.com data:",
+        `img-src ${appOrigin} data: blob: https://*.basemaps.cartocdn.com`,
+        `connect-src ${appOrigin} https://api.open-meteo.com https://geocoding-api.open-meteo.com`,
+        "frame-src 'none'",
+        "object-src 'none'",
+        "base-uri 'none'",
+        "form-action 'none'",
+        "frame-ancestors 'self'",
+      ].join("; "),
       "Referrer-Policy": "same-origin",
     },
   });

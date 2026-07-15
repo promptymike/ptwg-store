@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Clock3, Mail, MessageCircleQuestion, ShieldCheck } from "lucide-react";
+import { Clock3, Mail, MessageCircleQuestion, Phone, ShieldCheck } from "lucide-react";
 
 import { SupportForm } from "@/components/shared/support-form";
 import { buildCanonicalMetadata } from "@/lib/seo";
@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: page?.title ?? "Kontakt i pomoc",
     description:
       page?.description ??
-      "Helpdesk Templify — pytania o produkty, zamówienia, zwroty i reklamacje. Odpowiadamy w ciągu jednego dnia roboczego.",
+      "Helpdesk Templify — pytania o produkty, zamówienia, odstąpienia i reklamacje. Odpowiadamy w ciągu jednego dnia roboczego.",
     path: "/kontakt",
   });
 }
@@ -36,7 +36,7 @@ export default async function ContactPage() {
             Napisz do nas — pomożemy
           </h1>
           <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
-            Pytania o produkty, problemy z zamówieniem, zwroty i reklamacje.
+            Pytania o produkty, problemy z zamówieniem, odstąpienia i reklamacje.
             Wypełnij formularz, a zgłoszenie trafi prosto do naszej skrzynki
             pomocy. Odpowiadamy najpóźniej następnego dnia roboczego.
           </p>
@@ -66,6 +66,26 @@ export default async function ContactPage() {
                 </div>
               </div>
             </div>
+
+            {settings.businessPhone ? (
+              <div className="surface-panel p-6">
+                <div className="flex items-start gap-3">
+                  <Phone className="mt-0.5 size-5 shrink-0 text-primary" />
+                  <div>
+                    <h2 className="text-lg font-semibold text-foreground">Telefon</h2>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                      Numer do szybkiego kontaktu ze sprzedawcą:
+                    </p>
+                    <a
+                      href={`tel:${settings.businessPhone}`}
+                      className="mt-2 inline-block font-semibold text-primary hover:text-primary/80"
+                    >
+                      {settings.businessPhone}
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             <div className="surface-panel p-6">
               <div className="flex items-start gap-3">
@@ -108,7 +128,7 @@ export default async function ContactPage() {
                   <h2 className="text-lg font-semibold text-foreground">Szybkie odpowiedzi</h2>
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">
                     Zanim napiszesz, zajrzyj do sekcji FAQ na stronie głównej —
-                    kwestie dostępu, płatności i faktur są tam opisane.
+                    kwestie dostępu, płatności i potwierdzeń zakupu są tam opisane.
                   </p>
                 </div>
               </div>

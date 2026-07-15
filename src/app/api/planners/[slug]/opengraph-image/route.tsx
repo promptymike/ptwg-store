@@ -42,13 +42,37 @@ export async function GET(
           <div style={{ width: 430, height: 500, borderRadius: 36, background: "#faf7f1", padding: 28, color: "#17130f", display: "flex", flexDirection: "column", boxShadow: "0 34px 70px rgba(0,0,0,.35)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #ded8cf", paddingBottom: 18 }}>
               <div style={{ display: "flex", fontWeight: 800 }}>{planner.shortName}</div>
-              <div style={{ display: "flex", color: "#9b7a3d" }}>● ● ●</div>
+              <div style={{ display: "flex", gap: 6 }}>
+                {[0, 1, 2].map((dot) => (
+                  <div
+                    key={dot}
+                    style={{
+                      display: "flex",
+                      width: 7,
+                      height: 7,
+                      borderRadius: 99,
+                      background: "#9b7a3d",
+                    }}
+                  />
+                ))}
+              </div>
             </div>
             <div style={{ display: "flex", gap: 16, marginTop: 24 }}>
               <div style={{ width: "58%", display: "flex", flexDirection: "column", gap: 14 }}>
                 {planner.features.slice(0, 4).map((feature, index) => (
                   <div key={feature} style={{ display: "flex", gap: 10, alignItems: "center", padding: 14, borderRadius: 14, background: index === 0 ? "#ead39c" : "#eee9e1", fontSize: 16 }}>
-                    <span style={{ display: "flex" }}>✓</span>{feature}
+                    <span
+                      style={{
+                        display: "flex",
+                        width: 10,
+                        height: 6,
+                        borderLeft: "2px solid #17130f",
+                        borderBottom: "2px solid #17130f",
+                        transform: "rotate(-45deg)",
+                        marginTop: -2,
+                      }}
+                    />
+                    {feature}
                   </div>
                 ))}
               </div>

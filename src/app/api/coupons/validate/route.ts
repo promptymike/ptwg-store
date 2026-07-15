@@ -5,6 +5,7 @@ import {
   calculateCouponDiscountMinor,
   resolveCouponCode,
 } from "@/lib/coupons";
+import { consumeRateLimit, getClientAddress } from "@/lib/rate-limit";
 
 const validateCouponSchema = z.object({
   code: z.string().trim().min(3).max(40),
@@ -12,6 +13,21 @@ const validateCouponSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const rateLimit = consumeRateLimit(
+    "coupon-validate",
+    getClientAddress(request.headers),
+    { limit: 30, windowMs: 5 * 60_000 },
+  );
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { ok: false, message: "Za dużo prób. Odczekaj chwilę." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rateLimit.retryAfterSeconds) },
+      },
+    );
+  }
+
   const payload = await request.json().catch(() => null);
   const parsed = validateCouponSchema.safeParse(payload);
 

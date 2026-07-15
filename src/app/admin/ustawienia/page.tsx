@@ -26,6 +26,12 @@ export default async function AdminSettingsPage({
     searchParams,
   ]);
   const bundleOptions = liveBundles.length > 0 ? liveBundles : bundles;
+  const hasRequiredSellerIdentity = Boolean(
+    settings.businessName &&
+      settings.businessAddress &&
+      settings.businessPhone &&
+      settings.supportEmail,
+  );
 
   return (
     <div className="space-y-6">
@@ -54,7 +60,7 @@ export default async function AdminSettingsPage({
           <article className="rounded-[1.4rem] border border-border/70 bg-background/60 p-5">
             <p className="text-sm font-medium text-foreground">Trust</p>
             <p className="mt-2 text-sm text-muted-foreground">
-              Nazwa firmy, NIP, adres i mail wsparcia trafiają prosto do stopki sklepu.
+              Dane sprzedawcy i mail wsparcia trafiają do stopki, Regulaminu i Polityki Prywatności.
             </p>
           </article>
 
@@ -66,6 +72,14 @@ export default async function AdminSettingsPage({
             </p>
           </article>
         </div>
+
+        {!hasRequiredSellerIdentity ? (
+          <div className="rounded-2xl border border-amber-500/35 bg-amber-500/10 p-4 text-sm leading-6 text-foreground">
+            <strong>Do uzupełnienia przed weryfikacją HotPay:</strong> imię i nazwisko sprzedawcy,
+            pełny adres zamieszkania oraz telefon kontaktowy. Dane zapisane tutaj pojawią się automatycznie w
+            stopce, Regulaminie i Polityce Prywatności.
+          </div>
+        ) : null}
 
         <form
           action={updateSiteSettingsAction}
@@ -143,29 +157,22 @@ export default async function AdminSettingsPage({
           </label>
 
           <label className="space-y-2">
-            <span className="text-sm text-foreground">Pełna nazwa firmy</span>
+            <span className="text-sm text-foreground">Imię i nazwisko sprzedawcy</span>
             <Input
               name="businessName"
               defaultValue={settings.businessName}
-              placeholder="np. Templify sp. z o.o."
-            />
-          </label>
-
-          <label className="space-y-2">
-            <span className="text-sm text-foreground">NIP</span>
-            <Input
-              name="businessTaxId"
-              defaultValue={settings.businessTaxId}
-              placeholder="np. 1234567890"
+              placeholder="np. Jan Kowalski"
+              required
             />
           </label>
 
           <label className="space-y-2 lg:col-span-2">
-            <span className="text-sm text-foreground">Adres</span>
+            <span className="text-sm text-foreground">Pełny adres zamieszkania</span>
             <Input
               name="businessAddress"
               defaultValue={settings.businessAddress}
               placeholder="np. ul. Przykładowa 1, 00-000 Warszawa"
+              required
             />
           </label>
 
@@ -176,6 +183,18 @@ export default async function AdminSettingsPage({
               type="email"
               defaultValue={settings.supportEmail}
               placeholder="ptwgadmin@gmail.com"
+            />
+          </label>
+
+          <label className="space-y-2 lg:col-span-2">
+            <span className="text-sm text-foreground">Telefon kontaktowy</span>
+            <Input
+              name="businessPhone"
+              type="tel"
+              defaultValue={settings.businessPhone}
+              placeholder="np. +48 123 456 789"
+              autoComplete="tel"
+              required
             />
           </label>
 

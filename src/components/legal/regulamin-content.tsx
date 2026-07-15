@@ -8,13 +8,19 @@ import {
   LegalShell,
   LegalToc,
 } from "@/components/legal/legal-document";
-
-const SUPPORT_EMAIL = "ptwgadmin@gmail.com";
+import {
+  legalSellerContactLine,
+  legalSellerName,
+  type LegalIdentity,
+} from "@/components/legal/legal-identity";
 
 // Final, legally binding regulamin (source: legal review, effective
 // 2026-07-08). Content changes here should go through the same review the
 // original document did — this page is what the payment operator audits.
-export function RegulaminContent() {
+export function RegulaminContent({ identity }: { identity: LegalIdentity }) {
+  const SUPPORT_EMAIL = identity.supportEmail;
+  const sellerName = legalSellerName(identity);
+
   return (
     <LegalShell
       eyebrow="Dokumenty prawne"
@@ -64,7 +70,7 @@ export function RegulaminContent() {
         <h3>Definicje</h3>
         <ul>
           <li>
-            <strong>Usługodawca / Templify:</strong> Templify, podmiot zarządzający Serwisem i
+            <strong>Usługodawca / Templify:</strong> {sellerName}, podmiot zarządzający Serwisem i
             zawierający Umowy z Użytkownikami. Kontakt:{" "}
             <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
           </li>
@@ -108,13 +114,39 @@ export function RegulaminContent() {
 
         <p>
           Operatorem Serwisu i stroną Umów zawieranych z Użytkownikami jest Usługodawca –{" "}
-          <strong>Templify</strong> (dalej: <strong>„Templify”</strong>).
+          <strong>{sellerName}</strong>, działający pod marką <strong>Templify</strong>.
         </p>
+        <LegalCallout>
+          <p>
+            <strong>Dane Usługodawcy:</strong>
+            <br />
+            {sellerName}
+            {identity.businessAddress ? (
+              <>
+                <br />{identity.businessAddress}
+              </>
+            ) : null}
+            <br />
+            E-mail obsługi klienta i reklamacji:{" "}
+            <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+            {identity.businessPhone ? (
+              <>
+                <br />
+                Telefon: <a href={`tel:${identity.businessPhone}`}>{identity.businessPhone}</a>
+              </>
+            ) : null}
+          </p>
+        </LegalCallout>
         <p>Kontakt z Usługodawcą możliwy jest:</p>
         <ul>
           <li>
             drogą e-mail: <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>,
           </li>
+          {identity.businessPhone ? (
+            <li>
+              telefonicznie: <a href={`tel:${identity.businessPhone}`}>{identity.businessPhone}</a>,
+            </li>
+          ) : null}
           <li>
             przez formularz kontaktowy dostępny w Serwisie w sekcji{" "}
             <Link href="/pomoc">Pomoc</Link>.
@@ -183,7 +215,7 @@ export function RegulaminContent() {
           <li>pobieranie zakupionych E-booków w dostępnych formatach,</li>
           <li>korzystanie z zakupionych Planerów Interaktywnych bezpośrednio w Serwisie,</li>
           <li>zarządzanie danymi osobowymi i ustawieniami powiadomień,</li>
-          <li>przeglądanie historii płatności i faktur,</li>
+          <li>przeglądanie historii płatności i dokumentów sprzedaży,</li>
           <li>
             kontakt z obsługą klienta i podgląd statusu zgłoszeń w sekcji{" "}
             <Link href="/konto/zgloszenia">Konto → Zgłoszenia</Link>.
@@ -280,7 +312,7 @@ export function RegulaminContent() {
         <ol>
           <li>wybiera Produkt z oferty Serwisu i klika „Kup teraz” lub „Dodaj do koszyka”,</li>
           <li>przechodzi do koszyka i weryfikuje zamówienie,</li>
-          <li>podaje dane niezbędne do realizacji zamówienia i wystawienia faktury (jeśli dotyczy),</li>
+          <li>podaje dane niezbędne do realizacji zamówienia,</li>
           <li>wybiera metodę płatności,</li>
           <li>przed złożeniem zamówienia zapoznaje się z Regulaminem i Polityką Prywatności,</li>
           <li>
@@ -298,11 +330,12 @@ export function RegulaminContent() {
           przesłania tego potwierdzenia przez Usługodawcę.
         </p>
 
-        <h3>Ceny i faktury</h3>
+        <h3>Ceny i dokumenty sprzedaży</h3>
         <p>
-          Wszystkie ceny podane w Serwisie są cenami brutto (zawierają podatek VAT w stawce
-          wynikającej z obowiązujących przepisów). Usługodawca wystawia fakturę VAT na żądanie
-          Użytkownika lub automatycznie, jeśli Użytkownik zażądał faktury przy składaniu zamówienia.
+          Wszystkie ceny podane w Serwisie są cenami końcowymi dla Użytkownika. Usługodawca
+          prowadzi działalność nierejestrowaną i korzysta ze zwolnienia z VAT, dlatego nie dolicza
+          podatku VAT ani nie wystawia faktur VAT. Na żądanie Użytkownika Usługodawca przekazuje
+          dokument potwierdzający sprzedaż zgodnie z obowiązującymi przepisami.
         </p>
 
         <h3>Płatności</h3>
@@ -310,6 +343,11 @@ export function RegulaminContent() {
           Obsługę płatności w Serwisie zapewnia zewnętrzny operator płatności HotPay. Szczegółowe
           informacje na temat dostępnych metod płatności zawarte są w{" "}
           <a href="#zal2">Załączniku nr 2</a> do Regulaminu.
+        </p>
+        <p>
+          Rozliczenia transakcji e-przelewem przeprowadzane są za pośrednictwem <strong>HotPay</strong>.
+          Aktualnie dostępne dla danego zamówienia metody płatności są prezentowane Użytkownikowi
+          na ekranie płatności przed zatwierdzeniem transakcji.
         </p>
         <LegalCallout>
           <p>
@@ -335,6 +373,12 @@ export function RegulaminContent() {
             Użytkownika w Serwisie.
           </li>
         </ul>
+        <p>
+          Dostawa wszystkich Produktów odbywa się wyłącznie cyfrowo i jest <strong>bezpłatna</strong>.
+          Serwis nie prowadzi wysyłki fizycznej, dlatego do zamówienia nie są doliczane koszty
+          przesyłki. Dostęp nie jest ograniczony terytorialnie, z zastrzeżeniem obowiązujących
+          przepisów prawa oraz technicznej dostępności internetu.
+        </p>
       </LegalSection>
 
       <LegalSection id="s6" num="§6" title="Ochrona własności intelektualnej i licencja">
@@ -415,6 +459,13 @@ export function RegulaminContent() {
           </li>
           <li>kompletności, integralności i ciągłości dostarczania.</li>
         </ul>
+
+        <h3>Gwarancja i odpowiedzialność ustawowa</h3>
+        <p>
+          Usługodawca nie udziela dodatkowej gwarancji handlowej na Produkty. Brak gwarancji nie
+          wyłącza ani nie ogranicza ustawowej odpowiedzialności Usługodawcy za zgodność treści lub
+          usługi cyfrowej z Umową ani uprawnień Konsumenta opisanych w niniejszym paragrafie.
+        </p>
 
         <h3>Składanie reklamacji</h3>
         <p>Reklamacje dotyczące Produktów lub funkcjonowania Serwisu można składać:</p>
@@ -619,7 +670,7 @@ export function RegulaminContent() {
 
       <LegalSection id="s10" num="§10" title="Dane osobowe">
         <p>
-          Administratorem danych osobowych Użytkowników jest <strong>Templify</strong>. Kontakt:{" "}
+          Administratorem danych osobowych Użytkowników jest <strong>{sellerName}</strong>. Kontakt:{" "}
           <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
         </p>
         <p>
@@ -671,19 +722,15 @@ export function RegulaminContent() {
             Inspektoracie Inspekcji Handlowej,
           </li>
           <li>
-            skorzystania z platformy ODR (Online Dispute Resolution) Komisji Europejskiej dostępnej
-            pod adresem:{" "}
-            <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener noreferrer">
-              https://ec.europa.eu/consumers/odr/
+            skorzystania z pozasądowych metod rozwiązywania sporów konsumenckich oraz wykazu
+            właściwych podmiotów ADR dostępnego w serwisie{" "}
+            <a href="https://polubowne.uokik.gov.pl/" target="_blank" rel="noopener noreferrer">
+              polubowne.uokik.gov.pl
             </a>
             ,
           </li>
           <li>skierowania sprawy do właściwego sądu powszechnego.</li>
         </ul>
-        <p>
-          Adres e-mail Usługodawcy dla celów ODR:{" "}
-          <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
-        </p>
 
         <h3>Prawo właściwe i jurysdykcja</h3>
         <p>
@@ -721,7 +768,10 @@ export function RegulaminContent() {
           art. 38 ust. 1 pkt 13 UPK, opisany w §9 Regulaminu.
         </p>
         <div className="rounded-xl border border-border/70 bg-background/60 px-4 py-2">
-          <LegalFormField label="Adresat (Usługodawca)" value={`Templify, e-mail: ${SUPPORT_EMAIL}`} />
+          <LegalFormField
+            label="Adresat (Usługodawca)"
+            value={legalSellerContactLine(identity)}
+          />
           <LegalFormField label="Ja/My (*) niniejszym informuję/informujemy (*) o moim/naszym (*) odstąpieniu od Umowy o dostarczenie następującej treści cyfrowej / świadczenie następującej usługi cyfrowej (*)" />
           <LegalFormField label="Numer zamówienia" />
           <LegalFormField label="Data zawarcia Umowy (data zakupu)" />
@@ -737,24 +787,24 @@ export function RegulaminContent() {
       <LegalAttachment id="zal2" label="Załącznik nr 2 do Regulaminu" title="Metody płatności w Serwisie">
         <p>
           Obsługę płatności w Serwisie zapewnia zewnętrzny operator płatności <strong>HotPay</strong>.
+          Rozliczenia transakcji e-przelewem przeprowadzane są za pośrednictwem HotPay.
         </p>
         <ul>
           <li>
-            <strong>Karta debetowa / kredytowa (Visa, Mastercard):</strong> płatność w PLN, EUR i
-            innych walutach, realizacja natychmiastowa; dane karty przetwarzane wyłącznie przez
-            HotPay.
+            <strong>Karta debetowa / kredytowa (Visa, Mastercard):</strong> płatność w PLN,
+            realizacja natychmiastowa; dostępna, jeśli ta metoda została aktywowana dla Serwisu.
           </li>
           <li>
-            <strong>BLIK:</strong> płatność w PLN, realizacja natychmiastowa; dostępny dla
-            Użytkowników z polskim kontem bankowym.
+            <strong>BLIK:</strong> płatność w PLN, realizacja natychmiastowa; dostępny, jeśli ta
+            metoda została aktywowana dla Serwisu.
           </li>
           <li>
             <strong>Przelew bankowy / Pay by Link:</strong> płatność w PLN, realizacja do 1 dnia
             roboczego; dostęp do Produktu po zaksięgowaniu wpłaty.
           </li>
           <li>
-            <strong>Apple Pay / Google Pay:</strong> płatność w różnych walutach, realizacja
-            natychmiastowa; dostępność zależy od urządzenia i przeglądarki.
+            <strong>Apple Pay / Google Pay:</strong> płatność w PLN, realizacja natychmiastowa;
+            dostępność zależy od aktywacji metody, urządzenia i przeglądarki.
           </li>
         </ul>
         <p className="text-xs">

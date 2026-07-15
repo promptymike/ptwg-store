@@ -1744,7 +1744,7 @@ export async function getFaqSnapshot() {
       ? {
           ...faq,
           answer:
-            "Po zakupie wysyłamy potwierdzenie zamówienia na e-mail. Jeśli potrzebujesz danych do dokumentu zakupu, napisz do nas po zakupie na ptwgadmin@gmail.com.",
+            "Tak. Po opłaceniu zamówienia otrzymasz e-mail z potwierdzeniem płatności i dostępem do zakupionych produktów. Dokument sprzedaży wydajemy na żądanie zgodnie z obowiązującymi przepisami.",
         }
       : faq,
   );
@@ -3090,8 +3090,8 @@ export async function getSiteSettingsSnapshot() {
     orderBumpProductId: "",
     orderBumpPercentOff: 20,
     businessName: "",
-    businessTaxId: "",
     businessAddress: "",
+    businessPhone: "",
     supportEmail: "ptwgadmin@gmail.com",
   };
 
@@ -3138,8 +3138,8 @@ export async function getSiteSettingsSnapshot() {
         ? Math.min(parsedOrderBumpPercent, 80)
         : defaults.orderBumpPercentOff,
     businessName: settingsMap.get("business_name") ?? defaults.businessName,
-    businessTaxId: settingsMap.get("business_tax_id") ?? defaults.businessTaxId,
     businessAddress: settingsMap.get("business_address") ?? defaults.businessAddress,
+    businessPhone: settingsMap.get("business_phone") ?? defaults.businessPhone,
     supportEmail: settingsMap.get("support_email") ?? defaults.supportEmail,
   };
 }

@@ -141,7 +141,7 @@ async function clickHeaderLink(
 function productCards(page: Page) {
   return page
     .getByRole("article")
-    .filter({ has: page.getByRole("button", { name: /Dodaj do koszyka/i }) });
+    .filter({ has: page.getByRole("link", { name: /Zobacz produkt:/i }) });
 }
 
 async function firstProductCard(page: Page) {
@@ -163,7 +163,7 @@ async function openFirstProduct(page: Page) {
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expectNoHorizontalScroll(page);
 
-  return page.getByRole("heading", { level: 1 }).textContent();
+  return (await page.getByRole("heading", { level: 1 }).textContent()) ?? "";
 }
 
 async function addFirstProductToCart(page: Page) {
@@ -277,7 +277,9 @@ test.describe("Templify storefront QA", () => {
     await expect(firstCard.getByRole("heading").first()).toBeVisible();
     await expect(firstCard.getByText(/\d+\s*(zł|PLN)/i).first()).toBeVisible();
     await expect(
-      firstCard.getByRole("button", { name: /Dodaj do koszyka/i }),
+      firstCard.getByRole("button", {
+        name: /Dodaj do koszyka|Zakupy chwilowo niedostępne/i,
+      }),
     ).toBeVisible();
 
     for (const filterName of PRODUCT_CATEGORY_FILTERS) {
@@ -300,16 +302,27 @@ test.describe("Templify storefront QA", () => {
   }, testInfo) => {
     const consoleIssues = collectConsoleIssues(page);
 
-    const productName = await addFirstProductToCart(page);
+    const productName = await openFirstProduct(page);
     expect(productName.length).toBeGreaterThan(0);
 
     await visibleBox(page.getByText(/Natychmiastowy/i).first());
     await visibleBox(page.getByText(/14 dni/i).first());
     await visibleBox(page.getByText(/Licencja/i).first());
 
-    const cart = await readCart(page);
-    expect(cart).toHaveLength(1);
-    expect(cart[0]?.product?.name).toBe(productName);
+    const addButton = page.getByRole("button", { name: /Dodaj do koszyka/i });
+    if ((await addButton.count()) > 0) {
+      await addButton.first().click();
+      await expect
+        .poll(async () => (await readCart(page)).length, { timeout: 10_000 })
+        .toBeGreaterThan(0);
+      const cart = await readCart(page);
+      expect(cart).toHaveLength(1);
+      expect(cart[0]?.product?.name).toBe(productName);
+    } else {
+      await expect(
+        page.getByRole("button", { name: "Zakupy chwilowo niedostępne" }).first(),
+      ).toBeDisabled();
+    }
 
     await expectNoHorizontalScroll(page);
     await attachConsoleIssues(testInfo, consoleIssues);
@@ -319,6 +332,11 @@ test.describe("Templify storefront QA", () => {
     page,
   }, testInfo) => {
     const consoleIssues = collectConsoleIssues(page);
+    const firstCard = await firstProductCard(page);
+    test.skip(
+      (await firstCard.getByRole("button", { name: /Dodaj do koszyka/i }).count()) === 0,
+      "Cart mutation is intentionally disabled during HotPay verification",
+    );
     const productName = await addFirstProductToCart(page);
 
     await page.goto("/koszyk");
@@ -343,7 +361,7 @@ test.describe("Templify storefront QA", () => {
     await attachConsoleIssues(testInfo, consoleIssues);
   });
 
-  test("checkout: auth gate, health endpoint and safe Stripe status", async ({
+  test("checkout: auth gate, health endpoint and safe payment status", async ({
     page,
     request,
   }, testInfo) => {
@@ -359,6 +377,7 @@ test.describe("Templify storefront QA", () => {
       liveMode: boolean;
       missing?: string[];
       webhookConfigured: boolean;
+      sellerIdentityConfigured?: boolean;
     };
 
     testInfo.annotations.push({
@@ -374,6 +393,9 @@ test.describe("Templify storefront QA", () => {
       // Pre-launch kill-switch (NEXT_PUBLIC_PURCHASES_ENABLED=false) blocks
       // checkout even with a complete Stripe env — nothing to assert about
       // missing vars in that state.
+    } else if (health.sellerIdentityConfigured === false) {
+      // Checkout stays closed until the seller's full name and address are
+      // explicitly configured, even when the payment provider env is ready.
     } else {
       expect(
         Array.isArray(health.missing) && health.missing.length > 0,
@@ -382,8 +404,12 @@ test.describe("Templify storefront QA", () => {
     }
 
     await page.goto("/checkout");
+    const expectedHeading =
+      health.purchasesEnabled === false
+        ? /Sklep jest teraz w fazie testów/i
+        : /Doko.*zakup|Checkout|Finalizacja/i;
     await expect(
-      page.getByRole("heading", { name: /Doko.*zakup|Checkout|Finalizacja/i }).first(),
+      page.getByRole("heading", { name: expectedHeading }).first(),
     ).toBeVisible();
     await expectNoHorizontalScroll(page);
     await attachConsoleIssues(testInfo, consoleIssues);

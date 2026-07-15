@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { env } from "@/lib/env";
+import { sanitizeEbookHtml } from "@/lib/html-sanitization";
 import { renderReaderEnhancement } from "@/lib/reader/enhancement";
 import {
   createSupabaseAdminClient,
@@ -35,8 +36,9 @@ function injectReaderScript(
   html: string,
   productId: string,
   productName: string,
+  nonce: string,
 ) {
-  const script = renderReaderEnhancement(productId, productName);
+  const script = renderReaderEnhancement(productId, productName, nonce);
   const headCloseIdx = html.search(/<\/head\s*>/i);
   if (headCloseIdx !== -1) {
     return html.slice(0, headCloseIdx) + script + html.slice(headCloseIdx);
@@ -245,10 +247,12 @@ export async function GET(request: Request, { params }: ReadRouteProps) {
     );
   }
 
+  const nonce = crypto.randomUUID().replaceAll("-", "");
   const enhanced = injectReaderScript(
-    html,
+    sanitizeEbookHtml(html),
     libraryItem.product_id,
     product.name ?? "",
+    nonce,
   );
 
   return new Response(enhanced, {
@@ -258,6 +262,19 @@ export async function GET(request: Request, { params }: ReadRouteProps) {
       "Cache-Control": "private, no-store",
       "X-Frame-Options": "SAMEORIGIN",
       "Referrer-Policy": "no-referrer",
+      "Content-Security-Policy": [
+        "default-src 'none'",
+        `script-src 'nonce-${nonce}'`,
+        "style-src 'unsafe-inline'",
+        "img-src 'self' data: blob: https:",
+        "font-src 'self' data: https:",
+        "connect-src 'none'",
+        "frame-src 'none'",
+        "object-src 'none'",
+        "base-uri 'none'",
+        "form-action 'none'",
+        "frame-ancestors 'self'",
+      ].join("; "),
     },
   });
 }
