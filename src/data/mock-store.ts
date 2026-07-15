@@ -502,9 +502,9 @@ export const faqItems: FaqItem[] = [
   },
   {
     id: "faq-07",
-    question: "Jak wygląda zwrot zakupu?",
+    question: "Co jeśli produkt nie działa albo jest niezgodny z opisem?",
     answer:
-      "Masz 14 dni na zwrot bez podania przyczyny. Napisz do nas na ptwgadmin@gmail.com, a zwrócimy pełną kwotę i dezaktywujemy dostęp w bibliotece.",
+      "Zgłoś reklamację przez formularz w sekcji Pomoc albo na ptwgadmin@gmail.com — rozpatrujemy ją maksymalnie w 14 dni. Dostaniesz numer zgłoszenia i możesz na bieżąco śledzić jego status.",
   },
   {
     id: "faq-08",

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CreditCard, LibraryBig, UserRound } from "lucide-react";
+import { ArrowRight, CreditCard, LibraryBig, LifeBuoy, UserRound } from "lucide-react";
 
 type AccountQuickLinksProps = {
   libraryCount: number;
@@ -23,6 +23,13 @@ const items = [
     key: "orders",
   },
   {
+    href: "/konto/zgloszenia",
+    title: "Moje zgłoszenia",
+    description: "Reklamacje i kontakt z obsługą — numery zgłoszeń i ich statusy.",
+    icon: LifeBuoy,
+    key: "tickets",
+  },
+  {
     href: "#profil",
     title: "Profil i ustawienia",
     description: "Dane konta, e-mail logowania i podstawowe informacje o profilu.",
@@ -39,11 +46,12 @@ export function AccountQuickLinks({
   const metaByKey = {
     library: `${libraryCount} pozycji`,
     orders: `${orderCount} zamówień`,
+    tickets: "statusy i historia",
     profile: email,
   } as const;
 
   return (
-    <section className="grid gap-4 lg:grid-cols-3">
+    <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {items.map((item) => (
         <Link
           key={item.key}

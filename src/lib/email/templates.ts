@@ -162,7 +162,8 @@ export function renderOrderConfirmationEmail(input: OrderConfirmationInput) {
       }
 
       <p style="margin:24px 0 0;font-size:13px;color:${MUTED};">
-        Masz 14 dni na zwrot bez podania przyczyny — wystarczy odpowiedzieć na tego maila.
+        Coś nie działa albo produkt jest niezgodny z opisem? Odpowiedz na tego maila
+        albo zgłoś reklamację na templify.pl/pomoc — rozpatrzymy ją w ciągu 14 dni.
       </p>
     `,
   );
@@ -180,7 +181,7 @@ ${input.items.map((item) => `- ${item.productName}${item.quantity > 1 ? ` × ${i
 Otwórz bibliotekę: ${input.libraryUrl}
 ${input.invoiceUrl ? `\nFaktura VAT: ${input.invoiceUrl}` : ""}${input.receiptUrl ? `\nPotwierdzenie płatności: ${input.receiptUrl}` : ""}
 
-Masz 14 dni na zwrot — odpowiedz na tego maila.
+Problem z zamówieniem? Odpowiedz na tego maila albo zgłoś reklamację na templify.pl/pomoc — rozpatrzymy ją w ciągu 14 dni.
 
 Templify
 ptwgadmin@gmail.com

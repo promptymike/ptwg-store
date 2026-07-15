@@ -15,7 +15,7 @@ export function CtaSection() {
             </h2>
             <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
               Każdy ebook w Templify jest zaprojektowany pod realne wdrożenie — od pierwszego
-              wieczoru. Natychmiastowy dostęp, 14 dni na zwrot, czytasz na telefonie, tablecie
+              wieczoru. Natychmiastowy dostęp, czytasz na telefonie, tablecie
               lub komputerze.
             </p>
             <p className="flex items-center gap-2 text-sm text-muted-foreground">

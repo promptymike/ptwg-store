@@ -16,6 +16,7 @@ const adminLinks = [
   { href: "/admin/import", label: "Import / Źródła produktów" },
   { href: "/admin/kategorie", label: "Kategorie" },
   { href: "/admin/zamowienia", label: "Zamówienia" },
+  { href: "/admin/zgloszenia", label: "Zgłoszenia" },
   { href: "/admin/recenzje", label: "Recenzje" },
   { href: "/admin/feedback", label: "Feedback testerów" },
   { href: "/admin/newsletter", label: "Newsletter" },

@@ -84,11 +84,18 @@ export default async function ContactPage() {
               <div className="flex items-start gap-3">
                 <ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />
                 <div>
-                  <h2 className="text-lg font-semibold text-foreground">Zwroty i reklamacje</h2>
+                  <h2 className="text-lg font-semibold text-foreground">Reklamacje</h2>
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                    Masz 14 dni na zwrot produktu cyfrowego bez podania
-                    przyczyny. Wybierz temat „Zwrot lub reklamacja”, podaj numer
-                    zamówienia — resztą zajmiemy się my.
+                    Reklamacje rozpatrujemy w ciągu 14 dni (§7 Regulaminu).
+                    Wybierz temat „Reklamacja”, podaj numer zamówienia — a
+                    status zgłoszenia śledzisz na stronie{" "}
+                    <a
+                      href="/pomoc"
+                      className="font-medium text-primary underline underline-offset-2"
+                    >
+                      Pomoc
+                    </a>
+                    .
                   </p>
                 </div>
               </div>

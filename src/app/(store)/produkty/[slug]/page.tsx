@@ -43,8 +43,8 @@ const trustItems = [
   },
   {
     icon: ShieldCheck,
-    title: "14 dni na zwrot",
-    description: "Jeśli produkt nie pasuje do Twojego procesu, napisz do nas po zakupie.",
+    title: "Reklamacje w 14 dni",
+    description: "Coś nie działa? Zgłoś reklamację w sekcji Pomoc — odpowiadamy maksymalnie w 14 dni.",
   },
   {
     icon: Sparkles,

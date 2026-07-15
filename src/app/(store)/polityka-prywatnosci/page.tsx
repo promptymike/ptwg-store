@@ -1,20 +1,19 @@
 import type { Metadata } from "next";
 
-import { LegalPageTemplate } from "@/components/legal/legal-page-template";
+import { PolitykaPrywatnosciContent } from "@/components/legal/polityka-prywatnosci-content";
 import { buildCanonicalMetadata } from "@/lib/seo";
-import { getContentPageBySlug } from "@/lib/supabase/store";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const page = await getContentPageBySlug("polityka-prywatnosci");
-
+// The privacy policy is code-owned (final legal text audited by the payment
+// operator) — it intentionally does NOT read from content_pages anymore.
+export function generateMetadata(): Metadata {
   return buildCanonicalMetadata({
-    title: page?.title ?? "Polityka prywatności",
+    title: "Polityka prywatności",
     description:
-      page?.description ?? "Zasady przetwarzania danych osobowych w sklepie Templify.",
+      "Polityka prywatności templify.pl — jakie dane przetwarzamy, na jakich podstawach prawnych, komu je powierzamy i jakie prawa przysługują Ci na gruncie RODO.",
     path: "/polityka-prywatnosci",
   });
 }
 
 export default function PrivacyPolicyPage() {
-  return <LegalPageTemplate slug="polityka-prywatnosci" />;
+  return <PolitykaPrywatnosciContent />;
 }

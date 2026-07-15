@@ -100,7 +100,7 @@ export function renderDripOfferEmail(input: DripOfferInput) {
       <ul style="margin:0 0 16px;padding-left:18px;color:${MUTED};font-size:14px;line-height:1.8;">
         <li>Najtańszy ebook z kategorii, która Cię najbardziej dotyczy (test po lewej)</li>
         <li>Pakiet 2-3 ebooków — średnio -25% w stosunku do pojedynczych zakupów</li>
-        <li>Każdy produkt ma 14 dni na zwrot bez podania przyczyny</li>
+        <li>Każdy produkt kupujesz z natychmiastowym dostępem, a obsługa klienta odpowiada w 1 dzień roboczy</li>
       </ul>
       <p style="margin:24px 0 0;font-size:13px;color:${MUTED};">Kod ważny przez 7 dni. Bez „kruczków". Bez auto-odnowienia.</p>
     `,

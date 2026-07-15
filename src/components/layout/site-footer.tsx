@@ -31,6 +31,7 @@ const baseFooterGroups: Array<{ title: string; links: FooterLink[] }> = [
   {
     title: "Pomoc",
     links: [
+      { href: "/pomoc", label: "Pomoc i reklamacje" },
       { href: "/kontakt", label: "Kontakt" },
       { href: "/partner", label: "Strefa partnera" },
       { href: "/regulamin", label: "Regulamin" },
@@ -121,7 +122,7 @@ export async function SiteFooter({ hasBlogPosts = false }: SiteFooterProps) {
           <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <span>Bezpieczne płatności online</span>
             <span aria-hidden>·</span>
-            <span>14 dni na zwrot</span>
+            <span>Reklamacje rozpatrywane w 14 dni</span>
             <span aria-hidden>·</span>
             <span>Natychmiastowy dostęp do plików</span>
           </p>

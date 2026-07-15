@@ -246,7 +246,7 @@ export default async function Image({ params }: Props) {
             <span style={{ display: "flex" }}>·</span>
             <span style={{ display: "flex" }}>natychmiastowy dostęp</span>
             <span style={{ display: "flex" }}>·</span>
-            <span style={{ display: "flex" }}>14 dni na zwrot</span>
+            <span style={{ display: "flex" }}>bezpieczne płatności</span>
           </div>
         </div>
       </div>

@@ -14,9 +14,10 @@ import { SUPPORT_TOPICS } from "@/lib/email/support-templates";
 
 type SupportFormProps = {
   defaultEmail?: string;
+  defaultTopic?: string;
 };
 
-export function SupportForm({ defaultEmail }: SupportFormProps) {
+export function SupportForm({ defaultEmail, defaultTopic }: SupportFormProps) {
   const [state, formAction, isPending] = useActionState<
     SupportRequestState,
     FormData
@@ -29,10 +30,27 @@ export function SupportForm({ defaultEmail }: SupportFormProps) {
         className="flex flex-col items-start gap-3 rounded-2xl border border-emerald-700/25 bg-emerald-50/80 p-6 text-emerald-950"
       >
         <CheckCircle2 className="size-6 text-emerald-700" />
+        {state.ticketNumber ? (
+          <p className="text-sm font-semibold">
+            Numer Twojego zgłoszenia:{" "}
+            <span className="rounded-full border border-emerald-700/30 bg-white/70 px-3 py-1 font-mono text-sm">
+              {state.ticketNumber}
+            </span>
+          </p>
+        ) : null}
         <p className="text-sm leading-7">{state.message}</p>
         <p className="text-xs text-emerald-900/70">
-          Kopię zgłoszenia wysłaliśmy na Twój adres e-mail.
+          Kopię zgłoszenia z numerem i linkiem do śledzenia statusu wysłaliśmy
+          na Twój adres e-mail.
         </p>
+        {state.trackingUrl ? (
+          <a
+            href={state.trackingUrl}
+            className="text-sm font-semibold text-emerald-800 underline underline-offset-2 hover:text-emerald-700"
+          >
+            Sprawdź status zgłoszenia →
+          </a>
+        ) : null}
       </div>
     );
   }
@@ -85,7 +103,7 @@ export function SupportForm({ defaultEmail }: SupportFormProps) {
           <select
             id="support-topic"
             name="topic"
-            defaultValue="pytanie"
+            defaultValue={defaultTopic ?? "pytanie"}
             className="h-10 w-full rounded-xl border border-border/80 bg-background/70 px-3 text-sm text-foreground outline-none transition focus-visible:border-primary/50"
           >
             {SUPPORT_TOPICS.map((topic) => (

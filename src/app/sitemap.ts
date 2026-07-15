@@ -46,6 +46,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.7,
     },
+    {
+      url: `${baseUrl}/pomoc`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/kontakt`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.4,
+    },
     ...products.filter((product) => !getInteractivePlanner(product.slug)).map((product) => ({
       url: `${baseUrl}/produkty/${product.slug}`,
       lastModified: now,

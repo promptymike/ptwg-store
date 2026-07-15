@@ -109,7 +109,7 @@ export default async function Image() {
             templify.pl
           </div>
           <div style={{ display: "flex" }}>·</div>
-          <div style={{ display: "flex" }}>14 dni na zwrot</div>
+          <div style={{ display: "flex" }}>bezpieczne płatności</div>
           <div style={{ display: "flex" }}>·</div>
           <div style={{ display: "flex" }}>natychmiastowy dostęp</div>
         </div>

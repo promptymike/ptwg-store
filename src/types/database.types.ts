@@ -1396,6 +1396,47 @@ export type Database = {
         }
         Relationships: []
       }
+      support_request_events: {
+        Row: {
+          author: string
+          body: string | null
+          created_at: string
+          id: string
+          kind: string
+          new_status: string | null
+          old_status: string | null
+          request_id: string
+        }
+        Insert: {
+          author: string
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          new_status?: string | null
+          old_status?: string | null
+          request_id: string
+        }
+        Update: {
+          author?: string
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          new_status?: string | null
+          old_status?: string | null
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_request_events_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "support_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_requests: {
         Row: {
           created_at: string
@@ -1405,8 +1446,11 @@ export type Database = {
           message: string
           name: string
           order_ref: string | null
+          public_token: string
           status: string
+          ticket_number: string
           topic: string
+          updated_at: string
           user_id: string | null
         }
         Insert: {
@@ -1417,8 +1461,11 @@ export type Database = {
           message: string
           name?: string
           order_ref?: string | null
+          public_token?: string
           status?: string
+          ticket_number?: string
           topic?: string
+          updated_at?: string
           user_id?: string | null
         }
         Update: {
@@ -1429,8 +1476,11 @@ export type Database = {
           message?: string
           name?: string
           order_ref?: string | null
+          public_token?: string
           status?: string
+          ticket_number?: string
           topic?: string
+          updated_at?: string
           user_id?: string | null
         }
         Relationships: []

@@ -51,8 +51,8 @@ export function NewArrivalsSection({
           <p className="flex max-w-2xl items-start gap-3 text-sm leading-7 text-muted-foreground">
             <Sparkles className="mt-1 size-4 shrink-0 text-primary" aria-hidden />
             <span className="break-words">
-              Sekcja odświeża się, gdy dodajemy nowe ebooki. Każdy ma 14 dni na zwrot
-              i bezterminowy dostęp w Twojej bibliotece.
+              Sekcja odświeża się, gdy dodajemy nowe ebooki. Każdy trafia do
+              Twojej biblioteki od razu po zakupie, z bezterminowym dostępem.
             </span>
           </p>
           <Button variant="outline" size="lg" render={<Link href="/produkty" />}>

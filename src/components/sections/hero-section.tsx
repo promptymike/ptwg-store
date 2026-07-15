@@ -87,7 +87,7 @@ export function HeroSection({ content, products }: HeroSectionProps) {
         >
           <li>Natychmiastowy dostęp</li>
           <li aria-hidden className="text-foreground/25">/</li>
-          <li>14 dni na zwrot</li>
+          <li>Bezpieczne płatności</li>
           <li aria-hidden className="text-foreground/25">/</li>
           <li>Bezterminowa licencja</li>
         </ul>

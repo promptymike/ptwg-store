@@ -445,7 +445,7 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
             className="mt-1 size-4 shrink-0 accent-[var(--color-foreground)]"
           />
           <span>
-            Akceptuję <Link href="/regulamin" target="_blank" className="font-semibold text-foreground underline underline-offset-2">Regulamin</Link> i żądam rozpoczęcia dostarczania treści cyfrowych przed upływem 14 dni. Przyjmuję do wiadomości, że po uzyskaniu dostępu tracę ustawowe prawo odstąpienia; dobrowolna gwarancja zwrotu Templify pozostaje bez zmian.
+            Akceptuję <Link href="/regulamin" target="_blank" className="font-semibold text-foreground underline underline-offset-2">Regulamin</Link> i żądam rozpoczęcia dostarczania treści cyfrowych przed upływem 14 dni. Przyjmuję do wiadomości, że po uzyskaniu dostępu tracę ustawowe prawo odstąpienia od umowy (art. 38 ust. 1 pkt 13 ustawy o prawach konsumenta).
           </span>
         </label>
 
@@ -474,7 +474,7 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
           </li>
           <li className="flex items-start gap-2 text-xs text-muted-foreground">
             <ShieldCheck className="mt-0.5 size-4 text-primary" />
-            14 dni na zwrot bez pytań.
+            Reklamacje rozpatrywane w 14 dni.
           </li>
           <li className="flex items-start gap-2 text-xs text-muted-foreground">
             <Zap className="mt-0.5 size-4 text-primary" />

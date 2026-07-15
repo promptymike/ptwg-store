@@ -79,7 +79,7 @@ function buildSampleResponse({
 
   const cta = `<div class="templify-sample-cta">
     <h2>Chcesz przeczytać dalej?</h2>
-    <p>To była tylko próbka. Pełna wersja trafia do Twojej biblioteki natychmiast po zakupie — czytasz w przeglądarce, zapisujesz postęp, masz zakładki i 14 dni na zwrot.</p>
+    <p>To była tylko próbka. Pełna wersja trafia do Twojej biblioteki natychmiast po zakupie — czytasz w przeglądarce, zapisujesz postęp i masz zakładki na każdym urządzeniu.</p>
     <div class="templify-sample-cta__actions">
       <a class="templify-sample-cta__primary" href="/produkty/${escapeHtml(productSlug)}">Kup teraz pełną wersję</a>
       <a class="templify-sample-cta__secondary" href="/produkty">Przeglądaj wszystkie ebooki</a>
