@@ -524,7 +524,19 @@ function WorkbookPreview({
                 justifyContent: "center",
               }}
             >
-              {idx % 2 === 0 ? "✓" : ""}
+              {idx % 2 === 0 ? (
+                <div
+                  style={{
+                    width: 12,
+                    height: 7,
+                    borderLeft: "3px solid #fff",
+                    borderBottom: "3px solid #fff",
+                    transform: "rotate(-45deg)",
+                    marginTop: -3,
+                    display: "flex",
+                  }}
+                />
+              ) : null}
             </div>
             <div style={{ flex: 1, display: "flex" }}>{item}</div>
           </div>

@@ -11,10 +11,7 @@ type OrderConfirmationInput = {
   email: string;
   orderNumber: string;
   items: EmailItem[];
-  subtotal: number;
   total: number;
-  invoiceUrl?: string | null;
-  receiptUrl?: string | null;
   libraryUrl: string;
 };
 
@@ -92,10 +89,6 @@ function button(label: string, href: string) {
   return `<a href="${href}" style="display:inline-block;padding:14px 22px;border-radius:999px;background:${ACCENT};color:#fff;text-decoration:none;font-weight:600;font-size:15px;letter-spacing:0.2px;">${escape(label)}</a>`;
 }
 
-function ghostLink(label: string, href: string) {
-  return `<a href="${href}" style="color:${ACCENT};text-decoration:none;font-weight:600;">${escape(label)} →</a>`;
-}
-
 function itemsTable(items: EmailItem[]) {
   const rows = items
     .map(
@@ -108,21 +101,8 @@ function itemsTable(items: EmailItem[]) {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0 12px;">${rows}</table>`;
 }
 
-function totalsBlock(subtotal: number, total: number) {
-  const tax = total - subtotal;
+function totalsBlock(total: number) {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:6px;">
-    ${
-      tax > 0
-        ? `<tr>
-        <td style="padding:4px 0;font-size:13px;color:${MUTED};">Suma netto</td>
-        <td style="padding:4px 0;font-size:13px;color:${MUTED};text-align:right;font-variant-numeric:tabular-nums;">${escape(formatCurrency(subtotal))}</td>
-      </tr>
-      <tr>
-        <td style="padding:4px 0;font-size:13px;color:${MUTED};">VAT</td>
-        <td style="padding:4px 0;font-size:13px;color:${MUTED};text-align:right;font-variant-numeric:tabular-nums;">${escape(formatCurrency(tax))}</td>
-      </tr>`
-        : ""
-    }
     <tr>
       <td style="padding:8px 0 4px;font-size:15px;font-weight:600;">Łącznie do zapłaty</td>
       <td style="padding:8px 0 4px;font-size:15px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;">${escape(formatCurrency(total))}</td>
@@ -145,21 +125,11 @@ export function renderOrderConfirmationEmail(input: OrderConfirmationInput) {
 
       <div style="margin:20px 0 12px;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:${ACCENT};">Co kupiłeś</div>
       ${itemsTable(input.items)}
-      ${totalsBlock(input.subtotal, input.total)}
+      ${totalsBlock(input.total)}
 
       <div style="margin:24px 0 8px;">
         ${button("Otwórz bibliotekę", input.libraryUrl)}
       </div>
-
-      ${
-        input.invoiceUrl || input.receiptUrl
-          ? `<p style="margin:16px 0 0;font-size:13px;color:${MUTED};">
-              ${input.invoiceUrl ? ghostLink("Faktura VAT (PDF)", input.invoiceUrl) : ""}
-              ${input.invoiceUrl && input.receiptUrl ? " &nbsp;·&nbsp; " : ""}
-              ${input.receiptUrl ? ghostLink("Potwierdzenie płatności", input.receiptUrl) : ""}
-            </p>`
-          : ""
-      }
 
       <p style="margin:24px 0 0;font-size:13px;color:${MUTED};">
         Coś nie działa albo produkt jest niezgodny z opisem? Odpowiedz na tego maila
@@ -179,7 +149,6 @@ ${input.items.map((item) => `- ${item.productName}${item.quantity > 1 ? ` × ${i
 Łącznie: ${formatCurrency(input.total)}
 
 Otwórz bibliotekę: ${input.libraryUrl}
-${input.invoiceUrl ? `\nFaktura VAT: ${input.invoiceUrl}` : ""}${input.receiptUrl ? `\nPotwierdzenie płatności: ${input.receiptUrl}` : ""}
 
 Problem z zamówieniem? Odpowiedz na tego maila albo zgłoś reklamację na templify.pl/pomoc — rozpatrzymy ją w ciągu 14 dni.
 

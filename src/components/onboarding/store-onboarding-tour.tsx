@@ -18,7 +18,7 @@ const STORE_STEPS: OnboardingStep[] = [
   },
   {
     title: "Koszyk i bezpieczna płatność",
-    body: "Klik w ikonę koszyka u góry → mini koszyk z boku, edytujesz ilości lub idziesz do kasy. Płatność obsługuje Stripe (karta), faktura VAT przychodzi automatycznie.",
+    body: "Klik w ikonę koszyka u góry → mini koszyk z boku, edytujesz ilości lub idziesz do kasy. Płatność obsługuje zewnętrzny operator, a potwierdzenie trafia na e-mail.",
     href: "/koszyk",
     hrefLabel: "Otwórz koszyk",
   },

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getCurrentUser } from "@/lib/session";
+import { consumeRateLimit, getClientAddress } from "@/lib/rate-limit";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +41,15 @@ function isRateLimited(visitorId: string) {
 }
 
 export async function POST(request: Request) {
+  const requestLimit = consumeRateLimit(
+    "analytics-event",
+    getClientAddress(request.headers),
+    { limit: 120, windowMs: 60_000 },
+  );
+  if (!requestLimit.allowed) {
+    return NextResponse.json({ ok: false, code: "rate_limited" }, { status: 429 });
+  }
+
   let payload: unknown = null;
   try {
     payload = await request.json();
@@ -50,6 +60,10 @@ export async function POST(request: Request) {
   const parsed = eventSchema.safeParse(payload);
   if (!parsed.success) {
     return NextResponse.json({ ok: false }, { status: 400 });
+  }
+
+  if (JSON.stringify(parsed.data.properties ?? {}).length > 8_000) {
+    return NextResponse.json({ ok: false }, { status: 413 });
   }
 
   if (isRateLimited(parsed.data.visitorId)) {

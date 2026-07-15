@@ -50,6 +50,7 @@ type CheckoutHealth = {
   siteUrl: string | null;
   missing?: string[];
   webhookConfigured: boolean;
+  diagnosticsVisible?: boolean;
 };
 
 type OrderBumpSnapshot = {
@@ -402,7 +403,7 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
               płatności. Dostęp do plików otrzymasz natychmiast po zakupie.
             </p>
           </div>
-          {clientStripeStatus.testMode || (health && !health.ready) ? (
+          {health?.diagnosticsVisible && (clientStripeStatus.testMode || !health.ready) ? (
             <CheckoutDevBanner health={health} testMode={clientStripeStatus.testMode} />
           ) : null}
           {!PURCHASES_ENABLED ? (
@@ -431,7 +432,7 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
         <div className="space-y-3 rounded-[1.5rem] border border-border/70 bg-background/70 p-5">
           <p className="text-sm font-medium text-foreground">Co dzieje się po kliknięciu?</p>
           <ol className="space-y-2 text-sm text-muted-foreground">
-            <li>1. Przejdziesz do bezpiecznej strony płatności — karta, BLIK lub Apple Pay.</li>
+            <li>1. Przejdziesz do bezpiecznej strony HotPay. Dostępne metody, np. e-przelew, BLIK lub karta, zobaczysz przed zatwierdzeniem płatności.</li>
             <li>2. Po zapłaceniu zobaczysz potwierdzenie i numer zamówienia.</li>
             <li>3. Pliki pojawią się w Twojej bibliotece w Templify natychmiast po płatności.</li>
           </ol>
@@ -464,7 +465,7 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
             ? "Zakupy chwilowo niedostępne"
             : isSubmitting
               ? "Przekierowanie do płatności..."
-              : "Przejdź do bezpiecznej płatności"}
+              : "Zamawiam i płacę"}
         </Button>
 
         <ul className="grid gap-3 sm:grid-cols-3">
@@ -664,6 +665,14 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
               <span>-{formatCurrency(giftApplied)}</span>
             </div>
           ) : null}
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span>Dostawa cyfrowa</span>
+            <span>0,00 zł</span>
+          </div>
+          <div className="flex items-center justify-between gap-4 text-muted-foreground">
+            <span>Podatek VAT</span>
+            <span className="text-right">Nie doliczono (zwolnienie)</span>
+          </div>
           <div className="flex items-center justify-between pt-1 text-base font-semibold text-foreground">
             <span>Do zapłaty</span>
             <span>{formatCurrency(totalAfterGift)}</span>
@@ -671,8 +680,8 @@ export function CheckoutClient({ initialEmail, orderBump }: CheckoutClientProps)
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Cena zawiera podatek. Jeśli potrzebujesz danych do dokumentu zakupu, odpisz na maila z
-          potwierdzeniem.
+          Kwota końcowa w PLN, bez kosztów dostawy i innych opłat. Jeśli potrzebujesz dokumentu
+          potwierdzającego sprzedaż, odpisz na maila z potwierdzeniem.
         </p>
         <Link href="/koszyk" className="inline-flex text-sm text-primary transition hover:text-primary/80">
           ← Wróć do koszyka

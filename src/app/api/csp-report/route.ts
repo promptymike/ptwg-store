@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { consumeRateLimit, getClientAddress } from "@/lib/rate-limit";
+
 // Collector for Content-Security-Policy-Report-Only violations. Browsers POST
 // either the legacy `application/csp-report` body or the newer Reporting API
 // `application/reports+json` array. We just log a trimmed summary so we can see
@@ -23,7 +25,20 @@ function summarize(report: unknown) {
 }
 
 export async function POST(request: Request) {
+  const rateLimit = consumeRateLimit(
+    "csp-report",
+    getClientAddress(request.headers),
+    { limit: 60, windowMs: 60_000 },
+  );
+  if (!rateLimit.allowed) {
+    return new NextResponse(null, { status: 204 });
+  }
+
   try {
+    const declaredLength = Number(request.headers.get("content-length") ?? 0);
+    if (declaredLength > MAX_BODY_BYTES) {
+      return new NextResponse(null, { status: 204 });
+    }
     const raw = await request.text();
     if (raw.length > MAX_BODY_BYTES) {
       return new NextResponse(null, { status: 204 });

@@ -4,7 +4,7 @@ export const PURCHASES_ENABLED =
 export const PURCHASES_UNAVAILABLE_TITLE = "Sklep jest teraz w fazie testów";
 
 export const PURCHASES_UNAVAILABLE_MESSAGE =
-  "Zakupy są obecnie niedostępne, bo dopracowujemy platformę w trybie testowym. Zapraszamy za tydzień :)";
+  "Sprzedaż zostanie uruchomiona po zakończeniu konfiguracji operatora płatności. Produkty i ceny możesz przeglądać bez ograniczeń.";
 
 export const PURCHASES_UNAVAILABLE_CODE = "purchases_temporarily_disabled";
 

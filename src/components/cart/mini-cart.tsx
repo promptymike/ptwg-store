@@ -280,8 +280,7 @@ export function MiniCart({ open, onClose }: MiniCartProps) {
               </span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Ceny brutto, płatność Stripe. Faktury i potwierdzenia przyjdą na
-              e-mail.
+              Ceny końcowe. Potwierdzenie płatności otrzymasz na e-mail.
             </p>
             <div className="flex flex-col gap-2">
               {PURCHASES_ENABLED ? (

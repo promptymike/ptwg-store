@@ -41,9 +41,9 @@ export async function LegalPageTemplate({
           <section className="rounded-2xl border border-border/70 bg-secondary/35 p-5 text-sm leading-7 text-muted-foreground">
             <p className="text-xs font-bold uppercase tracking-[.2em] text-primary">Operator sklepu</p>
             {settings.businessName ? <p className="mt-2 font-semibold text-foreground">{settings.businessName}</p> : null}
-            {settings.businessTaxId ? <p>NIP: {settings.businessTaxId}</p> : null}
             {settings.businessAddress ? <p>{settings.businessAddress}</p> : null}
             <p>{settings.supportEmail}</p>
+            {settings.businessPhone ? <p>{settings.businessPhone}</p> : null}
           </section>
         ) : null}
 

@@ -12,7 +12,7 @@ const steps = [
     step: "02",
     title: "Opłać bezpiecznie",
     description:
-      "Przechodzisz przez bezpieczny checkout online. Płatność kartą obsługiwana przez Stripe — jeden klik.",
+      "Przechodzisz przez bezpieczny checkout online. Płatność elektroniczną obsługuje HotPay.",
   },
   {
     step: "03",

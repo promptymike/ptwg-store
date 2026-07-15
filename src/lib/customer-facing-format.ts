@@ -22,6 +22,8 @@ export function formatCustomerFacingProductFormat(
 
 export function formatCustomerFacingText(text: string) {
   return text
+    .replace(/\bFaktur(?:a|y|ę)\s+VAT\b/gi, "Potwierdzenie płatności e-mailem")
+    .replace(/\b14\s+dni\s+na\s+zwrot\b/gi, "Wsparcie posprzedażowe")
     .replace(/\bZIP\s*\(\s*HTML\s*\)/gi, ONLINE_AND_PDF_LABEL)
     .replace(/\bPlik\s+HTML\s*\/\s*PDF\b/gi, ONLINE_AND_PDF_LABEL)
     .replace(/\bplik\s+HTML\b/gi, "e-book dostępny online")

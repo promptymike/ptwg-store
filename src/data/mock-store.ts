@@ -496,9 +496,9 @@ export const faqItems: FaqItem[] = [
   },
   {
     id: "faq-06",
-    question: "Czy wystawiacie fakturę VAT?",
+    question: "Czy otrzymam potwierdzenie zakupu?",
     answer:
-      "Tak. Fakturę VAT wystawiamy automatycznie po zakupie. W formularzu zamówienia możesz podać dane firmy i numer NIP.",
+      "Tak. Po opłaceniu zamówienia otrzymasz e-mail z potwierdzeniem płatności i dostępem do zakupionych produktów. Dokument sprzedaży wydajemy na żądanie zgodnie z obowiązującymi przepisami.",
   },
   {
     id: "faq-07",
@@ -534,7 +534,7 @@ export const legalPages: ContentPage[] = [
     title: "Regulamin",
     description: "Warunki korzystania ze sklepu i zakupu produktów cyfrowych.",
     body:
-      "Produkty oferowane przez Templify mają charakter cyfrowy i są udostępniane po skutecznym opłaceniu zamówienia. Klient ma prawo do zwrotu w ciągu 14 dni od zakupu zgodnie z regulaminem.",
+      "Produkty oferowane przez Templify mają charakter cyfrowy i są udostępniane po skutecznym opłaceniu zamówienia. Zasady reklamacji i ustawowego prawa odstąpienia, w tym wyjątek dla natychmiast dostarczanych treści cyfrowych, opisuje Regulamin.",
   },
   {
     slug: "kontakt",

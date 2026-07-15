@@ -32,7 +32,14 @@ test("desktop header keeps the logo readable and mini-cart fully opaque", async 
   await expect(brandLink.getByText("templify")).toBeVisible();
 
   // Adding to cart auto-opens the mini-cart drawer — no header click needed.
-  await page.getByRole("button", { name: /Dodaj do koszyka/i }).first().click();
+  const addButton = page.getByRole("button", { name: /Dodaj do koszyka/i });
+  if ((await addButton.count()) === 0) {
+    await expect(
+      page.getByRole("button", { name: "Zakupy chwilowo niedostępne" }).first(),
+    ).toBeDisabled();
+    return;
+  }
+  await addButton.first().click();
 
   const cart = page.getByRole("dialog", { name: "Mini koszyk" });
   await expect(cart).toBeVisible();

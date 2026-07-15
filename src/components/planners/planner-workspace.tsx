@@ -8,7 +8,15 @@ import type { InteractivePlanner } from "@/data/interactive-planners";
 
 type SaveState = "loading" | "saved" | "saving" | "local" | "error";
 
-export function PlannerWorkspace({ planner, demo = false }: { planner: InteractivePlanner; demo?: boolean }) {
+export function PlannerWorkspace({
+  planner,
+  demo = false,
+  embedAccessToken,
+}: {
+  planner: InteractivePlanner;
+  demo?: boolean;
+  embedAccessToken?: string;
+}) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const dataRef = useRef<Record<string, string>>({});
   const timerRef = useRef<number | null>(null);
@@ -86,6 +94,10 @@ export function PlannerWorkspace({ planner, demo = false }: { planner: Interacti
     error: [CloudOff, "Zapis w chmurze chwilowo niedostępny"],
   }[saveState] as [typeof Cloud, string];
   const StatusIcon = status[0];
+  const embedQuery = new URLSearchParams({
+    mode: demo ? "demo" : "owned",
+    ...(!demo && embedAccessToken ? { access: embedAccessToken } : {}),
+  }).toString();
 
   return (
     <div className="flex h-dvh flex-col bg-[#11100d] text-white">
@@ -106,7 +118,7 @@ export function PlannerWorkspace({ planner, demo = false }: { planner: Interacti
         <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/65"><StatusIcon className={`size-3.5 ${saveState === "saving" || saveState === "loading" ? "animate-spin" : ""}`} />{status[1]}</div>
       </header>
       {demo ? <div className="flex items-center justify-center gap-3 bg-amber-300 px-4 py-2 text-center text-xs font-semibold text-stone-950">To jest działające demo. Po zakupie dane zapisują się na Twoim koncie.<Link href={`/planery/${planner.slug}`} className="underline underline-offset-2">Zobacz pełną wersję</Link></div> : null}
-      <iframe ref={iframeRef} title={planner.name} src={`/api/planners/${planner.slug}/embed?mode=${demo ? "demo" : "owned"}`} className="min-h-0 w-full flex-1 border-0 bg-white" sandbox="allow-same-origin allow-scripts allow-forms allow-modals allow-downloads allow-popups" />
+      <iframe ref={iframeRef} title={planner.name} src={`/api/planners/${planner.slug}/embed?${embedQuery}`} className="min-h-0 w-full flex-1 border-0 bg-white" sandbox="allow-scripts allow-forms allow-modals allow-downloads allow-popups" />
     </div>
   );
 }

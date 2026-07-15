@@ -48,8 +48,8 @@ const trustItems = [
   },
   {
     icon: Sparkles,
-    title: "Licencja do pracy",
-    description: "Szablon wdrażasz we własnym biznesie i wracasz do niego, kiedy chcesz.",
+    title: "Licencja osobista",
+    description: "Korzystasz bezterminowo na własny użytek, bez prawa odsprzedaży lub publicznego udostępniania.",
   },
 ];
 

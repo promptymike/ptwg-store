@@ -677,9 +677,13 @@ const READER_SCRIPT = String.raw`
 })();
 `;
 
-export function renderReaderEnhancement(productId: string, productName: string) {
+export function renderReaderEnhancement(
+  productId: string,
+  productName: string,
+  nonce: string,
+) {
   const cfg = JSON.stringify({ productId, productName });
   return `<style>${READER_STYLES}</style>
-<script>window.__templifyReaderCfg=${cfg};</script>
-<script>${READER_SCRIPT}</script>`;
+<script nonce="${nonce}">window.__templifyReaderCfg=${cfg};</script>
+<script nonce="${nonce}">${READER_SCRIPT}</script>`;
 }

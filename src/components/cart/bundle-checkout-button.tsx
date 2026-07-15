@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { readAffiliateRef } from "@/lib/affiliate";
 import { readAttribution } from "@/lib/attribution";
 import {
-  BUNDLE_CTA_COPY,
   BUNDLE_CTA_EXPERIMENT,
   pickVariant,
 } from "@/lib/experiments";
@@ -23,17 +22,19 @@ type BundleCheckoutButtonProps = {
   bundleName: string;
   price: number;
   /** When the buyer already owns every product in the pack the CTA flips
-   *  to a "you already have this" link instead of opening Stripe. */
+   *  to a "you already have this" link instead of opening payment. */
   allOwned?: boolean;
 };
 
 export function BundleCheckoutButton({
   bundleId,
   bundleName,
+  price,
   allOwned,
 }: BundleCheckoutButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const variant = pickVariant(BUNDLE_CTA_EXPERIMENT);
   const { track } = useAnalytics();
   const reportedRef = useRef(false);
@@ -103,6 +104,7 @@ export function BundleCheckoutButton({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           attribution: readAttribution() ?? undefined,
+          digitalDeliveryConsent: acceptedTerms,
         }),
       });
       const payload = (await response
@@ -130,23 +132,52 @@ export function BundleCheckoutButton({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
+      <div className="space-y-1.5 rounded-2xl border border-stone-950/10 bg-white/55 p-3 text-xs text-stone-600">
+        <div className="flex items-center justify-between">
+          <span>Pakiet</span>
+          <span>{price.toLocaleString("pl-PL", { style: "currency", currency: "PLN" })}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span>Dostawa cyfrowa</span>
+          <span>0,00 zł</span>
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <span>Podatek VAT</span>
+          <span className="text-right">Nie doliczono (zwolnienie)</span>
+        </div>
+        <div className="flex items-center justify-between border-t border-stone-950/10 pt-1.5 font-semibold text-stone-950">
+          <span>Do zapłaty</span>
+          <span>{price.toLocaleString("pl-PL", { style: "currency", currency: "PLN" })}</span>
+        </div>
+      </div>
+      <label className="flex items-start gap-2.5 text-xs leading-5 text-stone-600">
+        <input
+          type="checkbox"
+          checked={acceptedTerms}
+          onChange={(event) => setAcceptedTerms(event.target.checked)}
+          className="mt-0.5 size-4 shrink-0 accent-stone-950"
+        />
+        <span>
+          Akceptuję <Link href="/regulamin" target="_blank" className="font-semibold text-stone-950 underline underline-offset-2">Regulamin</Link> i żądam natychmiastowej dostawy cyfrowej, przyjmując do wiadomości utratę prawa odstąpienia po uzyskaniu dostępu.
+        </span>
+      </label>
       <Button
         className="w-full border-stone-950 bg-stone-950 text-[#fff] shadow-[0_18px_45px_-28px_rgba(20,16,10,.8)] hover:bg-stone-800"
         size="lg"
         onClick={handleClick}
-        disabled={isLoading}
+        disabled={isLoading || !acceptedTerms}
         aria-label={`Kup ${bundleName}`}
       >
         {isLoading ? (
           <>
             <Loader2 className="size-4 animate-spin" />
-            Przekierowanie do Stripe…
+            Przekierowanie do płatności…
           </>
         ) : (
           <>
             <ShoppingBag className="size-4" />
-            {BUNDLE_CTA_COPY[variant]}
+            Kupuję i płacę
           </>
         )}
       </Button>

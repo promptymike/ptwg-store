@@ -80,7 +80,7 @@ export default function GiftPage() {
           </h2>
           <p className="text-sm text-muted-foreground">
             Wybierz kwotę i powiedz, gdzie ma trafić kod. Po kliknięciu „Kup”
-            przekierujemy do bezpiecznej płatności Stripe.
+            przekierujemy do bezpiecznej płatności obsługiwanej przez HotPay.
           </p>
         </div>
         <GiftPurchaseForm />
@@ -95,7 +95,7 @@ export default function GiftPage() {
             </p>
             <p className="mt-2 text-foreground">Płatność</p>
             <p className="mt-1 text-xs">
-              Wybierasz kwotę i opłacasz Stripe (BLIK / karta).
+              Wybierasz kwotę i płacisz przez HotPay metodą dostępną na ekranie płatności.
             </p>
           </li>
           <li className="rounded-2xl border border-border/70 bg-background/60 p-4">

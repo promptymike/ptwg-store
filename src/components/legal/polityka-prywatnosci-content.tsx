@@ -6,14 +6,19 @@ import {
   LegalShell,
   LegalToc,
 } from "@/components/legal/legal-document";
-
-const SUPPORT_EMAIL = "ptwgadmin@gmail.com";
+import {
+  legalSellerName,
+  type LegalIdentity,
+} from "@/components/legal/legal-identity";
 
 // Final privacy policy (source: legal review, effective 2026-07-08) with two
 // factual corrections vs. the reviewed draft, both flagged to the operator:
 // - Supabase region is eu-north-1 (Stockholm), not eu-central-1 (Frankfurt);
 // - anonymous analytics run on Plausible AND Vercel Web Analytics.
-export function PolitykaPrywatnosciContent() {
+export function PolitykaPrywatnosciContent({ identity }: { identity: LegalIdentity }) {
+  const SUPPORT_EMAIL = identity.supportEmail;
+  const sellerName = legalSellerName(identity);
+
   return (
     <LegalShell
       eyebrow="Dokumenty prawne"
@@ -37,7 +42,7 @@ export function PolitykaPrywatnosciContent() {
       <LegalSection id="s1" num="§1" title="Definicje">
         <ul>
           <li>
-            <strong>Administrator:</strong> Templify – podmiot decydujący o celach i sposobach
+            <strong>Administrator:</strong> {sellerName}, działający pod marką Templify – podmiot decydujący o celach i sposobach
             przetwarzania danych osobowych Użytkowników Serwisu. Kontakt:{" "}
             <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
           </li>
@@ -86,9 +91,21 @@ export function PolitykaPrywatnosciContent() {
       <LegalSection id="s2" num="§2" title="Informacje o Administratorze">
         <p>Administratorem danych osobowych Użytkowników Serwisu templify.pl jest:</p>
         <div className="rounded-2xl border border-border/70 bg-secondary/30 p-5">
-          <p className="text-base font-semibold text-foreground">Templify</p>
+          <p className="text-base font-semibold text-foreground">{sellerName}</p>
           <p className="mt-1.5">
+            {identity.businessAddress ? (
+              <>
+                Adres: {identity.businessAddress}
+                <br />
+              </>
+            ) : null}
             E-mail: <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+            {identity.businessPhone ? (
+              <>
+                <br />
+                Telefon: <a href={`tel:${identity.businessPhone}`}>{identity.businessPhone}</a>
+              </>
+            ) : null}
             <br />
             Strona: <Link href="/">www.templify.pl</Link>
           </p>
@@ -125,8 +142,8 @@ export function PolitykaPrywatnosciContent() {
             zaszyfrowanej – hash); zbierane przy rejestracji Konta.
           </li>
           <li>
-            <strong>Dane zakupowe:</strong> imię i nazwisko lub nazwa firmy, adres do faktury, NIP
-            (dla firm), adres e-mail do potwierdzenia zamówienia; zbierane przy składaniu zamówień.
+            <strong>Dane zakupowe:</strong> adres e-mail, identyfikator zamówienia, informacje o
+            zakupionych Produktach i płatności; zbierane przy składaniu i realizacji zamówień.
           </li>
           <li>
             <strong>Dane płatnicze:</strong> typ karty płatniczej, ostatnie 4 cyfry numeru karty,
@@ -214,11 +231,10 @@ export function PolitykaPrywatnosciContent() {
             lata po jej zakończeniu, na wypadek ewentualnych roszczeń.
           </li>
           <li>
-            <strong>Wypełnienie obowiązków prawnych</strong> (prowadzenie ksiąg rachunkowych,
-            wystawianie faktur, archiwizacja dokumentów finansowych). Podstawa prawna: art. 6 ust. 1
-            lit. c RODO (obowiązek prawny, m.in. ustawa o rachunkowości, przepisy podatkowe). Okres
-            przechowywania: 5 lat od zakończenia roku obrotowego, w którym dokonano transakcji, lub
-            dłużej, jeśli wymaga tego prawo.
+            <strong>Wypełnienie obowiązków prawnych</strong> (prowadzenie uproszczonej ewidencji
+            sprzedaży, rozliczenia podatkowe i archiwizacja dokumentów sprzedaży). Podstawa prawna:
+            art. 6 ust. 1 lit. c RODO (obowiązek prawny wynikający z przepisów podatkowych). Okres
+            przechowywania: przez okres wymagany obowiązującymi przepisami.
           </li>
           <li>
             <strong>Prawnie uzasadnione interesy Administratora</strong> (dochodzenie i obrona

@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { z } from "zod";
 
 import { sendEmail } from "@/lib/email/client";
@@ -7,6 +8,7 @@ import { renderNewsletterWelcomeEmail } from "@/lib/email/newsletter-templates";
 import { env } from "@/lib/env";
 import { getCanonicalUrl } from "@/lib/seo";
 import { getCurrentUser } from "@/lib/session";
+import { consumeRateLimit, getClientAddress } from "@/lib/rate-limit";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 const subscribeSchema = z.object({
@@ -26,6 +28,19 @@ export async function subscribeToNewsletterAction(
   _prev: SubscribeNewsletterState,
   formData: FormData,
 ): Promise<SubscribeNewsletterState> {
+  const requestHeaders = await headers();
+  const rateLimit = consumeRateLimit(
+    "newsletter-subscribe",
+    getClientAddress(requestHeaders),
+    { limit: 5, windowMs: 10 * 60_000 },
+  );
+  if (!rateLimit.allowed) {
+    return {
+      status: "error",
+      message: "Za dużo prób zapisu. Odczekaj kilka minut i spróbuj ponownie.",
+    };
+  }
+
   const parsed = subscribeSchema.safeParse({
     email: formData.get("email"),
     source: formData.get("source") ?? "inline",

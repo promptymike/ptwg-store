@@ -172,7 +172,7 @@ export function AdminBundleForm({ bundle, products }: AdminBundleFormProps) {
           name="perks"
           rows={4}
           defaultValue={(bundle?.perks ?? []).join("\n")}
-          placeholder={"Dwa e-booki online + PDF\nDostęp bezterminowy\nFaktura VAT"}
+          placeholder={"Dwa e-booki online + PDF\nDostęp bezterminowy\nPotwierdzenie płatności"}
         />
       </label>
 

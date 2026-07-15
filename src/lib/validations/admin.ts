@@ -206,8 +206,12 @@ export const siteSettingsFormSchema = z.object({
     .int()
     .min(1, "Rabat order bump musi byc wiekszy od zera.")
     .max(80, "Rabat order bump jest za duzy."),
-  businessName: z.string().max(120, "Nazwa firmy jest zbyt dluga.").optional(),
-  businessTaxId: z.string().max(32, "NIP jest zbyt dlugi.").optional(),
+  businessName: z.string().max(120, "Imie i nazwisko jest zbyt dlugie.").optional(),
   businessAddress: z.string().max(240, "Adres jest zbyt dlugi.").optional(),
+  businessPhone: z
+    .string()
+    .trim()
+    .max(32, "Numer telefonu jest zbyt dlugi.")
+    .refine((value) => value.replace(/\D/g, "").length >= 7, "Podaj poprawny numer telefonu."),
   supportEmail: z.email("Podaj poprawny adres e-mail wsparcia."),
 });

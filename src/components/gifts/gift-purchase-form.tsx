@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Loader2, ShoppingBag } from "lucide-react";
 
@@ -50,6 +51,8 @@ export function GiftPurchaseForm() {
           mode === "recipient"
             ? String(formData.get("message") ?? "").trim() || null
             : null,
+        digitalDeliveryConsent:
+          formData.get("digitalDeliveryConsent") === "on",
       };
       const response = await fetch("/api/gift/checkout", {
         method: "POST",
@@ -204,6 +207,38 @@ export function GiftPurchaseForm() {
         </div>
       ) : null}
 
+      <div className="space-y-2 rounded-2xl border border-border/70 bg-background/60 p-4 text-sm">
+        <div className="flex items-center justify-between text-muted-foreground">
+          <span>Wartość vouchera</span>
+          <span>{effectiveAmount.toLocaleString("pl-PL", { style: "currency", currency: "PLN" })}</span>
+        </div>
+        <div className="flex items-center justify-between text-muted-foreground">
+          <span>Dostawa cyfrowa e-mailem</span>
+          <span>0,00 zł</span>
+        </div>
+        <div className="flex items-center justify-between gap-4 text-muted-foreground">
+          <span>Podatek VAT</span>
+          <span className="text-right">Nie doliczono (zwolnienie)</span>
+        </div>
+        <div className="flex items-center justify-between border-t border-border/60 pt-2 font-semibold text-foreground">
+          <span>Do zapłaty</span>
+          <span>{effectiveAmount.toLocaleString("pl-PL", { style: "currency", currency: "PLN" })}</span>
+        </div>
+        <p className="text-xs text-muted-foreground">Kwota końcowa, bez innych opłat.</p>
+      </div>
+
+      <label className="flex items-start gap-3 rounded-2xl border border-border/70 bg-background/60 p-4 text-sm leading-6 text-muted-foreground">
+        <input
+          type="checkbox"
+          name="digitalDeliveryConsent"
+          required
+          className="mt-1 size-4 shrink-0 accent-[var(--color-foreground)]"
+        />
+        <span>
+          Akceptuję <Link href="/regulamin" target="_blank" className="font-semibold text-foreground underline underline-offset-2">Regulamin</Link> i żądam natychmiastowej dostawy cyfrowej vouchera przed upływem 14 dni. Przyjmuję do wiadomości utratę prawa odstąpienia po dostarczeniu kodu.
+        </span>
+      </label>
+
       <div className="flex flex-wrap items-center gap-3">
         <Button
           type="submit"
@@ -213,7 +248,7 @@ export function GiftPurchaseForm() {
           {busy ? (
             <>
               <Loader2 className="size-4 animate-spin" />
-              Przekierowanie do Stripe…
+              Przekierowanie do płatności…
             </>
           ) : !PURCHASES_ENABLED ? (
             <>
@@ -223,7 +258,7 @@ export function GiftPurchaseForm() {
           ) : (
             <>
               <ShoppingBag className="size-4" />
-              Kup voucher{submittable ? ` za ${effectiveAmount} zł` : ""}
+              Kupuję i płacę{submittable ? ` ${effectiveAmount} zł` : ""}
             </>
           )}
         </Button>

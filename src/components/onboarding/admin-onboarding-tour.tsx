@@ -20,7 +20,7 @@ const ADMIN_STEPS: OnboardingStep[] = [
   },
   {
     title: "Pakiety — łącz produkty z rabatem",
-    body: 'Stwórz pakiet 2-3 ebooków za niższą cenę niż suma. Multi-select produktów, presety motywu, cena. Pojawi się na home w sekcji „Pakiety" + jednym kliknięciem prowadzi do Stripe.',
+    body: 'Stwórz pakiet 2-3 ebooków za niższą cenę niż suma. Multi-select produktów, presety motywu, cena. Pojawi się na home w sekcji „Pakiety" i poprowadzi do płatności.',
     href: "/admin/pakiety",
     hrefLabel: "Otwórz Pakiety",
   },
@@ -38,7 +38,7 @@ const ADMIN_STEPS: OnboardingStep[] = [
   },
   {
     title: "Zamówienia — historia transakcji",
-    body: "Każde opłacone Stripe Checkout trafia tu automatycznie z fakturą, e-mailem klienta i listą produktów. Stąd robisz refundy.",
+    body: "Każde opłacone zamówienie trafia tu automatycznie z potwierdzeniem płatności, e-mailem klienta i listą produktów. Stąd obsługujesz zwroty płatności.",
     href: "/admin/zamowienia",
     hrefLabel: "Otwórz Zamówienia",
   },
@@ -73,8 +73,8 @@ const ADMIN_STEPS: OnboardingStep[] = [
     hrefLabel: "Otwórz Admini",
   },
   {
-    title: "Ustawienia — dane firmy i kontakt",
-    body: "Nazwa firmy, NIP, adres, e-mail wsparcia. Te dane lecą na faktury, do stopki i do automatycznych maili. Wypełnij PRZED pierwszą prawdziwą sprzedażą.",
+    title: "Ustawienia — dane sprzedawcy i kontakt",
+    body: "Imię i nazwisko sprzedawcy, pełny adres zamieszkania i e-mail wsparcia. Te dane trafiają do regulaminu, polityki prywatności i stopki. Wypełnij je przed pierwszą prawdziwą sprzedażą.",
     href: "/admin/ustawienia",
     hrefLabel: "Otwórz Ustawienia",
   },

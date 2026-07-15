@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 
 import { PlannerWorkspace } from "@/components/planners/planner-workspace";
 import { getInteractivePlanner } from "@/data/interactive-planners";
+import { createPlannerEmbedAccessToken } from "@/lib/planners/embed-access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type OwnedPlannerPageProps = {
@@ -39,5 +40,9 @@ export default async function OwnedPlannerPage({ params }: OwnedPlannerPageProps
   const { data: access } = await supabase!.from("library_items").select("id").eq("user_id", auth.user.id).eq("product_id", planner.id).maybeSingle();
   if (!access) redirect(`/planery/${slug}?dostep=brak`);
 
-  return <PlannerWorkspace planner={planner} />;
+  const embedAccessToken = createPlannerEmbedAccessToken({
+    slug: planner.slug,
+  });
+
+  return <PlannerWorkspace planner={planner} embedAccessToken={embedAccessToken} />;
 }

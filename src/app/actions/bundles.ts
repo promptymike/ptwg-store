@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { formatCustomerFacingText } from "@/lib/customer-facing-format";
 import { getCurrentUser } from "@/lib/session";
 import {
   createSupabaseAdminClient,
@@ -62,7 +63,7 @@ const upsertSchema = z.object({
     .transform((value) =>
       value
         .split(/\r?\n/)
-        .map((line) => line.trim())
+        .map((line) => formatCustomerFacingText(line.trim()))
         .filter(Boolean)
         .slice(0, 12),
     ),
